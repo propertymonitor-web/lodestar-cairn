@@ -1,4 +1,4 @@
-LODESTAR CAIRN - FEATURES AND COMMANDS (Ver. 1.0.1, ALPHA)
+LODESTAR CAIRN - FEATURES AND COMMANDS (Ver. 1.0.2, ALPHA)
 By FEAR REACTIVE. For the Heltec WiFi LoRa 32 V4 R2 (not the R8).
 ALPHA: tested on a PC and in a browser with practice data, not yet on real hardware.
 
@@ -22,6 +22,9 @@ FEATURES
 - Power: radio battery (if a LiPo is fitted), tablet battery, manual power-bank timers.
 - Guide: offline field guide, printable.
 - No on-screen keyboard unless you tap the keyboard icon.
+- OLED screen: boot splash with the CAIRN emblem (a guiding star over a cairn of stones), and a CAIRN STATION screen
+  (the first page after Home) showing the ID, journal size and time since the last check-in. Press Enter (or hold
+  the button on a one-button board) on that screen to send a check-in.
 - Everything NOVA does still works.
 
 DASHBOARD (browser page, Chrome 148+ on Android, or recent Chrome/Edge on a computer)

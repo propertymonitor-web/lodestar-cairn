@@ -1,9 +1,16 @@
-# LODESTAR CAIRN (ALPHA) - Ver. 1.0.1 (release cairn-alpha2)
+# LODESTAR CAIRN (ALPHA) - Ver. 1.0.2 (release cairn-alpha3)
+
+![CAIRN emblem](docs/cairn-logo.png)
+
 
 Crisis-use field kit firmware and dashboard for MeshCore, by FEAR REACTIVE.
 CAIRN turns a Heltec V4 R2 companion into a **station**: it gets a permanent ID (`LC-xxxxxxxx`), keeps a journal of **everything it hears**, sends a one-button check-in with GPS, and feeds a tablet dashboard that works with **no internet**.
 
 **Status: ALPHA. The firmware compiles and passes its tests, and the dashboard is tested with practice data, but neither has run on real hardware or on the tablet yet.**
+
+## What changed in cairn-alpha3 (Ver. 1.0.2)
+- **OLED:** a new boot splash with the CAIRN emblem (a guiding star over a cairn of stones) and a new **CAIRN STATION** screen (ID, journal size, last check-in; press Enter or hold the button to send a check-in).
+- Version is now **1.0.2**.
 
 ## What changed in cairn-alpha2 (Ver. 1.0.1)
 - **The station ID is now 8 characters and comes from the radio's own public key** (it was 5 random characters in cairn-alpha1, Ver. 0.1.0). Example: `LC-K7M2P4XQ`.
@@ -43,6 +50,7 @@ The companion connects to the tablet two ways: **Bluetooth** to the MeshCore app
 - **Power**: radio battery if fitted, tablet battery, manual power-bank timers.
 - **Guide**: offline field guide, printable.
 - **No on-screen keyboard** unless you tap the keyboard icon.
+- **OLED**: emblem splash and a station screen with a check-in button.
 
 ## Offline rule
 Online is fine **before** you go: load the dashboard once, load an offline map. In the field nothing needs internet. The dashboard is a PWA (cached after first load) and also ships as `dashboard.html` in each release.
@@ -61,12 +69,13 @@ Use the **BLE** build: the USB port carries the dashboard. (The USB build uses t
 `cairn` status (shows ID and version) · `cairn id` · `cairn ok [channel]` · `cairn mode disaster|normal` · `cairn dump` · `cairn clear yes` · `cairn time <epoch>`; all NOVA commands also work.
 
 ## Layout
-`cairn/` firmware logic and tests · `nova/` vendored NOVA · `tools/apply_cairn.py` patches MeshCore · `dashboard/cairn.html` source · `tools/build_dashboard.py` builds `docs/index.html` (commit the result; CI checks it).
+`cairn/` firmware logic, OLED screens (`cairn/ui`) and tests · `tools/make_logo.py` draws the emblem · `nova/` vendored NOVA · `tools/apply_cairn.py` patches MeshCore · `dashboard/cairn.html` source · `tools/build_dashboard.py` builds `docs/index.html` (commit the result; CI checks it).
 
 ## Dashboard hosting
 Enable GitHub Pages (Settings → Pages → `main` / `/docs`) then open the page once on the tablet and "Add to Home screen".
 
 Changelog:
+- 1.0.2 (cairn-alpha3): OLED emblem splash and CAIRN STATION screen with check-in button.
 - 1.0.1 (cairn-alpha2): 8-character station ID from the radio's public key; version set to 1.0.1; dashboard reads 5- and 8-character check-ins.
 - 0.1.0-alpha (cairn-alpha1): first build, 5-character random ID.
 

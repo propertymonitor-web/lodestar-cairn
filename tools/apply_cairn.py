@@ -19,6 +19,8 @@ import sys
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.join(HERE, "..")
 CAIRN_H = os.path.join(ROOT, "cairn", "Cairn.h")
+CAIRN_PAGES = os.path.join(ROOT, "cairn", "ui", "CairnPages.h")
+CAIRN_LOGO = os.path.join(ROOT, "cairn", "ui", "CairnLogo.h")
 
 
 def die(msg):
@@ -362,9 +364,32 @@ def main():
     open(h_path, "w").write(h)
     open(c_path, "w").write(c)
 
+    # ---- UITask.cpp: CAIRN splash and station screen ----------------------------------------
+    u_path = os.path.join(comp, "ui-new", "UITask.cpp")
+    for p in (u_path, CAIRN_PAGES, CAIRN_LOGO):
+        if not os.path.isfile(p):
+            die(f"Cannot find {p}.")
+    shutil.copyfile(CAIRN_PAGES, os.path.join(comp, "ui-new", "CairnPages.h"))
+    shutil.copyfile(CAIRN_LOGO, os.path.join(comp, "ui-new", "CairnLogo.h"))
+    u = open(u_path).read()
+    u = once(u, '#include "NovaPages.h"\n', '#include "NovaPages.h"\n#include "CairnPages.h"\n', "NovaPages include")
+    u = once(u, "    FIRST,\n    NV_LINK,", "    FIRST,\n    CR_STN,       // LODESTAR CAIRN station screen\n    NV_LINK,", "HomePage enum")
+    u = once(u, "    } else if (_page == HomePage::NV_LINK) {\n",
+             "    } else if (_page == HomePage::CR_STN) {\n      cairnui::pageStation(display, cairn_core, millis() / 1000u);\n"
+             "    } else if (_page == HomePage::NV_LINK) {\n", "render: NV_LINK branch")
+    u = once(u, "    if (c == KEY_ENTER && _page == HomePage::NV_TRIP) {\n",
+             "    if (c == KEY_ENTER && _page == HomePage::CR_STN) {   // CAIRN: send a check-in\n"
+             "      cairn_core.ok_channel = 0; cairn_core.want_ok = true;\n"
+             "      _task->showAlert(\"Check-in sending\", 900);\n      return true;\n    }\n"
+             "    if (c == KEY_ENTER && _page == HomePage::NV_TRIP) {\n", "key: NV_TRIP")
+    u = once(u, "(_page >= HomePage::NV_LINK && _page <= HomePage::NV_RANGE)", "_page == HomePage::CR_STN || (_page >= HomePage::NV_LINK && _page <= HomePage::NV_RANGE)", "render interval")
+    u = once(u, "novaui::splash(display, _version_info);   // LODESTAR NOVA", "cairnui::splash(display, _version_info);   // LODESTAR CAIRN", "splash call")
+    open(u_path, "w").write(u)
+
     print("LODESTAR CAIRN applied:")
     print("  + src/helpers/Cairn.h")
     print("  ~ examples/companion_radio/MyMesh.h, MyMesh.cpp  (station ID, journal, check-in, cairn commands)")
+    print("  ~ examples/companion_radio/ui-new/UITask.cpp (CAIRN splash with emblem, station screen)")
 
 
 if __name__ == "__main__":

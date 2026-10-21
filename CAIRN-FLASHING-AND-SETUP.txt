@@ -1,4 +1,4 @@
-LODESTAR CAIRN - FLASHING AND SETUP GUIDE (Ver. 1.0.1, ALPHA)
+LODESTAR CAIRN - FLASHING AND SETUP GUIDE (Ver. 1.0.2, ALPHA)
 By FEAR REACTIVE. Written for a beginner. You need a Heltec WiFi LoRa 32 V4 R2 (check the back: R2, not R8).
 
 WHAT YOU NEED
@@ -15,7 +15,7 @@ STEP 1 - FLASH
 STEP 2 - FIRST SETTINGS (MeshCore app, Bluetooth)
 1. Pair the radio in the MeshCore app. Set your name and the radio settings for your region
    (USA example: 910.525 MHz, 62.5 kHz, SF 7, CR 5; check your local mesh).
-2. In the command box type:  cairn   You should see "LODESTAR CAIRN 1.0.1  ID LC-xxxxxxxx". Write the ID down.
+2. In the command box type:  cairn   You should see "LODESTAR CAIRN 1.0.2  ID LC-xxxxxxxx". Write the ID down.
 3. Reboot and type cairn again: the ID must be the same.
 
 STEP 3 - THE DASHBOARD
