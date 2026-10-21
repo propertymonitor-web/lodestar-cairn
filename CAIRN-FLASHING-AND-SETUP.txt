@@ -1,0 +1,40 @@
+LODESTAR CAIRN - FLASHING AND SETUP GUIDE (Ver. 1.0.1, ALPHA)
+By FEAR REACTIVE. Written for a beginner. You need a Heltec WiFi LoRa 32 V4 R2 (check the back: R2, not R8).
+
+WHAT YOU NEED
+- The Heltec V4 R2 with its antenna fitted BEFORE power (powering a LoRa radio without an antenna can damage it).
+- A USB-C data cable. A computer with Chrome or Edge for flashing.
+- The release files: firmware-merged.bin and dashboard.html (GitHub: propertymonitor-web/lodestar-cairn, Releases).
+
+STEP 1 - FLASH
+1. Open https://flasher.meshcore.io in Chrome or Edge.
+2. Choose Custom Firmware, pick firmware-merged.bin, connect the radio, and flash.
+3. The radio restarts and shows the CAIRN screen.
+(Updating later: you can flash firmware-merged.bin again.)
+
+STEP 2 - FIRST SETTINGS (MeshCore app, Bluetooth)
+1. Pair the radio in the MeshCore app. Set your name and the radio settings for your region
+   (USA example: 910.525 MHz, 62.5 kHz, SF 7, CR 5; check your local mesh).
+2. In the command box type:  cairn   You should see "LODESTAR CAIRN 1.0.1  ID LC-xxxxxxxx". Write the ID down.
+3. Reboot and type cairn again: the ID must be the same.
+
+STEP 3 - THE DASHBOARD
+Online (before the field):
+1. Open the dashboard page (GitHub Pages address, or open dashboard.html from the release) in Chrome 148+ on the tablet.
+2. Add it to the Home screen. Close it, turn Wi-Fi off, open it again: it must still open.
+3. Map tab: pick your region, Download, then Load a map file. This lets the map work with no internet.
+In the field (no internet):
+1. Radio into the hub, hub into the tablet. Open the dashboard, press Connect radio, choose the radio.
+2. Status says Live and your ID shows at the top. The radio clock is set automatically.
+
+STEP 4 - THE REPEATER
+Flash the XIAO ESP32S3 with LODESTAR PULSAR (see the PULSAR zip). Power it from the hub only. It does not connect to the tablet.
+Keep its antenna at least an arm's length from the CAIRN radio's antenna.
+
+STEP 5 - TEST
+Follow CAIRN-TEST-CHECKLIST.txt before relying on the kit.
+
+TROUBLESHOOTING
+- Dashboard will not connect: use Chrome 148+; unplug and replug; close other apps using USB; make sure it is the BLUETOOTH build.
+- No repeater heard: antenna on, go outside and higher, wait 10 minutes for adverts.
+- ID changed after an update: only if the radio's identity was erased.
