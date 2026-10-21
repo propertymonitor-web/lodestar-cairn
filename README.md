@@ -19,7 +19,7 @@ CAIRN turns a Heltec V4 R2 companion into a **station**: it gets a permanent ID 
 
 | Stations in range | Chance any two share an ID (8 chars) | (5 chars, old) |
 |---|---|---|
-| 20 | about 1 in 5 billion | about 1 in 176,000 |
+| 20 | about 1 in 6 billion | about 1 in 176,000 |
 | 100 | about 1 in 220 million | about 1 in 6,800 |
 | 1,000 | about 1 in 2.2 million | about 1 in 67 |
 | 5,000 | about 1 in 90,000 | about 1 in 3 |
