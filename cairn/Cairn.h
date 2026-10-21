@@ -1,10 +1,10 @@
 // Cairn.h - LODESTAR CAIRN: a field-station layer on top of LODESTAR NOVA (header-only, no Arduino deps).
 //
 // CAIRN adds, to the NOVA companion firmware:
-//   * a station ID ("LC-" plus five letters/digits) made once at first boot and kept for good;
+//   * a station ID ("LC-" plus 8 letters/digits) taken from the radio's own public key;
 //   * a journal: every message and every advert the radio hears, one JSON object per line, kept on the
 //     radio's flash AND streamed live to the dashboard page;
-//   * the check-in message "LC-xxxxx Reporting at: <lat>,<lon>";
+//   * the check-in message "LC-xxxxxxxx Reporting at: <lat>,<lon>";
 //   * the `cairn` text commands (the glue in MyMesh.cpp does the flash and radio work).
 //
 // Host-side tests:  g++ -std=c++17 -Wall -Wextra -Icairn cairn/test/test_cairn.cpp -o t && ./t
@@ -15,27 +15,32 @@
 #include <string.h>
 #include <stdarg.h>
 
-#define CAIRN_VERSION  "0.1.0-alpha"
+#define CAIRN_VERSION  "1.0.1"
 #define CAIRN_LINE     640       // longest journal line, bytes (a 160-character message can need ~480)
 #define CAIRN_RING     24        // lines held in RAM between the radio and the flash / USB writers
 
 namespace cairn {
 
 // ---- the station ID ---------------------------------------------------------------------------
+// "LC-" plus 8 characters taken from the LAST 5 BYTES (40 bits) of the radio's own public key, so the
+// ID is unique for practical purposes, needs no database, and can always be rebuilt from the radio.
 // 32 characters: no I, O, 0 or 1, so an ID read out loud or off a screen is hard to get wrong.
-// 32^5 = 33,554,432 possible IDs.
+// 32^8 = 1,099,511,627,776 possible IDs.
 static const char ID_CHARS[] = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+#define CAIRN_ID_LEN 11   // "LC-" + 8
 
-// `rnd` must hold 5 random bytes. `out` must hold 9 bytes ("LC-" + 5 + NUL).
-static inline void makeId(const uint8_t* rnd, char* out) {
+// `key5` must hold 5 bytes (the last 5 of the public key). `out` must hold 12 bytes ("LC-" + 8 + NUL).
+static inline void makeId(const uint8_t* key5, char* out) {
   out[0] = 'L'; out[1] = 'C'; out[2] = '-';
-  for (int i = 0; i < 5; i++) out[3 + i] = ID_CHARS[rnd[i] & 31];
-  out[8] = 0;
+  uint64_t v = 0;
+  for (int i = 0; i < 5; i++) v = (v << 8) | key5[i];
+  for (int i = 0; i < 8; i++) out[3 + i] = ID_CHARS[(v >> (35 - 5 * i)) & 31];
+  out[CAIRN_ID_LEN] = 0;
 }
 
 static inline bool validId(const char* s) {
-  if (!s || strlen(s) != 8 || s[0] != 'L' || s[1] != 'C' || s[2] != '-') return false;
-  for (int i = 3; i < 8; i++) if (!memchr(ID_CHARS, s[i], 32) || s[i] == 0) return false;
+  if (!s || strlen(s) != CAIRN_ID_LEN || s[0] != 'L' || s[1] != 'C' || s[2] != '-') return false;
+  for (int i = 3; i < CAIRN_ID_LEN; i++) if (!memchr(ID_CHARS, s[i], 32) || s[i] == 0) return false;
   return true;
 }
 
@@ -47,7 +52,7 @@ static inline void fmtDeg(char* out, size_t cap, int32_t e6) {
   snprintf(out, cap, "%s%ld.%05ld", neg ? "-" : "", (long)(a / 100000), (long)(a % 100000));
 }
 
-// "LC-K7M2P Reporting at: 29.76043,-95.36980" - or, with no GPS fix, "LC-K7M2P Reporting at: no GPS fix".
+// "LC-K7M2P4XQ Reporting at: 29.76043,-95.36980" - or, with no GPS fix, "LC-K7M2P4XQ Reporting at: no GPS fix".
 // Returns the length, or 0 if `cap` is too small.
 static inline size_t okMessage(const char* id, bool fix, int32_t lat_e6, int32_t lon_e6, char* out, size_t cap) {
   int n;
@@ -204,7 +209,7 @@ private:
 // ---- the station -----------------------------------------------------------------------------------
 class Cairn {
 public:
-  char id[9] = {0};
+  char id[CAIRN_ID_LEN + 1] = {0};
   Journal j;
   AdvertSeen seen;
   Cursor to_flash, to_usb;
@@ -221,7 +226,7 @@ public:
   uint32_t file_bytes = 0;
 
   bool hasId() const { return validId(id); }
-  void setId(const char* s) { if (validId(s)) { memcpy(id, s, 8); id[8] = 0; } }
+  void setId(const char* s) { if (validId(s)) { memcpy(id, s, CAIRN_ID_LEN); id[CAIRN_ID_LEN] = 0; } }
 
   // `a` is what follows the word "cairn". Fills `reply`.
   void runCommand(const char* a, char* reply, size_t cap, uint32_t up) {

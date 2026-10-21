@@ -61,35 +61,16 @@ static uint32_t cairnSizeOf(FILESYSTEM* fs, const char* path) {
 #endif
 }
 
-// First boot: make the station ID and keep it. Every later boot reads it back.
+// The station ID is the last 5 bytes of this radio's public key, so it is the same every boot and can
+// always be rebuilt. Nothing is stored for it and nothing checks it against a list (the system is offline).
 void MyMesh::cairnInit() {
   uint32_t ep = getRTCClock()->getCurrentTime();
 #ifdef ESP32
   FILESYSTEM* fs = _store->getPrimaryFS();
-  File f = _store->openRead(fs, CAIRN_ID_FILE);
-  if (f) {
-    char b[16];
-    int n = f.read((uint8_t*)b, sizeof(b) - 1);
-    f.close();
-    if (n > 0) {
-      b[n] = 0;
-      for (int i = 0; i < n; i++) if (b[i] == '\r' || b[i] == '\n' || b[i] == ' ') b[i] = 0;
-      cairn_core.setId(b);
-    }
-  }
 #endif
-  if (!cairn_core.hasId()) {
-    uint8_t r[5];
-    getRNG()->random(r, 5);
-    for (int i = 0; i < 5; i++) r[i] ^= self_id.pub_key[i] ^ (uint8_t)(micros() >> (i * 3));   // mix in this radio's own random key
-    char nid[9];
-    cairn::makeId(r, nid);
-    cairn_core.setId(nid);
-#ifdef ESP32
-    File w = fs->open(CAIRN_ID_FILE, "w", true);
-    if (w) { w.write((const uint8_t*)cairn_core.id, 8); w.close(); }
-#endif
-  }
+  char nid[CAIRN_ID_LEN + 1];
+  cairn::makeId(self_id.pub_key + PUB_KEY_SIZE - 5, nid);
+  cairn_core.setId(nid);
 #ifdef ESP32
   cairn_core.file_bytes = cairnSizeOf(fs, CAIRN_LOG_FILE);
 #endif

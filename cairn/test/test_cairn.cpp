@@ -12,29 +12,29 @@ int main(int argc, char** argv) {
   FILE* jl = argc > 1 ? fopen(argv[1], "w") : nullptr;
   auto emit = [&](const char* s) { if (jl) fprintf(jl, "%s\n", s); };
 
-  { // IDs: right shape, only the 32 clear characters, and different random bytes give different IDs
+  { // IDs: right shape, only the 32 clear characters, and different key bytes give different IDs
     uint8_t a[5] = {0, 1, 2, 3, 4}, b[5] = {255, 254, 253, 252, 251};
-    char x[9], y[9];
+    char x[12], y[12];
     makeId(a, x); makeId(b, y);
-    CHECK(strcmp(x, "LC-ABCDE") == 0);
+    CHECK(strcmp(x, "LC-AAASEA2E") == 0);   // 00 01 02 03 04 as 8 groups of 5 bits
     CHECK(validId(x) && validId(y) && strcmp(x, y) != 0);
-    for (int v = 0; v < 256; v++) { uint8_t r[5] = {(uint8_t)v, (uint8_t)(v * 7), (uint8_t)(v * 13), (uint8_t)(v * 31), (uint8_t)(v * 101)}; char z[9]; makeId(r, z); CHECK(validId(z)); }
+    for (int v = 0; v < 256; v++) { uint8_t r[5] = {(uint8_t)v, (uint8_t)(v * 7), (uint8_t)(v * 13), (uint8_t)(v * 31), (uint8_t)(v * 101)}; char z[12]; makeId(r, z); CHECK(validId(z)); }
     for (const char* c = ID_CHARS; *c; c++) CHECK(*c != 'I' && *c != 'O' && *c != '0' && *c != '1');
     CHECK(strlen(ID_CHARS) == 32);
-    CHECK(!validId("LC-ABCD")); CHECK(!validId("LC-ABCDEF")); CHECK(!validId("XX-ABCDE")); CHECK(!validId("LC-AB0DE")); CHECK(!validId("LC-abcde"));
+    CHECK(!validId("LC-ABCDEFG")); CHECK(!validId("LC-ABCDEFGHJ")); CHECK(!validId("LC-ABCDE")); CHECK(!validId("XX-ABCDEFGH")); CHECK(!validId("LC-AB0DEFGH")); CHECK(!validId("LC-abcdefgh"));
     CHECK(!validId(nullptr)); CHECK(!validId(""));
   }
   { // the check-in text
     char m[96];
-    size_t n = okMessage("LC-K7M2P", true, 29760430, -95369800, m, sizeof(m));
-    CHECK(n > 0 && strcmp(m, "LC-K7M2P Reporting at: 29.76043,-95.36980") == 0);
-    n = okMessage("LC-K7M2P", true, -33868820, 151209290, m, sizeof(m));
-    CHECK(strcmp(m, "LC-K7M2P Reporting at: -33.86882,151.20929") == 0);
-    n = okMessage("LC-K7M2P", true, -5, 5, m, sizeof(m));          // tiny values keep their leading zeros
+    size_t n = okMessage("LC-K7M2P4XQ", true, 29760430, -95369800, m, sizeof(m));
+    CHECK(n > 0 && strcmp(m, "LC-K7M2P4XQ Reporting at: 29.76043,-95.36980") == 0);
+    n = okMessage("LC-K7M2P4XQ", true, -33868820, 151209290, m, sizeof(m));
+    CHECK(strcmp(m, "LC-K7M2P4XQ Reporting at: -33.86882,151.20929") == 0);
+    n = okMessage("LC-K7M2P4XQ", true, -5, 5, m, sizeof(m));          // tiny values keep their leading zeros
     CHECK(strstr(m, "-0.00000,0.00001") || strstr(m, "-0.00001") || strstr(m, "0.00000"));
-    n = okMessage("LC-K7M2P", false, 0, 0, m, sizeof(m));
-    CHECK(strcmp(m, "LC-K7M2P Reporting at: no GPS fix") == 0);
-    CHECK(okMessage("LC-K7M2P", true, 1, 1, m, 10) == 0);          // does not fit
+    n = okMessage("LC-K7M2P4XQ", false, 0, 0, m, sizeof(m));
+    CHECK(strcmp(m, "LC-K7M2P4XQ Reporting at: no GPS fix") == 0);
+    CHECK(okMessage("LC-K7M2P4XQ", true, 1, 1, m, 10) == 0);          // does not fit
     CHECK(strlen(m) <= 9);
   }
   { // journal lines: valid JSON text with hostile input
@@ -62,8 +62,8 @@ int main(int argc, char** argv) {
     emit(out);
     n = recAdv(out, sizeof(out), 5, 5, 1, "", key, 3, -10.0f, -120, false, 0, 0, false, 0, 0);
     CHECK(n > 0 && !strstr(out, "\"la\"") && !strstr(out, "\"hla\"")); emit(out);
-    n = recOwn(out, sizeof(out), 1770000100, 130, "LC-K7M2P", 0, "LC-K7M2P Reporting at: 29.76043,-95.36980"); CHECK(n > 0); emit(out);
-    n = recBoot(out, sizeof(out), 1770000000, "LC-K7M2P", CAIRN_VERSION); CHECK(n > 0 && strstr(out, "\"u\":0")); emit(out);
+    n = recOwn(out, sizeof(out), 1770000100, 130, "LC-K7M2P4XQ", 0, "LC-K7M2P4XQ Reporting at: 29.76043,-95.36980"); CHECK(n > 0); emit(out);
+    n = recBoot(out, sizeof(out), 1770000000, "LC-K7M2P4XQ", CAIRN_VERSION); CHECK(n > 0 && strstr(out, "\"u\":0")); emit(out);
     char tiny[20]; CHECK(recMsg(tiny, sizeof(tiny), 1, 1, 'c', "a", "b", 0, 0, "hello") == 0);
   }
   { // the ring: two readers, an overflow, and over-long lines
@@ -97,9 +97,9 @@ int main(int argc, char** argv) {
   { // commands
     Cairn c; char r[200];
     c.runCommand("", r, sizeof(r), 125); CHECK(strstr(r, "LODESTAR CAIRN") && strstr(r, "(none)") && strstr(r, "up 2 min"));
-    c.setId("LC-K7M2P"); c.setId("bad"); CHECK(strcmp(c.id, "LC-K7M2P") == 0 && c.hasId());
-    c.file_bytes = 20480; c.runCommand(" status", r, sizeof(r), 0); CHECK(strstr(r, "LC-K7M2P") && strstr(r, "20 KB"));
-    c.runCommand(" id", r, sizeof(r), 0); CHECK(strcmp(r, "LC-K7M2P") == 0);
+    c.setId("LC-K7M2P4XQ"); c.setId("bad"); CHECK(strcmp(c.id, "LC-K7M2P4XQ") == 0 && c.hasId());
+    c.file_bytes = 20480; c.runCommand(" status", r, sizeof(r), 0); CHECK(strstr(r, "LC-K7M2P4XQ") && strstr(r, "20 KB"));
+    c.runCommand(" id", r, sizeof(r), 0); CHECK(strcmp(r, "LC-K7M2P4XQ") == 0);
     c.runCommand(" ok", r, sizeof(r), 0); CHECK(c.want_ok && c.ok_channel == 0 && strstr(r, "OK"));
     c.want_ok = false; c.runCommand(" ok 3", r, sizeof(r), 0); CHECK(c.want_ok && c.ok_channel == 3);
     c.want_ok = false; c.runCommand(" ok 99", r, sizeof(r), 0); CHECK(!c.want_ok && strstr(r, "Err"));

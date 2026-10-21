@@ -782,7 +782,7 @@ svg.leaflet-image-layer.leaflet-interactive path {
 <div class="wrap">
   <header class="bar">
     <h1 class="brand">LODESTAR CAIRN<small>field station</small></h1>
-    <span id="sid" class="sid none" title="This station's ID. It is made once and kept.">LC-?????</span>
+    <span id="sid" class="sid none" title="This station's ID. It is made once and kept.">LC-????????</span>
     <span class="grow"></span>
     <span id="status" class="chip" data-s="off"><i></i><span id="statusText">Not connected</span></span>
     <button id="btnKb" aria-pressed="false" title="Show or hide the on-screen keyboard (the physical keyboard always works)">&#9000; Keyboard</button>
@@ -809,7 +809,7 @@ svg.leaflet-image-layer.leaflet-interactive path {
       <div class="card">
         <h2>Check in</h2>
         <button id="btnOk" class="okbtn pri" disabled>SEND CHECK-IN: I'M OK</button>
-        <p class="small muted" style="margin:8px 0 0">Sends <b id="okPreview" class="mono">LC-????? Reporting at: ...</b> to channel
+        <p class="small muted" style="margin:8px 0 0">Sends <b id="okPreview" class="mono">LC-???????? Reporting at: ...</b> to channel
           <input id="okChan" type="number" min="0" max="39" value="0" style="width:84px;display:inline-block;min-height:40px"> (0 is normally Public).</p>
         <p id="okLast" class="small muted" style="margin:4px 0 0"></p>
       </div>
@@ -868,7 +868,7 @@ svg.leaflet-image-layer.leaflet-interactive path {
         <label class="muted small" for="lateMin">Overdue after (minutes)</label>
         <input id="lateMin" type="number" min="1" max="1440" value="30" style="width:96px">
       </div>
-      <p class="small muted">Built from every message that reads <span class="mono">LC-xxxxx Reporting at: ...</span>. Tap a status to change it (kept on this tablet).</p>
+      <p class="small muted">Built from every message that reads <span class="mono">LC-xxxxxxxx Reporting at: ...</span>. Tap a status to change it (kept on this tablet).</p>
       <div id="rosterBox" style="overflow-x:auto"></div>
     </div>
   </section>
@@ -943,7 +943,7 @@ svg.leaflet-image-layer.leaflet-interactive path {
       </ol>
       <h3>2. Check in</h3>
       <ul>
-        <li>Press <b>SEND CHECK-IN</b>. The radio sends <code>LC-xxxxx Reporting at: latitude,longitude</code>. With no GPS fix it says <code>no GPS fix</code>.</li>
+        <li>Press <b>SEND CHECK-IN</b>. The radio sends <code>LC-xxxxxxxx Reporting at: latitude,longitude</code>. With no GPS fix it says <code>no GPS fix</code>.</li>
         <li>Every CAIRN station that hears it lists you on its <b>Check-ins</b> page.</li>
       </ul>
       <h3>3. Reading the Station page</h3>
@@ -1049,7 +1049,7 @@ const S = {
   off: new Map(), map: null, kbOn: store.get("cairn-kb") === "1",
 };
 const TYPE = { 1: ["comp", "companion"], 2: ["rep", "repeater"], 3: ["room", "room server"], 4: ["sens", "sensor"] };
-const CHECKIN_RE = /\b(LC-[A-HJ-NP-Z2-9]{5}) Reporting at: (?:(-?\d{1,3}\.\d+),(-?\d{1,3}\.\d+)|no GPS fix)/;
+const CHECKIN_RE = /\b(LC-(?:[A-HJ-NP-Z2-9]{8}|[A-HJ-NP-Z2-9]{5})) Reporting at: (?:(-?\d{1,3}\.\d+),(-?\d{1,3}\.\d+)|no GPS fix)/;
 const PLAUSIBLE = (sec) => sec > 1700000000 && sec < 4102444800;
 
 /* ---------------------------------------------------------------- helpers: distance, bearing */
@@ -1292,7 +1292,7 @@ function renderBanner() {
 function renderStation() {
   renderBanner();
   const c = S.cairn, id = c && c.id;
-  const okp = (id || "LC-?????") + " Reporting at: " + (here() ? here()[0].toFixed(5) + "," + here()[1].toFixed(5) : "no GPS fix");
+  const okp = (id || "LC-????????") + " Reporting at: " + (here() ? here()[0].toFixed(5) + "," + here()[1].toFixed(5) : "no GPS fix");
   $("okPreview").textContent = okp;
   $("btnOk").disabled = S.mode === "off" || !id;
   $("okLast").textContent = c && c.okago ? "Last check-in sent " + fmtAge(c.okago * 1000) + " ago." : (id ? "No check-in sent yet this session." : "");
@@ -1396,7 +1396,7 @@ function render() {
   lastRender = now();
   if (S.mode === "serial") setStatus(S.frame ? "live" : "wait", S.frame ? "Live" : "Connected, waiting for data");
   const id = S.cairn && S.cairn.id;
-  $("sid").textContent = id || "LC-?????"; $("sid").classList.toggle("none", !id);
+  $("sid").textContent = id || "LC-????????"; $("sid").classList.toggle("none", !id);
   if (S.tab === "station") renderStation();
   else if (S.tab === "nearby") renderNearby();
   else if (S.tab === "checkins") renderRoster();
@@ -1617,22 +1617,22 @@ function startDemo() {
   if (S.mode === "demo") { stopDemo(); return; }
   S.mode = "demo"; setStatus("demo", "Practice data"); $("btnDemo").textContent = "Stop practice";
   S.nodes = new Map(); S.journal = []; S.jset = new Set(); S.checkins = new Map();
-  const d = demoState = { id: "LC-K7M2P", mode: "normal", gps: [29.7604, -95.3698], up: 600, skew: 90, okAt: 0, tick: 0 };
+  const d = demoState = { id: "LC-K7M2P4X", mode: "normal", gps: [29.7604, -95.3698], up: 600, skew: 90, okAt: 0, tick: 0 };
   const rt = Math.round(now() / 1000);
   const reps = [["Hilltop-1", 1, -4.5, -96, 2, 29.8211, -95.4202], ["Downtown RPT", 2, -9.0, -108, 1, 29.7498, -95.3601], ["School Roof", 0, 6.2, -78, 0, 29.7701, -95.3512]];
   reps.forEach((r, i) => { const k = ["A1B2C3D4E5F0","7F3E9A11B2C3","D40C55E8A901"][i]; addRecord(JSON.stringify({ r: "a", t: rt - 60 * (i + 1), u: 100 + i, ty: 2, n: r[0], k, h: r[1], s: r[2], rs: r[3], la: r[5], lo: r[6] }), now(), false); });
   addRecord(JSON.stringify({ r: "a", t: rt - 300, u: 80, ty: 1, n: "Alex's radio", k: "BEEFCAFE0001", h: 1, s: -2.0, rs: -99 }), now(), false);
   addRecord(JSON.stringify({ r: "a", t: rt - 240, u: 90, ty: 3, n: "Neighborhood Board", k: "ABCD00112233", h: 2, s: -7.5, rs: -104, la: 29.77, lo: -95.38 }), now(), false);
-  addRecord(JSON.stringify({ r: "m", t: rt - 200, u: 120, k: "c", f: "Alex", c: "Public", s: -2.5, h: 1, x: "LC-W4PQ8 Reporting at: 29.76810,-95.37400" }), now(), false);
-  addRecord(JSON.stringify({ r: "m", t: rt - 90 * 60, u: 130, k: "c", f: "Dana", c: "Public", s: -5.0, h: 2, x: "LC-9TMX3 Reporting at: 29.80100,-95.41000" }), now(), false);
+  addRecord(JSON.stringify({ r: "m", t: rt - 200, u: 120, k: "c", f: "Alex", c: "Public", s: -2.5, h: 1, x: "LC-W4PQ8RT Reporting at: 29.76810,-95.37400" }), now(), false);
+  addRecord(JSON.stringify({ r: "m", t: rt - 90 * 60, u: 130, k: "c", f: "Dana", c: "Public", s: -5.0, h: 2, x: "LC-9TMX3KD Reporting at: 29.80100,-95.41000" }), now(), false);
   addRecord(JSON.stringify({ r: "m", t: rt - 120, u: 140, k: "c", f: "Sam", c: "Public", s: -1.0, h: 0, x: "Water is rising on Elm St. Need a boat at the school." }), now(), false);
   const tickDemo = () => {
     d.tick++; d.up += 1; d.gps = [29.7604 + 0.0002 * Math.sin(d.tick / 30), -95.3698 + 0.0002 * Math.cos(d.tick / 30)];
     const gone = d.tick % 120 > 90;   // every two minutes the best repeater drops out, to show the red banner
     const links = gone ? [] : [{ id: "D40C55", name: "School Roof", best: 1, sc: 78, rel: 80, lq: 91, snr: 6.2, rssi: -78, age: 4, hit: 5, n: 6 }, { id: "A1B2C3", name: "Hilltop-1", best: 0, sc: 40, rel: 50, lq: 60, snr: -4.5, rssi: -96, age: 30, hit: 2, n: 4 }];
-    onFrame({ nova: 1, ed: "cairn", v: "0.1.0-alpha-mph", unit: "mph", t: d.tick * 1000, prof: d.mode === "disaster" ? "hike" : "desk", bat: { mv: 0, pct: 0 }, gps: { fix: 1, lat: d.gps[0], lon: d.gps[1], sats: 9, spd: 0 },
+    onFrame({ nova: 1, ed: "cairn", v: "1.0.1-mph", unit: "mph", t: d.tick * 1000, prof: d.mode === "disaster" ? "hike" : "desk", bat: { mv: 0, pct: 0 }, gps: { fix: 1, lat: d.gps[0], lon: d.gps[1], sats: 9, spd: 0 },
       links, dl: { sent: 3, rep: 1, ok: 2, fail: 0, list: [] }, trip: { km: 0, cov: { lat: 29.8211, lon: -95.4202, m: 7400, brg: 315, age: 60 } }, diag: { rx: 120 + d.tick, tx: 12, snr: 4.2, last_rx_s: 3, up_s: d.up } });
-    S.cairn = { cairn: 1, id: d.id, ver: "0.1.0-alpha", kb: 12, lines: S.journal.length, lost: 0, mode: d.mode, okago: d.okAt ? Math.round((now() - d.okAt) / 1000) : 0, now: Math.round(now() / 1000) - d.skew };
+    S.cairn = { cairn: 1, id: d.id, ver: "1.0.1", kb: 12, lines: S.journal.length, lost: 0, mode: d.mode, okago: d.okAt ? Math.round((now() - d.okAt) / 1000) : 0, now: Math.round(now() / 1000) - d.skew };
     reps.forEach((r, i) => { const k = ["A1B2C3D4E5F0","7F3E9A11B2C3","D40C55E8A901"][i]; if (i === 2 && gone) return; onFound({ k, t: 2, n: r[0], hop: r[1], rs: r[3], sn: r[2], c: 5 + d.tick, ago: i === 2 ? 4 : 30 * (i + 1), first: 3000, alat: r[5], alon: r[6] }); });
     render();
   };
