@@ -1,0 +1,59 @@
+LODESTAR CAIRN - HARDWARE TEST CHECKLIST (Ver. 1.0.1, alpha)
+By FEAR REACTIVE. Nothing in CAIRN has run on real hardware yet. Work through this at home, then once in the open.
+Write down anything that does not match. Heltec V4 R2 only.
+
+A. FLASH THE COMPANION (Heltec V4 R2)
+ 1. Download firmware-merged.bin from the cairn-alpha2 release.
+ 2. flasher.meshcore.io -> Custom Firmware -> flash it. Use the Bluetooth (BLE) build.
+ 3. Pass: the radio boots and the screen shows CAIRN.
+
+B. STATION ID
+ 4. In the MeshCore app (or a serial console) type:  cairn
+    Pass: it prints LODESTAR CAIRN 1.0.1  ID LC-xxxxxxxx (8 characters).
+ 5. Write the ID down. Reboot the radio (cairn is not needed: use the button or unplug/replug). Type  cairn  again.
+    Pass: the SAME ID.
+ 6. Pass: the ID uses no I, O, 0 or 1.
+
+C. DASHBOARD ON THE TABLET (do this once with internet)
+ 7. Open the dashboard page in Chrome (version 148+), add it to the Home screen. Switch Wi-Fi off and reopen it.
+    Pass: it still opens.
+ 8. Plug the radio into the hub, hub into the tablet. Press Connect radio, pick the radio.
+    Pass: status shows Live, the ID appears at the top, the radio clock is set.
+    If Connect fails: unplug/replug; close other USB apps; note the exact message.
+ 9. Press Practice (with the radio disconnected) to confirm the pages work without a radio.
+
+D. THE KIT TOGETHER
+10. Connect the MeshCore app by Bluetooth to the companion at the same time as the dashboard on USB. Pass: both work.
+11. Power the XIAO ESP32S3 repeater (PULSAR) from the hub. Keep its antenna at least an arm's length from the companion's antenna.
+12. Radio noise check: on the companion type  stats-radio  with the repeater OFF, then ON. Note the noise floor both times.
+    Pass: noise floor does not rise by more than a few dB. If it does, move the antennas apart or away from the hub.
+
+E. CHECK-IN
+13. Go outside with sky view, wait for a GPS fix (Station page shows fix and satellites).
+14. Press SEND CHECK-IN. Pass: the Check-ins list shows your own ID and position; the Log shows a "Check-in sent" line.
+15. With a second radio on the same channel, check it receives:  LC-xxxxxxxx Reporting at: lat,lon
+    With no fix the text must read:  ... Reporting at: no GPS fix
+
+F. JOURNAL (store everything)
+16. Let it run 30 minutes near other nodes. Pass: Log shows adverts and messages. Press Download CSV and Download JSON lines, open them.
+17. Unplug and replug the radio. Press Reload from the radio. Pass: the log is still there (no duplicates).
+18. Reboot the tablet. Pass: the Log still holds everything (kept in the browser).
+
+G. REACHABLE BANNER AND DISASTER MODE
+19. Near a repeater: banner REACHABLE. Take the repeater away or go out of range: banner turns red NO REPEATER HEARD and shows the last usable repeater.
+20. Press DISASTER. Pass: modeNow reads DISASTER; screen goes off sooner; quiet hours off. Press Normal to go back.
+
+H. OFFLINE MAP
+21. At home on Wi-Fi: Map tab -> choose a region -> Download -> Load a map file.
+22. Switch Wi-Fi off. Pass: the map shows from the offline file; your position and nodes are drawn.
+
+I. KEYBOARD
+23. With the physical keyboard attached: no on-screen keyboard appears when you tap a box. Tap the keyboard icon: it appears for that box.
+
+J. POWER
+24. Power tab: set each power bank's hours, press Fully charged / started now. Pass: countdown runs. Tablet battery shows.
+
+K. 100% OFFLINE RUN
+25. Turn Wi-Fi and mobile data OFF. Repeat steps 8, 14, 16, 19. Pass: everything works with no internet.
+
+Report back: which steps passed, which failed, and exact messages. Mesh radio is a backup, not a replacement for 911 or a phone.
