@@ -1,0 +1,199 @@
+name: Build LODESTAR CAIRN firmware
+
+run-name: "${{ github.event_name == 'workflow_dispatch' && format('CAIRN: {0} ({1})', inputs.env, inputs.publish && inputs.release_tag || 'build only') || 'CAIRN checks' }}"
+
+# Two kinds of run:
+#   * every push and pull request: unit tests and a check that the patch still applies to the current
+#     MeshCore (about a minute, no firmware build)
+#   * "Run workflow" by hand: the same checks, then the full firmware build (about 6 minutes)
+on:
+  push:
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      env:
+        description: "Firmware type. Bluetooth keeps the USB port free for the dashboard"
+        default: heltec_v4_companion_radio_ble
+        required: true
+        type: choice
+        options:
+          - heltec_v4_companion_radio_ble
+          - heltec_v4_companion_radio_usb
+      units:
+        description: "Speed units: mph or metric (km/h)"
+        default: mph
+        required: true
+        type: choice
+        options:
+          - mph
+          - metric
+      publish:
+        description: "Publish the result as a GitHub Release anyone can download"
+        default: false
+        required: false
+        type: boolean
+      release_tag:
+        description: "NEW release tag, e.g. cairn-alpha1. Required when publishing; it must not exist yet"
+        default: ""
+        required: false
+        type: string
+      release_title:
+        description: "Release title"
+        default: "LODESTAR CAIRN (ALPHA)"
+        required: false
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: Unit tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Unit-test NOVA (CAIRN is built on it)
+        run: |
+          g++ -std=c++17 -Wall -Wextra -Ilodestar -Inova nova/test/test_nova.cpp -o nova_test
+          ./nova_test sample.json
+          g++ -std=c++17 -Wall -Wextra -DNOVA_CAIRN=1 -Ilodestar -Inova nova/test/test_nova.cpp -o nova_test_cairn
+          ./nova_test_cairn
+          g++ -std=c++17 -Wall -Wextra -DNOVA_CAIRN=1 -DNOVA_MPH=1 -Ilodestar -Inova nova/test/test_nova.cpp -o nova_test_cairn_mph
+          ./nova_test_cairn_mph
+
+      - name: Unit-test CAIRN, and check every journal line is real JSON
+        run: |
+          g++ -std=c++17 -Wall -Wextra -Icairn cairn/test/test_cairn.cpp -o cairn_test
+          ./cairn_test lines.jsonl
+          python3 -c "
+          import json
+          n = 0
+          for l in open('lines.jsonl'):
+              d = json.loads(l); assert d['r'] in ('m', 'a', 'o', 'b'); n += 1
+          print('journal lines are valid JSON:', n)
+          "
+
+  patch-check:
+    name: Patch applies to current MeshCore, screens fit
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Get MeshCore
+        run: git clone --depth 1 https://github.com/meshcore-dev/MeshCore.git
+
+      - name: Apply CAIRN
+        run: python tools/apply_cairn.py --meshcore MeshCore
+
+      - name: Draw every screen on a pretend 128x64 display
+        run: |
+          mkdir -p inc/helpers
+          cp nova/Nova.h lodestar/Lodestar.h inc/helpers/
+          g++ -std=c++17 -Wall -Wextra -DNOVA_CAIRN=1 -Iinc -Inova/ui -isystem MeshCore/src nova/test/test_ui.cpp -o ui_test
+          ./ui_test
+
+  build:
+    name: Build firmware
+    needs: [test, patch-check]
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write   # needed only to publish a Release
+    steps:
+      - uses: actions/checkout@v4
+
+      # Fail in seconds, not after the build, if the release cannot be made. This workflow only ever
+      # creates a NEW release: re-using a tag would swap the files but leave the old tag and notes.
+      - name: Check the release tag (only when publishing)
+        if: ${{ inputs.publish }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ inputs.release_tag }}
+        run: |
+          if [ -z "$TAG" ]; then
+            echo "::error::Publishing needs a release tag. Type a NEW one, for example cairn-alpha1."
+            exit 1
+          fi
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            echo "::error::A release named $TAG already exists. Choose a new tag; this workflow never overwrites a release."
+            exit 1
+          fi
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install tools
+        run: pip install platformio
+
+      - name: Get MeshCore
+        run: git clone --depth 1 https://github.com/meshcore-dev/MeshCore.git
+
+      - name: Apply CAIRN
+        run: python tools/apply_cairn.py --meshcore MeshCore
+
+      - name: Build firmware
+        working-directory: MeshCore
+        env:
+          FW_ENV: ${{ inputs.env }}
+          PLATFORMIO_BUILD_FLAGS: -DNOVA_CAIRN=1 ${{ inputs.units == 'mph' && '-DNOVA_MPH=1' || '' }}
+        run: |
+          set -o pipefail
+          pio run -t mergebin -e "$FW_ENV" 2>&1 | tee ../build.log
+
+      - name: Show compile errors
+        if: failure()
+        run: |
+          grep -E "error|undefined reference|No such file" build.log | head -25 | while IFS= read -r l; do
+            echo "::error::${l:0:900}"
+          done
+
+      - name: Check the right firmware was built
+        env:
+          FW_ENV: ${{ inputs.env }}
+          UNITS: ${{ inputs.units }}
+        run: |
+          BIN="MeshCore/.pio/build/$FW_ENV/firmware.elf"
+          if [ "$UNITS" = "mph" ]; then WANT="0.1.0-alpha-mph"; else WANT="0.1.0-alpha"; fi
+          strings -n 8 "$BIN" | grep -q -x -F "$WANT" || { echo "::error::The version marker $WANT is missing from the build."; exit 1; }
+          strings -n 8 "$BIN" | grep -q -F "Reporting at:" || { echo "::error::The check-in text is missing from the build."; exit 1; }
+          strings -n 8 "$BIN" | grep -q -F "LODESTAR CAIRN" || { echo "::error::The CAIRN command text is missing from the build."; exit 1; }
+
+      - name: Collect files
+        env:
+          FW_ENV: ${{ inputs.env }}
+        run: |
+          mkdir out
+          cp "MeshCore/.pio/build/$FW_ENV/firmware-merged.bin" out/
+          cp "MeshCore/.pio/build/$FW_ENV/firmware.bin" out/
+          [ -f docs/index.html ] && cp docs/index.html out/dashboard.html
+          git -C MeshCore rev-parse HEAD > out/meshcore_commit.txt
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: cairn-${{ inputs.env }}
+          path: out/
+
+      - name: Publish release
+        if: ${{ inputs.publish }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ inputs.release_tag }}
+          TITLE: ${{ inputs.release_title }}
+          FW_ENV: ${{ inputs.env }}
+        run: |
+          MC=$(cut -c1-10 out/meshcore_commit.txt)
+          FILES="out/firmware-merged.bin out/firmware.bin"; [ -f out/dashboard.html ] && FILES="$FILES out/dashboard.html"
+          NOTES="LODESTAR CAIRN field-station companion firmware for the Heltec WiFi LoRa 32 V4 R2 (ESP32-S3R2, OLED), by FEAR REACTIVE. Alpha test build ($FW_ENV) on MeshCore commit $MC. Not for the V4-R8.
+
+          CAIRN is LODESTAR NOVA plus: a station ID (LC-xxxxx) that survives reboots, a journal of every message and advert the radio hears (kept on the radio and streamed to the dashboard), a check-in message (LC-xxxxx Reporting at: lat,lon), and a disaster mode. Download firmware-merged.bin and flash it at https://flasher.meshcore.io (Custom Firmware). firmware.bin is the application-only image for updating an existing install without erasing. See the README for setup and the command list.
+
+          ALPHA software: not proven in the field. A radio mesh is a backup, not a replacement for 911."
+          gh release create "$TAG" $FILES \
+            --target "$GITHUB_SHA" --title "$TITLE" --notes "$NOTES" --prerelease
