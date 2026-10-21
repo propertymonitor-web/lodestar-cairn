@@ -110,6 +110,11 @@ int main(int argc, char** argv) {
     c.runCommand(" mode disaster", r, sizeof(r), 0); CHECK(c.want_mode == 1);
     c.runCommand(" mode normal", r, sizeof(r), 0); CHECK(c.want_mode == 2);
     c.want_mode = 0; c.runCommand(" mode purple", r, sizeof(r), 0); CHECK(c.want_mode == 0);
+    c.runCommand(" time 1770000000", r, sizeof(r), 0); CHECK(c.want_time == 1770000000UL && strstr(r, "OK"));
+    c.want_time = 0; c.runCommand(" time 12", r, sizeof(r), 0); CHECK(c.want_time == 0 && strstr(r, "Err"));
+    c.runCommand(" time abc", r, sizeof(r), 0); CHECK(c.want_time == 0 && strstr(r, "Err"));
+    c.runCommand(" time", r, sizeof(r), 0); CHECK(c.want_time == 0 && strstr(r, "Err"));
+    c.runCommand(" timeout", r, sizeof(r), 0); CHECK(c.want_time == 0 && strstr(r, "cairn ["));
     c.runCommand(" idle", r, sizeof(r), 0); CHECK(strstr(r, "cairn [status"));   // "idle" is not "id"
     c.runCommand(" okay", r, sizeof(r), 0); CHECK(strstr(r, "cairn [status"));   // "okay" is not "ok"
   }

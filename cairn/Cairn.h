@@ -214,6 +214,7 @@ public:
   bool want_dump = false;
   bool want_clear = false;
   int  want_mode = 0;        // 1 = disaster, 2 = normal
+  uint32_t want_time = 0;    // set the radio's clock to this (seconds since 1970), from the dashboard
   uint32_t last_ok_up = 0;   // seconds since boot when this station last sent a check-in (0 = none)
 
   // Kept up to date by the glue, for the status line.
@@ -248,13 +249,19 @@ public:
       const char* p = a + 5; while (*p == ' ') p++;
       if (strcmp(p, "yes") == 0) { want_clear = true; snprintf(reply, cap, "OK - journal on the radio will be erased"); }
       else snprintf(reply, cap, "This erases the journal stored on the radio. To do it type: cairn clear yes");
+    } else if (strncmp(a, "time", 4) == 0 && (a[4] == 0 || a[4] == ' ')) {
+      const char* p = a + 4; while (*p == ' ') p++;
+      char* end; unsigned long v = strtoul(p, &end, 10);
+      if (*p == 0 || *end != 0 || v < 1700000000UL || v > 4102444800UL) { snprintf(reply, cap, "Err - cairn time <seconds since 1970>"); return; }
+      want_time = (uint32_t)v;
+      snprintf(reply, cap, "OK - radio clock set");
     } else if (strncmp(a, "mode", 4) == 0) {
       const char* p = a + 4; while (*p == ' ') p++;
       if (strcmp(p, "disaster") == 0) { want_mode = 1; snprintf(reply, cap, "OK - disaster mode: short screen time, quiet hours off"); }
       else if (strcmp(p, "normal") == 0) { want_mode = 2; snprintf(reply, cap, "OK - normal mode: desk profile"); }
       else snprintf(reply, cap, "cairn mode disaster | normal");
     } else {
-      snprintf(reply, cap, "cairn [status|id|ok [channel]|dump|clear yes|mode disaster|normal]");
+      snprintf(reply, cap, "cairn [status|id|ok [channel]|dump|clear yes|mode disaster|normal|time <epoch>]");
     }
   }
 };

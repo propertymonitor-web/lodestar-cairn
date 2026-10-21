@@ -1,0 +1,961 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>LODESTAR CAIRN station</title>
+<meta name="theme-color" content="#0d1620">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<style>
+:root {
+  color-scheme: dark;
+  --bg: #0b131b; --panel: #121e29; --panel2: #182736; --line: #27394a; --ink: #eef3f7; --ink2: #b7c5d1; --muted: #8a9db0;
+  --accent: #5aa9ff; --good: #35c98a; --warn: #f2b134; --bad: #ff5d5d; --info: #b08cff; --rep: #35c98a; --comp: #5aa9ff; --room: #f2b134;
+  --font: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; --mono: ui-monospace, "SF Mono", Consolas, Menlo, monospace;
+}
+:root[data-theme="light"] {
+  color-scheme: light;
+  --bg: #eef2f6; --panel: #ffffff; --panel2: #f3f6f9; --line: #cdd7e0; --ink: #0d1822; --ink2: #36485a; --muted: #5d7183;
+  --accent: #1b60b8; --good: #11875a; --warn: #a96b00; --bad: #c4302b; --info: #6a46c8; --rep: #11875a; --comp: #1b60b8; --room: #a96b00;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; background: var(--bg); color: var(--ink); font-family: var(--font); font-size: 17px; line-height: 1.35; }
+button, select, input, textarea { font: inherit; color: inherit; }
+button { min-height: 48px; padding: 8px 16px; border-radius: 10px; border: 1px solid var(--line); background: var(--panel2); cursor: pointer; touch-action: manipulation; }
+button:hover { border-color: var(--accent); }
+button:focus-visible, input:focus-visible, select:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+button.pri { background: var(--accent); color: #04121f; border-color: var(--accent); font-weight: 700; }
+button.danger { border-color: var(--bad); color: var(--bad); }
+button[aria-pressed="true"] { background: var(--accent); color: #04121f; border-color: var(--accent); font-weight: 700; }
+button:disabled { opacity: .5; cursor: not-allowed; }
+input[type=text], input[type=search], input[type=number], select { min-height: 48px; padding: 6px 12px; border-radius: 10px; border: 1px solid var(--line); background: var(--panel2); width: 100%; }
+.wrap { max-width: 1400px; margin: 0 auto; padding: 0 16px 40px; padding-left: max(16px, env(safe-area-inset-left)); padding-right: max(16px, env(safe-area-inset-right)); }
+
+header.bar { display: flex; flex-wrap: wrap; gap: 10px 14px; align-items: center; padding: 12px 0; }
+.brand { margin: 0; font-size: 22px; letter-spacing: .06em; font-weight: 800; }
+.brand small { display: block; font-size: 12px; letter-spacing: .12em; color: var(--muted); font-weight: 600; }
+.sid { font-family: var(--mono); font-size: 26px; font-weight: 800; padding: 2px 12px; border: 2px solid var(--accent); border-radius: 10px; letter-spacing: .08em; }
+.sid.none { border-color: var(--line); color: var(--muted); }
+.grow { flex: 1; }
+.chip { display: inline-flex; align-items: center; gap: 8px; padding: 6px 12px; border-radius: 999px; border: 1px solid var(--line); background: var(--panel); font-size: 15px; }
+.chip i { width: 12px; height: 12px; border-radius: 50%; background: var(--muted); display: inline-block; }
+.chip[data-s="live"] i { background: var(--good); } .chip[data-s="wait"] i { background: var(--warn); } .chip[data-s="demo"] i { background: var(--info); }
+
+nav.tabs { display: flex; gap: 8px; overflow-x: auto; padding: 4px 0 12px; position: sticky; top: 0; background: var(--bg); z-index: 500; }
+nav.tabs button { min-height: 56px; padding: 8px 18px; font-weight: 700; white-space: nowrap; }
+nav.tabs .badge { display: inline-block; min-width: 22px; margin-left: 8px; padding: 0 7px; border-radius: 999px; background: var(--bad); color: #fff; font-size: 13px; }
+
+section.tab { display: none; }
+section.tab.on { display: block; }
+.grid { display: grid; gap: 14px; grid-template-columns: repeat(auto-fit, minmax(330px, 1fr)); }
+.card { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 14px 16px; }
+.card h2 { margin: 0 0 10px; font-size: 14px; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
+.span2 { grid-column: 1 / -1; }
+.row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+.row > .grow { min-width: 160px; }
+.muted { color: var(--muted); } .small { font-size: 14px; }
+.mono { font-family: var(--mono); }
+.big { font-size: 40px; font-weight: 800; line-height: 1.1; }
+.kv { display: grid; grid-template-columns: auto 1fr; gap: 4px 14px; }
+.kv dt { color: var(--muted); } .kv dd { margin: 0; font-weight: 600; }
+
+.banner { border-radius: 14px; padding: 16px 20px; border: 2px solid var(--line); background: var(--panel); }
+.banner .t { font-size: 34px; font-weight: 800; line-height: 1.1; }
+.banner .s { font-size: 18px; margin-top: 6px; color: var(--ink2); }
+.banner.good { border-color: var(--good); } .banner.good .t { color: var(--good); }
+.banner.bad { border-color: var(--bad); } .banner.bad .t { color: var(--bad); }
+.banner.off { border-color: var(--warn); } .banner.off .t { color: var(--warn); }
+
+.seg { display: inline-flex; border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
+.seg button { border: 0; border-radius: 0; min-width: 120px; }
+.okbtn { width: 100%; min-height: 84px; font-size: 26px; font-weight: 800; }
+
+table { width: 100%; border-collapse: collapse; }
+th, td { text-align: left; padding: 10px 8px; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { color: var(--muted); font-size: 13px; letter-spacing: .08em; text-transform: uppercase; }
+td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
+.tag { display: inline-block; padding: 1px 9px; border-radius: 999px; font-size: 13px; font-weight: 700; border: 1px solid currentColor; }
+.tag.rep { color: var(--rep); } .tag.comp { color: var(--comp); } .tag.room { color: var(--room); } .tag.sens { color: var(--info); }
+.pill-ok { color: var(--good); } .pill-help { color: var(--bad); font-weight: 800; } .pill-late { color: var(--warn); font-weight: 700; }
+.txt { white-space: pre-wrap; word-break: break-word; }
+.filters { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; align-items: center; }
+.filters button { min-height: 44px; }
+
+.kb { display: flex; gap: 6px; align-items: stretch; }
+.kb input { flex: 1; }
+.kb button.kbbtn { min-width: 52px; padding: 0 10px; font-size: 22px; }
+
+#map { height: min(62vh, 640px); border-radius: 12px; border: 1px solid var(--line); background: var(--panel2); }
+#mapNote { margin: 8px 0; padding: 8px 12px; border-radius: 10px; border: 1px solid var(--warn); }
+.covDia { background: var(--warn); border: 2px solid #000; transform: rotate(45deg); }
+.mk { width: 16px; height: 16px; border: 2px solid #fff; box-shadow: 0 0 0 1px #000; }
+.mk.rep { background: var(--rep); border-radius: 50%; } .mk.comp { background: var(--comp); } .mk.room { background: var(--room); border-radius: 3px; transform: rotate(45deg); }
+.mk.chk { background: var(--info); border-radius: 50% 50% 50% 0; transform: rotate(-45deg); }
+.mk.me { background: #fff; border: 4px solid var(--accent); border-radius: 50%; }
+.leaflet-container { font: inherit; color: #111; }
+.leaflet-popup-content { color: #111; }
+
+.guide h3 { margin: 18px 0 6px; font-size: 20px; }
+.guide li { margin: 4px 0; } .guide code, code.k { font-family: var(--mono); background: var(--panel2); border: 1px solid var(--line); padding: 1px 6px; border-radius: 6px; }
+.guide .chk li { list-style: none; margin-left: -18px; }
+.notice { margin: 8px 0; padding: 10px 14px; border-radius: 10px; border: 1px solid var(--warn); background: var(--panel); }
+.bar2 { height: 14px; border-radius: 7px; background: var(--panel2); border: 1px solid var(--line); overflow: hidden; }
+.bar2 > div { height: 100%; background: var(--good); }
+.bar2.warn > div { background: var(--warn); } .bar2.low > div { background: var(--bad); }
+#toast { position: fixed; left: 50%; bottom: 20px; transform: translateX(-50%); background: var(--panel); border: 2px solid var(--accent); border-radius: 12px; padding: 12px 20px; z-index: 2000; display: none; max-width: 90vw; }
+[hidden] { display: none !important; }
+@media (max-width: 720px) { .big { font-size: 30px; } .banner .t { font-size: 26px; } }
+@media print {
+  body { background: #fff; color: #000; } header.bar, nav.tabs, #toast { display: none !important; }
+  section.tab { display: none !important; } section#tab-guide { display: block !important; }
+  .card { border: 1px solid #999; background: #fff; } .guide code { background: #eee; }
+}
+</style>
+<style>
+/*LEAFLETCSS*/
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="bar">
+    <h1 class="brand">LODESTAR CAIRN<small>field station</small></h1>
+    <span id="sid" class="sid none" title="This station's ID. It is made once and kept.">LC-?????</span>
+    <span class="grow"></span>
+    <span id="status" class="chip" data-s="off"><i></i><span id="statusText">Not connected</span></span>
+    <button id="btnKb" aria-pressed="false" title="Show or hide the on-screen keyboard (the physical keyboard always works)">&#9000; Keyboard</button>
+    <button id="btnTheme" title="Dark or light">&#9788; Theme</button>
+    <button id="btnDemo" title="Fill the page with made-up data to practise">Practice</button>
+    <button id="btnConnect" class="pri">Connect radio</button>
+  </header>
+  <div id="notice" class="notice" hidden></div>
+
+  <nav class="tabs" id="tabs" role="tablist">
+    <button data-tab="station" aria-pressed="true">Station</button>
+    <button data-tab="nearby">Nearby</button>
+    <button data-tab="checkins">Check-ins<span id="lateBadge" class="badge" hidden>0</span></button>
+    <button data-tab="log">Log</button>
+    <button data-tab="map">Map</button>
+    <button data-tab="power">Power</button>
+    <button data-tab="guide">Guide</button>
+  </nav>
+
+  <!-- ===================================================== STATION -->
+  <section class="tab on" id="tab-station">
+    <div id="banner" class="banner off" role="status" aria-live="polite"><div class="t">Radio not connected</div><div class="s">Plug the radio into the hub, then press Connect radio.</div></div>
+    <div class="grid" style="margin-top:14px">
+      <div class="card">
+        <h2>Check in</h2>
+        <button id="btnOk" class="okbtn pri" disabled>SEND CHECK-IN: I'M OK</button>
+        <p class="small muted" style="margin:8px 0 0">Sends <b id="okPreview" class="mono">LC-????? Reporting at: ...</b> to channel
+          <input id="okChan" type="number" min="0" max="39" value="0" style="width:84px;display:inline-block;min-height:40px"> (0 is normally Public).</p>
+        <p id="okLast" class="small muted" style="margin:4px 0 0"></p>
+      </div>
+      <div class="card">
+        <h2>Mode</h2>
+        <div class="seg" role="group" aria-label="Mode"><button id="modeNormal" aria-pressed="true">Normal</button><button id="modeDisaster" aria-pressed="false">DISASTER</button></div>
+        <p class="small muted" style="margin:8px 0 0">Disaster mode: the radio's screen goes off sooner, quiet hours are switched off so nothing is silenced, and repeaters that stop answering are marked stale sooner.</p>
+        <p class="small muted" id="modeNow" style="margin:4px 0 0"></p>
+      </div>
+      <div class="card">
+        <h2>Where &amp; when</h2>
+        <dl class="kv" id="whereBox"></dl>
+        <div class="row" style="margin-top:10px"><button id="btnSetClock">Set radio clock from this tablet</button></div>
+      </div>
+      <div class="card">
+        <h2>Heard in the last 15 minutes</h2>
+        <div class="row" id="heardCounts"></div>
+        <div id="topReps" style="margin-top:10px"></div>
+      </div>
+      <div class="card span2">
+        <h2>Latest messages</h2>
+        <div id="latestMsgs" class="small"></div>
+      </div>
+      <div class="card">
+        <h2>Radio</h2>
+        <dl class="kv" id="radioBox"></dl>
+      </div>
+      <div class="card">
+        <h2>Journal</h2>
+        <dl class="kv" id="journalBox"></dl>
+        <div class="row" style="margin-top:10px"><button data-goto="log">Open the log</button></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================================================== NEARBY -->
+  <section class="tab" id="tab-nearby">
+    <div class="filters">
+      <span class="muted">Heard in</span>
+      <button data-win="900000" aria-pressed="true">15 min</button><button data-win="3600000" aria-pressed="false">1 hour</button><button data-win="86400000" aria-pressed="false">24 hours</button><button data-win="0" aria-pressed="false">Ever</button>
+      <span class="muted" style="margin-left:14px">Sort</span>
+      <button data-sort="snr" aria-pressed="true">Signal</button><button data-sort="recent" aria-pressed="false">Most recent</button><button data-sort="dist" aria-pressed="false">Distance</button>
+    </div>
+    <div class="grid" style="grid-template-columns:1fr">
+      <div class="card"><h2>Repeaters</h2><div id="nbRep"></div></div>
+      <div class="card"><h2>Room servers</h2><div id="nbRoom"></div></div>
+      <div class="card"><h2>Companions (people)</h2><div id="nbComp"></div></div>
+    </div>
+  </section>
+
+  <!-- ===================================================== CHECK-INS -->
+  <section class="tab" id="tab-checkins">
+    <div class="card">
+      <div class="row">
+        <h2 style="margin:0">Check-in roster</h2><span class="grow"></span>
+        <label class="muted small" for="lateMin">Overdue after (minutes)</label>
+        <input id="lateMin" type="number" min="1" max="1440" value="30" style="width:96px">
+      </div>
+      <p class="small muted">Built from every message that reads <span class="mono">LC-xxxxx Reporting at: ...</span>. Tap a status to change it (kept on this tablet).</p>
+      <div id="rosterBox" style="overflow-x:auto"></div>
+    </div>
+  </section>
+
+  <!-- ===================================================== LOG -->
+  <section class="tab" id="tab-log">
+    <div class="card">
+      <div class="filters">
+        <button data-kind="all" aria-pressed="true">All</button><button data-kind="m" aria-pressed="false">Messages</button><button data-kind="a" aria-pressed="false">Adverts</button>
+        <button data-kind="c" aria-pressed="false">Check-ins</button><button data-kind="b" aria-pressed="false">Boots</button>
+        <div class="kb" style="flex:1;min-width:220px"><input id="logSearch" type="search" placeholder="Search the log" aria-label="Search the log"><button class="kbbtn" data-kbfor="logSearch" title="On-screen keyboard">&#9000;</button></div>
+      </div>
+      <div class="row" style="margin-bottom:10px">
+        <button id="btnCsv">Download CSV</button><button id="btnJsonl">Download all data (JSON lines)</button>
+        <button id="btnReload">Reload from the radio</button><button id="btnErase" class="danger">Erase the radio's copy</button>
+        <span class="grow"></span><span id="logCount" class="muted small"></span>
+      </div>
+      <div style="overflow-x:auto"><table id="logTable"><thead><tr><th>Time</th><th>What</th><th>From</th><th>Detail</th></tr></thead><tbody></tbody></table></div>
+      <p class="small muted" id="logMore"></p>
+    </div>
+  </section>
+
+  <!-- ===================================================== MAP -->
+  <section class="tab" id="tab-map">
+    <div class="card">
+      <div class="row" style="margin-bottom:8px">
+        <label for="tileSel" class="muted">Map</label>
+        <select id="tileSel" style="max-width:340px"><option value="carto">Street map (needs internet)</option></select>
+        <button id="btnFit">Show everything</button><button id="btnFollow" aria-pressed="true">Follow me</button>
+        <span class="small muted">Green circle repeater, blue square companion, orange diamond room server, purple pin check-in, amber diamond last place with a usable repeater.</span>
+      </div>
+      <div id="mapNote" hidden></div>
+      <div id="map"></div>
+    </div>
+    <div class="card" style="margin-top:14px">
+      <h2>Maps for use with no internet</h2>
+      <p class="small muted">Do this at home on Wi-Fi: pick a region, download it, then load the file here. The page keeps it in the tablet's browser and switches to it whenever there is no internet.</p>
+      <div class="row">
+        <select id="regSel" style="max-width:360px"><option value="">Loading the list...</option></select>
+        <a id="regDl" class="btnlink" href="#" target="_blank" rel="noopener" aria-disabled="true"><button disabled id="regDlBtn">Download</button></a>
+        <label class="btnlike"><input id="mapFile" type="file" accept=".pmtiles" multiple hidden><button type="button" id="btnLoadMap">Load a map file</button></label>
+      </div>
+      <p id="regNote" class="small muted"></p><p id="offNote" class="small"></p>
+      <ul id="offList" style="padding-left:18px"></ul>
+    </div>
+  </section>
+
+  <!-- ===================================================== POWER -->
+  <section class="tab" id="tab-power">
+    <div class="grid">
+      <div class="card"><h2>This radio</h2><div id="radioBatt"></div></div>
+      <div class="card"><h2>This tablet</h2><div id="tabBatt" class="muted">Checking...</div></div>
+      <div class="card span2">
+        <h2>Power banks and other supplies (a timer you set)</h2>
+        <p class="small muted">The radios cannot see how full a power bank is, so this is a reminder, not a gauge. Enter how long you expect each one to last, and press the button when you start (or recharge) it.</p>
+        <div id="supplies"></div>
+        <div class="row" style="margin-top:10px"><button id="btnAddSupply">Add a supply</button></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================================================== GUIDE -->
+  <section class="tab guide" id="tab-guide">
+    <div class="card">
+      <div class="row"><h2 style="margin:0">Field guide (works with no internet)</h2><span class="grow"></span><button id="btnPrint">Print this guide</button></div>
+      <h3>1. Start up</h3>
+      <ol>
+        <li>Antennas on before power. Both radios plugged into the USB hub; the hub into the tablet.</li>
+        <li>Open the MeshCore app on the tablet and connect to the CAIRN companion by Bluetooth (this is for chatting).</li>
+        <li>Open this page and press <b>Connect radio</b>, choose the radio's USB port (this is for the station view and the log).</li>
+        <li>The page sets the radio's clock from the tablet, loads the journal from the radio, and shows <b>REACHABLE</b> once a repeater is heard.</li>
+      </ol>
+      <h3>2. Check in</h3>
+      <ul>
+        <li>Press <b>SEND CHECK-IN</b>. The radio sends <code>LC-xxxxx Reporting at: latitude,longitude</code>. With no GPS fix it says <code>no GPS fix</code>.</li>
+        <li>Every CAIRN station that hears it lists you on its <b>Check-ins</b> page.</li>
+      </ul>
+      <h3>3. Reading the Station page</h3>
+      <ul>
+        <li><b>REACHABLE</b> (green): a repeater is heard now. <b>NO REPEATER HEARD</b> (red): move higher or toward the last usable repeater shown.</li>
+        <li><b>Nearby</b> lists repeaters, room servers and companions with signal strength and how recently they were heard.</li>
+        <li><b>Log</b> holds everything the radio heard. It is saved on the radio and on this tablet. Download it after the event.</li>
+      </ul>
+      <h3>4. Disaster mode</h3>
+      <p>Press <b>DISASTER</b> on the Station page. Screens turn off sooner, quiet hours are off, and silent repeaters are marked stale sooner.</p>
+      <h3>5. If something fails</h3>
+      <ul>
+        <li><b>Page will not connect:</b> use Chrome (version 148 or newer on Android). Unplug and replug the radio. Close other apps using USB.</li>
+        <li><b>No repeater heard:</b> check the antenna; go higher, outside, away from metal. Wait 10 minutes for adverts.</li>
+        <li><b>Keyboard broke:</b> use the <b>&#9000;</b> button for the on-screen keyboard.</li>
+        <li><b>Hub noise:</b> keep the antenna away from the USB hub and cables.</li>
+      </ul>
+      <h3>6. Commands (typed in the MeshCore app or a serial console)</h3>
+      <ul>
+        <li><code>cairn</code> station ID and journal size &nbsp; <code>cairn id</code> &nbsp; <code>cairn ok [channel]</code> send a check-in</li>
+        <li><code>cairn mode disaster</code> / <code>cairn mode normal</code> &nbsp; <code>cairn dump</code> send the journal &nbsp; <code>cairn clear yes</code> erase it</li>
+        <li><code>cairn time &lt;seconds since 1970&gt;</code> set the radio's clock &nbsp; <code>nova</code> NOVA status</li>
+      </ul>
+      <h3>7. Kit checklist</h3>
+      <ul class="chk">
+        <li>&#9744; Tablet, keyboard, stylus &nbsp; &#9744; USB hub &nbsp; &#9744; CAIRN companion radio + antenna</li>
+        <li>&#9744; Repeater + antenna &nbsp; &#9744; 2 power banks (charged) &nbsp; &#9744; Solar panel + cable</li>
+        <li>&#9744; Spare cables &nbsp; &#9744; Paper copy of this guide &nbsp; &#9744; Offline map loaded for your area</li>
+      </ul>
+      <p class="small muted">A radio mesh is a backup. It is not a replacement for 911, a phone or a satellite messenger, and it only works if other radios or repeaters are in range. This is ALPHA software.</p>
+    </div>
+  </section>
+</div>
+<div id="toast" role="status"></div>
+
+<!--LIBS-->
+
+<script>
+"use strict";
+const $ = (id) => document.getElementById(id);
+const esc = (s) => String(s == null ? "" : s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const store = {
+  get(k) { try { return localStorage.getItem(k); } catch (e) { return null; } },
+  set(k, v) { try { localStorage.setItem(k, v); } catch (e) {} },
+};
+const jget = (k, d) => { try { const v = store.get(k); return v ? JSON.parse(v) : d; } catch (e) { return d; } };
+const jset = (k, v) => store.set(k, JSON.stringify(v));
+const now = () => Date.now();
+const fmtAge = (ms) => { const s = Math.max(0, Math.round(ms / 1000)); return s < 90 ? s + " s" : s < 5400 ? Math.round(s / 60) + " min" : s < 172800 ? (s / 3600).toFixed(1) + " h" : Math.round(s / 86400) + " d"; };
+const fmtTime = (ms) => { if (!ms) return "?"; const d = new Date(ms), t = d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" }); return d.toDateString() === new Date().toDateString() ? t : d.toLocaleDateString([], { month: "short", day: "numeric" }) + " " + t; };
+function toast(t, ms) { const e = $("toast"); e.textContent = t; e.style.display = "block"; clearTimeout(toast.t); toast.t = setTimeout(() => { e.style.display = "none"; }, ms || 3500); }
+function notice(t) { const n = $("notice"); if (t) { n.textContent = t; n.hidden = false; } else n.hidden = true; }
+
+/* ---------------------------------------------------------------- state */
+const S = {
+  mode: "off",            // off | serial | demo
+  frame: null, frameAt: 0,
+  cairn: null, cairnAt: 0,
+  nodes: new Map(),       // key -> node
+  journal: [],            // parsed records, oldest first
+  jset: new Set(),        // raw lines already held
+  checkins: new Map(),    // station id -> latest check-in
+  lastUsable: jget("cairn-lastUsable", null),
+  tab: store.get("cairn-tab") || "station",
+  win: 900000, sort: "snr", kind: "all", search: "",
+  port: null, reader: null, writer: null, keep: null, demo: null,
+  roster: jget("cairn-roster", {}), supplies: jget("cairn-supplies", [{ name: "Power bank 1", hours: 24, start: 0 }, { name: "Power bank 2", hours: 24, start: 0 }]),
+  off: new Map(), map: null, kbOn: store.get("cairn-kb") === "1",
+};
+const TYPE = { 1: ["comp", "companion"], 2: ["rep", "repeater"], 3: ["room", "room server"], 4: ["sens", "sensor"] };
+const CHECKIN_RE = /\b(LC-[A-HJ-NP-Z2-9]{5}) Reporting at: (?:(-?\d{1,3}\.\d+),(-?\d{1,3}\.\d+)|no GPS fix)/;
+const PLAUSIBLE = (sec) => sec > 1700000000 && sec < 4102444800;
+
+/* ---------------------------------------------------------------- helpers: distance, bearing */
+function distM(a, b) {
+  const R = 6371000, r = Math.PI / 180, dLat = (b[0] - a[0]) * r, dLon = (b[1] - a[1]) * r;
+  const h = Math.sin(dLat / 2) ** 2 + Math.cos(a[0] * r) * Math.cos(b[0] * r) * Math.sin(dLon / 2) ** 2;
+  return 2 * R * Math.asin(Math.sqrt(h));
+}
+function bearing(a, b) {
+  const r = Math.PI / 180, y = Math.sin((b[1] - a[1]) * r) * Math.cos(b[0] * r);
+  const x = Math.cos(a[0] * r) * Math.sin(b[0] * r) - Math.sin(a[0] * r) * Math.cos(b[0] * r) * Math.cos((b[1] - a[1]) * r);
+  return (Math.atan2(y, x) / r + 360) % 360;
+}
+const COMP = ["N", "NE", "E", "SE", "S", "SW", "W", "NW"];
+const compass = (d) => COMP[Math.round(d / 45) % 8];
+const fmtDist = (m) => (m < 1000 ? Math.round(m) + " m" : (m / 1000).toFixed(m < 10000 ? 1 : 0) + " km");
+function here() { const g = S.frame && S.frame.gps; return g && g.fix ? [+g.lat, +g.lon] : null; }
+function relPos(p) { const h = here(); if (!h || !p) return ""; return fmtDist(distM(h, p)) + " " + compass(bearing(h, p)); }
+
+/* ---------------------------------------------------------------- IndexedDB: journal copy and offline maps */
+const DB = {
+  db: null,
+  open() {
+    if (this.db) return Promise.resolve(this.db);
+    return new Promise((res, rej) => {
+      try {
+        const r = indexedDB.open("lodestar-cairn", 1);
+        r.onupgradeneeded = () => { const d = r.result; d.createObjectStore("maps", { keyPath: "name" }); d.createObjectStore("journal", { keyPath: "l" }); };
+        r.onsuccess = () => { this.db = r.result; res(r.result); };
+        r.onerror = () => rej(r.error || new Error("IndexedDB failed"));
+      } catch (e) { rej(e); }
+    });
+  },
+  async run(store, mode, fn) {
+    const db = await this.open();
+    return new Promise((res, rej) => {
+      const tx = db.transaction(store, mode), st = tx.objectStore(store), rq = fn(st);
+      tx.oncomplete = () => res(rq && rq.result); tx.onerror = () => rej(tx.error);
+      tx.onabort = () => rej(tx.error || new Error("The browser refused to store this (out of space?)"));
+    });
+  },
+};
+
+/* ---------------------------------------------------------------- intake */
+const maxSeen = { t: 0 };
+function recTime(rec, rt) {                       // milliseconds, or 0 if unknown
+  if (PLAUSIBLE(rec.t)) return rec.t * 1000;
+  return rt || 0;
+}
+function addRecord(line, rt, persist) {
+  if (S.jset.has(line)) return false;
+  let rec; try { rec = JSON.parse(line); } catch (e) { return false; }
+  if (!rec || !rec.r) return false;
+  S.jset.add(line);
+  rec._l = line; rec._ms = recTime(rec, rt);
+  S.journal.push(rec);
+  if (persist !== false) DB.run("journal", "readwrite", (st) => st.put({ l: line, rt: rt || 0 })).catch(() => {});
+  if (rec.r === "m") { const m = CHECKIN_RE.exec(rec.x || ""); if (m) noteCheckin(m, rec); }
+  if (rec.r === "a") noteAdvert(rec);
+  return true;
+}
+function noteCheckin(m, rec) {
+  const id = m[1], ms = rec._ms || now();
+  const old = S.checkins.get(id);
+  if (old && old.ms > ms) return;
+  S.checkins.set(id, { id, ms, lat: m[2] != null ? +m[2] : null, lon: m[3] != null ? +m[3] : null, from: rec.f || "", chan: rec.c || "", text: rec.x, hops: rec.h });
+}
+function noteAdvert(r) {
+  if (!r.k) return;
+  const old = S.nodes.get(r.k);
+  const ms = r._ms || old && old.ms || 0;
+  const n = old || { k: r.k, name: "", type: 0, hops: 99, snr: -99, rssi: -127, ms: 0, first: ms, count: 0, apos: null, hpos: null };
+  n.type = r.ty || n.type; if (r.n) n.name = r.n;
+  if (ms >= n.ms) { n.ms = ms; n.hops = r.h; n.snr = +r.s; n.rssi = +r.rs; }
+  if (!n.first || (ms && ms < n.first)) n.first = ms;
+  n.count++;
+  if (r.la != null) n.apos = [+r.la, +r.lo];
+  if (r.hla != null) n.hpos = [+r.hla, +r.hlo];
+  S.nodes.set(r.k, n);
+}
+function onFound(f) {
+  if (!f || typeof f.k !== "string") return;
+  const old = S.nodes.get(f.k);
+  const ms = now() - (+f.ago || 0) * 1000;
+  const n = old || { k: f.k, name: "", type: 0, hops: 99, snr: -99, rssi: -127, ms: 0, first: now() - (+f.first || 0) * 1000, count: 0, apos: null, hpos: null };
+  n.type = +f.t || n.type; if (f.n) n.name = f.n;
+  if (ms >= n.ms) { n.ms = ms; n.hops = +f.hop; n.snr = +f.sn; n.rssi = +f.rs; }
+  n.count = Math.max(n.count, +f.c || 0);
+  if (f.alat != null) n.apos = [+f.alat, +f.alon];
+  if (f.hlat != null) n.hpos = [+f.hlat, +f.hlon];
+  S.nodes.set(f.k, n);
+}
+function nameFor(id) {
+  if (!id) return "";
+  const u = String(id).toUpperCase();
+  for (const n of S.nodes.values()) if (n.k.indexOf(u) === 0 && n.name) return n.name;
+  return "";
+}
+function onFrame(f) {
+  S.frame = f; S.frameAt = now();
+  const best = (f.links || []).find((l) => l.best === 1);
+  if (best) {
+    S.lastUsable = { id: best.id, name: best.name || nameFor(best.id), sc: best.sc, snr: best.snr, rssi: best.rssi, at: now() };
+    jset("cairn-lastUsable", S.lastUsable);
+  }
+}
+function onLine(line) {
+  line = line.trim();
+  if (line[0] === "{") {
+    if (line.indexOf('"nova"') > 0 && line.indexOf('"nova"') < 4) { try { const o = JSON.parse(line); if (o.found) onFound(o.found); else onFrame(o); } catch (e) {} }
+    else if (line.indexOf('"cairn"') > 0 && line.indexOf('"cairn"') < 4) {
+      try {
+        const o = JSON.parse(line);
+        if (o.id) { S.cairn = o; S.cairnAt = now(); maybeSetClock(o); }
+        if (o.dump === "end") { S.dumping = false; toast("Journal loaded from the radio (" + o.lines + " lines)."); }
+      } catch (e) {}
+    } else if (line.indexOf('{"r"') === 0) { addRecord(line, now(), true); }
+  } else if (line[0] === "#") { toast(line.slice(1).trim()); }
+}
+let clockAsked = 0;
+function maybeSetClock(o) {
+  if (!o.now) return;
+  const tab = Math.round(now() / 1000);
+  if (Math.abs(o.now - tab) > 30 && now() - clockAsked > 60000) { clockAsked = now(); send("cairn time " + tab); toast("Radio clock was off; set it from the tablet."); }
+}
+
+/* ---------------------------------------------------------------- serial */
+async function send(line) {
+  if (S.mode === "demo") { demoCommand(line); return; }
+  if (!S.writer) { toast("Not connected. Connect the radio first."); return; }
+  try { await S.writer.write(line + "\n"); } catch (e) { toast("Could not send: " + e.message); }
+}
+function setStatus(state, text) { $("status").dataset.s = state; $("statusText").textContent = text; }
+async function connect() {
+  if (S.mode === "serial") { await disconnect(false); return; }
+  if (!("serial" in navigator)) { notice("This browser cannot talk to USB devices. Use Chrome (version 148 or newer on Android, or any recent Chrome or Edge on a computer)."); return; }
+  notice("");
+  try {
+    stopDemo();
+    S.port = await navigator.serial.requestPort();
+    await S.port.open({ baudRate: 115200 });
+  } catch (e) { if (e.name !== "NotFoundError") notice("Could not open the radio's USB port: " + e.message + ". Close other apps that use it and try again."); return; }
+  S.mode = "serial"; setStatus("wait", "Connected, waiting for data"); $("btnConnect").textContent = "Disconnect";
+  const enc = new TextEncoderStream(); enc.readable.pipeTo(S.port.writable).catch(() => {}); S.writer = enc.writable.getWriter();
+  const dec = new TextDecoderStream(); S.port.readable.pipeTo(dec.writable).catch(() => {}); S.reader = dec.readable.getReader();
+  const hello = () => send("nova hello");
+  hello(); send("cairn id"); S.dumping = true; send("cairn dump");
+  S.keep = setInterval(hello, 3000);
+  let buf = "";
+  try {
+    for (;;) {
+      const { value, done } = await S.reader.read(); if (done) break;
+      buf += value; let i;
+      while ((i = buf.indexOf("\n")) >= 0) { onLine(buf.slice(0, i)); buf = buf.slice(i + 1); }
+      if (buf.length > 40000) buf = "";
+    }
+  } catch (e) { /* unplugged */ }
+  await disconnect(true);
+}
+async function disconnect(lost) {
+  clearInterval(S.keep); S.keep = null;
+  try { if (S.reader) await S.reader.cancel(); } catch (e) {}
+  try { if (S.writer) await S.writer.close(); } catch (e) {}
+  try { if (S.port) await S.port.close(); } catch (e) {}
+  S.port = S.reader = S.writer = null; S.mode = "off"; S.frame = null;
+  $("btnConnect").textContent = "Connect radio";
+  setStatus("off", lost ? "Radio unplugged or closed" : "Not connected");
+}
+
+/* ---------------------------------------------------------------- tabs, keyboard, theme */
+function showTab(t) {
+  S.tab = t; store.set("cairn-tab", t);
+  document.querySelectorAll("section.tab").forEach((s) => s.classList.toggle("on", s.id === "tab-" + t));
+  document.querySelectorAll("#tabs button").forEach((b) => b.setAttribute("aria-pressed", b.dataset.tab === t ? "true" : "false"));
+  if (t === "map") initMap();
+  render();
+}
+document.querySelectorAll("#tabs button").forEach((b) => b.addEventListener("click", () => showTab(b.dataset.tab)));
+document.querySelectorAll("[data-goto]").forEach((b) => b.addEventListener("click", () => showTab(b.dataset.goto)));
+
+// The on-screen keyboard stays out of the way (inputmode "none") unless asked for: the header button turns it on for
+// every box, and the keyboard icon beside a box opens it for that box only.
+function applyKb() {
+  document.querySelectorAll("input[type=text], input[type=search], input[type=number]").forEach((i) => { i.setAttribute("inputmode", S.kbOn ? (i.type === "number" ? "numeric" : "text") : "none"); });
+  $("btnKb").setAttribute("aria-pressed", S.kbOn ? "true" : "false");
+}
+$("btnKb").addEventListener("click", () => { S.kbOn = !S.kbOn; store.set("cairn-kb", S.kbOn ? "1" : "0"); applyKb(); toast(S.kbOn ? "On-screen keyboard is ON for all boxes." : "On-screen keyboard is hidden. Use the physical keyboard, or the keyboard icon beside a box."); });
+document.querySelectorAll("[data-kbfor]").forEach((b) => b.addEventListener("click", () => {
+  const i = $(b.dataset.kbfor); i.setAttribute("inputmode", "text"); i.focus();
+  i.addEventListener("blur", () => applyKb(), { once: true });
+}));
+function applyTheme(t) { if (t) document.documentElement.setAttribute("data-theme", t); else document.documentElement.removeAttribute("data-theme"); }
+$("btnTheme").addEventListener("click", () => { const cur = document.documentElement.getAttribute("data-theme") === "light" ? "dark" : "light"; applyTheme(cur === "dark" ? "" : "light"); store.set("cairn-theme", cur); });
+if (store.get("cairn-theme") === "light") applyTheme("light");
+
+/* ---------------------------------------------------------------- rendering */
+function row(k, v) { return "<dt>" + esc(k) + "</dt><dd>" + v + "</dd>"; }
+function nodeList(type) {
+  const win = S.win, t = now(), h = here();
+  let a = Array.from(S.nodes.values()).filter((n) => (type === 3 ? n.type >= 3 : n.type === type) && (win === 0 || (n.ms && t - n.ms <= win)));
+  const d = (n) => { const p = n.apos || n.hpos; return h && p ? distM(h, p) : 1e12; };
+  if (S.sort === "snr") a.sort((x, y) => y.snr - x.snr);
+  else if (S.sort === "recent") a.sort((x, y) => y.ms - x.ms);
+  else a.sort((x, y) => d(x) - d(y));
+  return a;
+}
+function nodeTable(a) {
+  if (!a.length) return '<p class="muted">None heard in this time.</p>';
+  let s = '<div style="overflow-x:auto"><table><thead><tr><th>Name</th><th>ID</th><th class="num">Hops</th><th class="num">SNR</th><th class="num">RSSI</th><th class="num">Heard</th><th>Where</th></tr></thead><tbody>';
+  a.forEach((n) => {
+    const tt = TYPE[n.type] || ["sens", "node"];
+    const p = n.apos || n.hpos, rel = relPos(p);
+    s += "<tr><td><b>" + esc(n.name || "(no name)") + '</b> <span class="tag ' + tt[0] + '">' + tt[1] + "</span></td><td class=\"mono\">" + esc(n.k.slice(0, 6)) + "</td>" +
+      '<td class="num">' + (n.hops === 0 ? "direct" : esc(n.hops)) + '</td><td class="num">' + (+n.snr).toFixed(1) + '</td><td class="num">' + esc(n.rssi) + '</td><td class="num">' + (n.ms ? fmtAge(now() - n.ms) + " ago" : "?") + "</td><td>" +
+      (p ? esc(rel || (p[0].toFixed(4) + ", " + p[1].toFixed(4))) + (n.apos ? "" : ' <span class="muted small">(where I was)</span>') : '<span class="muted">unknown</span>') + "</td></tr>";
+  });
+  return s + "</tbody></table></div>";
+}
+function renderBanner() {
+  const b = $("banner");
+  let cls = "off", t = "", s = "";
+  if (S.mode === "off") { t = "Radio not connected"; s = "Plug the radio into the hub, then press Connect radio."; }
+  else if (!S.frame) { t = "Waiting for the radio..."; s = "Connected. The first reading arrives within a few seconds."; }
+  else {
+    const best = (S.frame.links || []).find((l) => l.best === 1);
+    if (best) {
+      cls = "good"; t = "REACHABLE";
+      s = "Best repeater: " + esc(best.name || nameFor(best.id) || best.id) + " &middot; score " + best.sc + " &middot; SNR " + (+best.snr).toFixed(1) + " dB &middot; " + (S.frame.links || []).length + " repeater" + ((S.frame.links || []).length === 1 ? "" : "s") + " heard";
+    } else {
+      cls = "bad"; t = "NO REPEATER HEARD";
+      const lu = S.lastUsable;
+      s = lu ? "Last usable repeater: <b>" + esc(lu.name || lu.id) + "</b>, " + fmtAge(now() - lu.at) + " ago (SNR " + (+lu.snr).toFixed(1) + " dB)." : "No repeater has been heard yet this session.";
+      const cov = S.frame.trip && S.frame.trip.cov;
+      if (cov && cov.m != null && cov.lat) s += " Last place with coverage: <b>" + fmtDist(cov.m) + " " + compass(cov.brg) + "</b> of here.";
+      s += " Move higher or outdoors, check the antenna, and wait a few minutes for adverts.";
+    }
+  }
+  b.className = "banner " + cls; b.innerHTML = '<div class="t">' + t + '</div><div class="s">' + s + "</div>";
+}
+function renderStation() {
+  renderBanner();
+  const c = S.cairn, id = c && c.id;
+  const okp = (id || "LC-?????") + " Reporting at: " + (here() ? here()[0].toFixed(5) + "," + here()[1].toFixed(5) : "no GPS fix");
+  $("okPreview").textContent = okp;
+  $("btnOk").disabled = S.mode === "off" || !id;
+  $("okLast").textContent = c && c.okago ? "Last check-in sent " + fmtAge(c.okago * 1000) + " ago." : (id ? "No check-in sent yet this session." : "");
+  const dis = c && c.mode === "disaster";
+  $("modeNormal").setAttribute("aria-pressed", dis ? "false" : "true"); $("modeDisaster").setAttribute("aria-pressed", dis ? "true" : "false");
+  $("modeNow").textContent = c ? "Radio is in " + (dis ? "DISASTER" : "normal") + " mode." : "";
+  const g = S.frame && S.frame.gps, tab = new Date();
+  let w = row("Tablet time", esc(tab.toLocaleString()));
+  if (c && c.now) { const off = Math.round(Date.now() / 1000 - c.now); w += row("Radio clock", esc(new Date(c.now * 1000).toLocaleTimeString()) + (Math.abs(off) > 30 ? ' <span class="pill-late">(' + off + " s off)</span>" : ' <span class="pill-ok">in step</span>')); }
+  w += row("GPS", g ? (g.fix ? '<span class="pill-ok">fix</span>, ' + g.sats + " satellites" : '<span class="pill-late">no fix</span>' + (g.sats != null ? ", " + g.sats + " satellites" : "")) : '<span class="muted">not reported</span>');
+  if (g && g.fix) w += row("Position", '<span class="mono">' + (+g.lat).toFixed(5) + ", " + (+g.lon).toFixed(5) + "</span>");
+  $("whereBox").innerHTML = w;
+  const t = now(), rec = (ty) => Array.from(S.nodes.values()).filter((n) => (ty === 3 ? n.type >= 3 : n.type === ty) && n.ms && t - n.ms <= 900000);
+  $("heardCounts").innerHTML = '<span class="chip"><b>' + rec(2).length + '</b> repeaters</span><span class="chip"><b>' + rec(1).length + '</b> companions</span><span class="chip"><b>' + rec(3).length + "</b> room servers</span>";
+  const top = rec(2).sort((a, b) => b.snr - a.snr).slice(0, 3);
+  $("topReps").innerHTML = top.length ? top.map((n) => "<div><b>" + esc(n.name || n.k.slice(0, 6)) + '</b> <span class="muted">SNR ' + (+n.snr).toFixed(1) + " &middot; " + (n.hops === 0 ? "direct" : n.hops + " hops") + " &middot; " + fmtAge(t - n.ms) + " ago</span></div>").join("") : '<span class="muted">No repeater in the last 15 minutes.</span>';
+  const msgs = S.journal.filter((r) => r.r === "m").slice(-6).reverse();
+  $("latestMsgs").innerHTML = msgs.length ? msgs.map((r) => "<div style=\"padding:4px 0;border-bottom:1px solid var(--line)\"><span class=\"muted\">" + esc(fmtTime(r._ms)) + "</span> <b>" + esc(r.f || r.c || "?") + "</b> " + (r.c && r.f ? '<span class="muted">in ' + esc(r.c) + "</span> " : "") + '<span class="txt">' + esc(r.x) + "</span></div>").join("") : '<span class="muted">No messages in the journal yet.</span>';
+  const f = S.frame;
+  $("radioBox").innerHTML = f ? row("Packets heard / sent", (f.diag ? f.diag.rx + " / " + f.diag.tx : "?")) + row("Last heard", f.diag ? f.diag.last_rx_s + " s ago" : "?") + row("Average SNR", f.diag && f.diag.snr != null ? (+f.diag.snr).toFixed(1) + " dB" : "?") +
+    row("Messages sent / delivered", f.dl ? f.dl.sent + " / " + f.dl.ok : "?") + row("Firmware", esc(f.v || "")) : '<dd class="muted">No reading yet.</dd>';
+  $("journalBox").innerHTML = row("On this tablet", S.journal.length + " records") + row("On the radio", c ? c.kb + " KB" : "?") + row("Station started", c && c.lines != null ? c.lines + " lines this session" : "?") + row("Dropped", c && c.lost ? '<span class="pill-late">' + c.lost + "</span>" : "0");
+}
+function renderNearby() {
+  $("nbRep").innerHTML = nodeTable(nodeList(2)); $("nbRoom").innerHTML = nodeTable(nodeList(3)); $("nbComp").innerHTML = nodeTable(nodeList(1));
+}
+function rosterStatus(id) { return S.roster[id] || "ok"; }
+function renderRoster() {
+  const late = (+$("lateMin").value || 30) * 60000, t = now();
+  const a = Array.from(S.checkins.values()).sort((x, y) => y.ms - x.ms);
+  let overdue = 0;
+  let s = '<table><thead><tr><th>Station</th><th>Heard from</th><th>Last report</th><th>Position</th><th>Status</th></tr></thead><tbody>';
+  a.forEach((c) => {
+    const isLate = t - c.ms > late, st = rosterStatus(c.id);
+    if (isLate && st !== "help") overdue++;
+    const p = c.lat != null ? [c.lat, c.lon] : null;
+    s += "<tr><td class=\"mono\"><b>" + esc(c.id) + "</b>" + (S.cairn && S.cairn.id === c.id ? ' <span class="tag comp">this station</span>' : "") + "</td><td>" + esc(c.from || c.chan || "") + "</td><td>" + esc(fmtAge(t - c.ms)) + " ago" +
+      (isLate ? ' <span class="pill-late">overdue</span>' : "") + "</td><td>" + (p ? '<span class="mono">' + p[0].toFixed(5) + ", " + p[1].toFixed(5) + "</span> " + esc(relPos(p)) + ' <a href="geo:' + p[0] + "," + p[1] + '">open in maps app</a>' : '<span class="muted">no GPS fix</span>') + "</td>" +
+      '<td><button data-roster="' + esc(c.id) + '">' + (st === "help" ? '<span class="pill-help">NEEDS HELP</span>' : st === "ok" ? '<span class="pill-ok">OK</span>' : "Unknown") + "</button></td></tr>";
+  });
+  if (!a.length) s += '<tr><td colspan="5" class="muted">No check-ins heard yet. When another CAIRN station presses its check-in button, it appears here.</td></tr>';
+  $("rosterBox").innerHTML = s + "</tbody></table>";
+  $("rosterBox").querySelectorAll("[data-roster]").forEach((b) => b.addEventListener("click", () => {
+    const id = b.dataset.roster, cur = rosterStatus(id), nx = cur === "ok" ? "help" : cur === "help" ? "unk" : "ok";
+    S.roster[id] = nx; jset("cairn-roster", S.roster); renderRoster();
+  }));
+  const bd = $("lateBadge"); bd.textContent = overdue; bd.hidden = overdue === 0;
+}
+function logRows() {
+  const q = S.search.trim().toLowerCase();
+  return S.journal.slice().sort((x, y) => (x._ms || 0) - (y._ms || 0)).filter((r) => {
+    if (S.kind === "m" && r.r !== "m") return false;
+    if (S.kind === "a" && r.r !== "a") return false;
+    if (S.kind === "b" && r.r !== "b") return false;
+    if (S.kind === "c" && !(r.r === "o" || (r.r === "m" && CHECKIN_RE.test(r.x || "")))) return false;
+    return !q || r._l.toLowerCase().indexOf(q) >= 0;
+  });
+}
+function describe(r) {
+  if (r.r === "m") return ["Message" + (r.k === "r" ? " (room)" : r.k === "d" ? " (direct)" : r.k === "x" ? " (reply)" : ""), r.f || r.c || "", (r.c && r.f ? "[" + r.c + "] " : "") + (r.x || "")];
+  if (r.r === "a") { const tt = TYPE[r.ty] || ["", "node"]; return ["Advert: " + tt[1], r.n || r.k, "hops " + r.h + ", SNR " + r.s + ", RSSI " + r.rs + (r.la != null ? ", at " + r.la + "," + r.lo : "")]; }
+  if (r.r === "o") return ["Check-in sent", r.id, r.x];
+  if (r.r === "b") return ["Station started", r.id, "firmware " + r.v];
+  return ["?", "", ""];
+}
+function renderLog() {
+  const rows = logRows(), show = rows.slice(-300).reverse();
+  const tb = document.querySelector("#logTable tbody");
+  tb.innerHTML = show.map((r) => { const d = describe(r); return "<tr><td>" + esc(fmtTime(r._ms)) + "</td><td>" + esc(d[0]) + "</td><td>" + esc(d[1]) + '</td><td class="txt">' + esc(d[2]) + "</td></tr>"; }).join("") || '<tr><td colspan="4" class="muted">Nothing here yet.</td></tr>';
+  $("logCount").textContent = rows.length + " records" + (rows.length !== S.journal.length ? " shown of " + S.journal.length : "");
+  $("logMore").textContent = rows.length > 300 ? "Showing the newest 300. Download the CSV for everything." : "";
+}
+function renderPower() {
+  const f = S.frame, b = f && f.bat;
+  if (!b || !b.mv) $("radioBatt").innerHTML = '<p class="muted">The radio reports no battery. If it runs from USB power only, that is normal: it cannot see the power bank. Fit a small LiPo to the radio\'s battery connector if you want a radio battery reading.</p>';
+  else {
+    const pct = Math.round(b.pct); $("radioBatt").innerHTML = '<div class="big">' + pct + '%</div><div class="muted">' + (b.mv / 1000).toFixed(2) + " V" + (b.chg ? " &middot; charging" : "") + (b.hrs != null ? " &middot; about " + (+b.hrs).toFixed(1) + " h left" : "") + '</div><div class="bar2 ' + (pct < 20 ? "low" : pct < 40 ? "warn" : "") + '" style="margin-top:8px"><div style="width:' + pct + '%"></div></div>';
+  }
+  const t = now();
+  $("supplies").innerHTML = S.supplies.map((s, i) => {
+    const total = s.hours * 3600000, el = s.start ? t - s.start : 0, left = s.start ? Math.max(0, total - el) : 0, pct = s.start ? Math.round(100 * left / total) : 0;
+    return '<div class="card" style="margin-bottom:10px;background:var(--panel2)"><div class="row"><div class="grow"><b>' + esc(s.name) + '</b><div class="small muted">Expected to last <input type="number" min="1" max="999" value="' + esc(s.hours) + '" data-sup-h="' + i + '" style="width:84px;display:inline-block;min-height:38px"> hours</div></div>' +
+      (s.start ? '<div><div class="big">' + fmtAge(left) + '</div><div class="small muted">left of ' + s.hours + " h (started " + esc(fmtTime(s.start)) + ")</div></div>" : '<div class="muted">Timer not started</div>') +
+      '<button data-sup-go="' + i + '" class="pri">Fully charged / started now</button><button data-sup-del="' + i + '">Remove</button></div>' +
+      (s.start ? '<div class="bar2 ' + (pct < 15 ? "low" : pct < 35 ? "warn" : "") + '" style="margin-top:8px"><div style="width:' + pct + '%"></div></div>' : "") + "</div>";
+  }).join("");
+  $("supplies").querySelectorAll("[data-sup-go]").forEach((b) => b.addEventListener("click", () => { S.supplies[+b.dataset.supGo].start = now(); jset("cairn-supplies", S.supplies); renderPower(); }));
+  $("supplies").querySelectorAll("[data-sup-del]").forEach((b) => b.addEventListener("click", () => { S.supplies.splice(+b.dataset.supDel, 1); jset("cairn-supplies", S.supplies); renderPower(); }));
+  $("supplies").querySelectorAll("[data-sup-h]").forEach((i) => i.addEventListener("change", () => { S.supplies[+i.dataset.supH].hours = Math.max(1, +i.value || 1); jset("cairn-supplies", S.supplies); renderPower(); }));
+  applyKb();
+}
+$("btnAddSupply").addEventListener("click", () => { S.supplies.push({ name: "Supply " + (S.supplies.length + 1), hours: 24, start: 0 }); jset("cairn-supplies", S.supplies); renderPower(); });
+if (navigator.getBattery) navigator.getBattery().then((bt) => {
+  const draw = () => { $("tabBatt").innerHTML = '<div class="big">' + Math.round(bt.level * 100) + '%</div><div class="muted">' + (bt.charging ? "charging" : "on battery") + (!bt.charging && isFinite(bt.dischargingTime) ? " &middot; about " + fmtAge(bt.dischargingTime * 1000) + " left" : "") + "</div>"; };
+  draw(); bt.addEventListener("levelchange", draw); bt.addEventListener("chargingchange", draw);
+}).catch(() => { $("tabBatt").textContent = "This browser does not report the tablet's battery. Look at the tablet's own battery icon."; });
+else $("tabBatt").textContent = "This browser does not report the tablet's battery. Look at the tablet's own battery icon.";
+
+let lastRender = 0;
+function render() {
+  lastRender = now();
+  if (S.mode === "serial") setStatus(S.frame ? "live" : "wait", S.frame ? "Live" : "Connected, waiting for data");
+  const id = S.cairn && S.cairn.id;
+  $("sid").textContent = id || "LC-?????"; $("sid").classList.toggle("none", !id);
+  if (S.tab === "station") renderStation();
+  else if (S.tab === "nearby") renderNearby();
+  else if (S.tab === "checkins") renderRoster();
+  else if (S.tab === "log") renderLog();
+  else if (S.tab === "map") renderMap();
+  else if (S.tab === "power") { if (!document.activeElement || document.activeElement.tagName !== "INPUT") renderPower(); }
+  if (S.tab !== "checkins") renderRosterBadge();
+  if (S.tab === "station") applyKb();
+}
+function renderRosterBadge() {
+  const late = (+$("lateMin").value || 30) * 60000, t = now(); let n = 0;
+  S.checkins.forEach((c) => { if (t - c.ms > late && rosterStatus(c.id) !== "help") n++; });
+  const bd = $("lateBadge"); bd.textContent = n; bd.hidden = n === 0;
+}
+setInterval(() => { if (document.hidden) return; if (S.tab === "log" || (document.activeElement && document.activeElement.tagName === "INPUT" && S.tab !== "station")) return; render(); }, 1000);
+
+/* ---------------------------------------------------------------- controls */
+$("btnConnect").addEventListener("click", connect);
+$("btnOk").addEventListener("click", () => { const ch = Math.max(0, Math.min(39, +$("okChan").value || 0)); send("cairn ok " + ch); toast("Sending check-in..."); });
+$("modeNormal").addEventListener("click", () => { send("cairn mode normal"); });
+$("modeDisaster").addEventListener("click", () => { send("cairn mode disaster"); });
+$("btnSetClock").addEventListener("click", () => { send("cairn time " + Math.round(Date.now() / 1000)); });
+document.querySelectorAll("[data-win]").forEach((b) => b.addEventListener("click", () => { S.win = +b.dataset.win; document.querySelectorAll("[data-win]").forEach((x) => x.setAttribute("aria-pressed", x === b ? "true" : "false")); render(); }));
+document.querySelectorAll("[data-sort]").forEach((b) => b.addEventListener("click", () => { S.sort = b.dataset.sort; document.querySelectorAll("[data-sort]").forEach((x) => x.setAttribute("aria-pressed", x === b ? "true" : "false")); render(); }));
+document.querySelectorAll("[data-kind]").forEach((b) => b.addEventListener("click", () => { S.kind = b.dataset.kind; document.querySelectorAll("[data-kind]").forEach((x) => x.setAttribute("aria-pressed", x === b ? "true" : "false")); render(); }));
+$("logSearch").addEventListener("input", (e) => { S.search = e.target.value; renderLog(); });
+$("lateMin").addEventListener("change", () => { store.set("cairn-late", $("lateMin").value); render(); });
+if (store.get("cairn-late")) $("lateMin").value = store.get("cairn-late");
+$("btnPrint").addEventListener("click", () => window.print());
+$("btnReload").addEventListener("click", () => { S.dumping = true; send("cairn dump"); toast("Asking the radio for its journal..."); });
+$("btnErase").addEventListener("click", () => { if (confirm("Erase the journal stored ON THE RADIO? The copy kept on this tablet is not touched.")) { send("cairn clear yes"); } });
+
+function stamp() { return new Date().toISOString().slice(0, 19).replace(/[:T]/g, "-"); }
+function saveFile(name, mime, text) {
+  const a = document.createElement("a"), u = URL.createObjectURL(new Blob([text], { type: mime }));
+  a.href = u; a.download = name; document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(u), 4000);
+}
+const csvCell = (v) => { v = v == null ? "" : String(v); return /[",\n\r]/.test(v) ? '"' + v.replace(/"/g, '""') + '"' : v; };
+function downloadCsv() {
+  const head = ["time_local", "device_epoch", "uptime_s", "record", "kind", "from_or_name", "channel", "node_type", "node_key", "hops", "snr", "rssi", "lat_announced", "lon_announced", "lat_heard_from", "lon_heard_from", "text"];
+  const lines = [head.join(",")];
+  S.journal.forEach((r) => {
+    const tt = r.r === "a" ? (TYPE[r.ty] ? TYPE[r.ty][1] : r.ty) : "";
+    lines.push([r._ms ? new Date(r._ms).toISOString() : "", r.t, r.u, { m: "message", a: "advert", o: "checkin_sent", b: "boot" }[r.r] || r.r, r.k && r.r === "m" ? r.k : "", r.f || r.n || r.id || "", r.c || "", tt, r.r === "a" ? r.k : "", r.h, r.s, r.rs, r.la, r.lo, r.hla, r.hlo, r.x || ""].map(csvCell).join(","));
+  });
+  saveFile("cairn-journal-" + stamp() + ".csv", "text/csv", lines.join("\r\n") + "\r\n");
+}
+$("btnCsv").addEventListener("click", downloadCsv);
+$("btnJsonl").addEventListener("click", () => saveFile("cairn-journal-" + stamp() + ".jsonl", "application/x-ndjson", S.journal.map((r) => r._l).join("\n") + "\n"));
+
+/* ---------------------------------------------------------------- map and offline maps */
+const REG_API = "https://api.github.com/repos/propertymonitor-web/lodestar_nova_alpha/releases/tags/maps";
+const fmtMB = (b) => (b >= 1e9 ? (b / 1e9).toFixed(1) + " GB" : Math.max(1, Math.round(b / 1e6)) + " MB");
+function offNoteSet(t) { $("offNote").textContent = t || ""; }
+async function readHeader(file) {
+  const p = new pmtiles.PMTiles(new pmtiles.FileSource(file)), h = await p.getHeader();
+  if (h.tileType !== 1) throw new Error("this is not a vector map file");
+  return { p, h };
+}
+async function loadStoredMaps() {
+  try { (await DB.run("maps", "readonly", (st) => st.getAll())).forEach((r) => S.off.set(r.name, r)); }
+  catch (e) { offNoteSet("This browser will not keep map files, so load the file each visit."); }
+  renderOffList(); fillTileSel();
+}
+function fillTileSel() {
+  const sel = $("tileSel"), cur = sel.value;
+  Array.from(sel.querySelectorAll("option[data-off]")).forEach((o) => o.remove());
+  S.off.forEach((r) => { const o = document.createElement("option"); o.value = "off:" + r.name; o.dataset.off = "1"; o.textContent = "Offline: " + r.title; sel.appendChild(o); });
+  if (Array.from(sel.options).some((o) => o.value === cur)) sel.value = cur;
+}
+function renderOffList() {
+  const ul = $("offList"); ul.textContent = "";
+  S.off.forEach((r) => {
+    const li = document.createElement("li"), using = S.offUse === r.name;
+    li.innerHTML = "<b>" + esc(r.title) + '</b> <span class="muted">' + esc(fmtMB(r.size)) + ", detail to zoom " + esc(r.maxZoom) + "</span> ";
+    const use = document.createElement("button"); use.textContent = using ? "In use" : "Use this map"; use.disabled = using;
+    use.addEventListener("click", () => { $("tileSel").value = "off:" + r.name; $("tileSel").dispatchEvent(new Event("change")); });
+    const del = document.createElement("button"); del.textContent = "Remove";
+    del.addEventListener("click", async () => {
+      if (!confirm('Remove the offline map "' + r.title + '" from this browser? You can load the file again later.')) return;
+      try { await DB.run("maps", "readwrite", (st) => st.delete(r.name)); } catch (e) {}
+      S.off.delete(r.name); if (S.offUse === r.name && S.useProv) S.useProv("carto", true); renderOffList(); fillTileSel();
+    });
+    li.appendChild(use); li.appendChild(del); ul.appendChild(li);
+  });
+}
+async function addMapFile(file) {
+  if (!/\.pmtiles$/i.test(file.name)) { offNoteSet(file.name + " is not a .pmtiles map file."); return; }
+  offNoteSet("Reading " + file.name + "...");
+  let info; try { info = await readHeader(file); } catch (e) { offNoteSet(file.name + ": " + e.message + "."); return; }
+  const name = file.name.replace(/\.pmtiles$/i, "");
+  const rec = { name, title: name.replace(/[-_]+/g, " ").replace(/\b\w/g, (c) => c.toUpperCase()), file, size: file.size, added: Date.now(), bounds: [info.h.minLat, info.h.minLon, info.h.maxLat, info.h.maxLon], minZoom: info.h.minZoom, maxZoom: info.h.maxZoom };
+  try { await DB.run("maps", "readwrite", (st) => st.put(rec)); offNoteSet("Saved " + rec.title + " in this browser."); }
+  catch (e) { offNoteSet("Loaded " + rec.title + " for this visit only: " + (e && e.message ? e.message : "the browser would not store it") + "."); }
+  S.off.set(name, rec); renderOffList(); fillTileSel();
+  if (S.map) { $("tileSel").value = "off:" + name; $("tileSel").dispatchEvent(new Event("change")); }
+}
+async function useOffline(name) {
+  const r = S.off.get(name); if (!r || !S.map) return false;
+  let info; try { info = await readHeader(r.file); } catch (e) { offNoteSet("Could not open " + r.title + ": " + e.message); return false; }
+  if (S.offLayer) { S.map.removeLayer(S.offLayer); S.offLayer = null; }
+  if (S.tileLayerNow) { S.map.removeLayer(S.tileLayerNow); S.tileLayerNow = null; }
+  S.offLayer = protomapsL.leafletLayer({ url: info.p, flavor: "light", maxDataZoom: info.h.maxZoom, lang: "en",
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> contributors, <a href="https://protomaps.com" target="_blank" rel="noopener">Protomaps</a>' }).addTo(S.map);
+  S.offLayer.bringToBack(); S.offUse = name; S.offBounds = L.latLngBounds([r.bounds[0], r.bounds[1]], [r.bounds[2], r.bounds[3]]);
+  $("mapNote").hidden = true; renderOffList(); checkCoverage();
+  return true;
+}
+function checkCoverage() {
+  if (!S.offUse || !S.offBounds) return;
+  const h = here(), n = $("mapNote");
+  if (h && !S.offBounds.contains(h)) { n.hidden = false; n.textContent = "You are outside the area of the offline map in use, so the map is blank here."; }
+  else if (!n.hidden && n.textContent.indexOf("outside the area") === 0) n.hidden = true;
+}
+async function loadRegionList() {
+  const sel = $("regSel");
+  try {
+    const r = await fetch(REG_API, { headers: { Accept: "application/vnd.github+json" } });
+    if (!r.ok) throw new Error("HTTP " + r.status);
+    const j = await r.json();
+    const maps = (j.assets || []).filter((a) => /\.pmtiles$/i.test(a.name)).sort((a, b) => (a.label || a.name).localeCompare(b.label || b.name));
+    sel.textContent = "";
+    if (!maps.length) { sel.innerHTML = '<option value="">No regions published yet</option>'; return; }
+    const o0 = document.createElement("option"); o0.value = ""; o0.textContent = "Choose a region..."; sel.appendChild(o0);
+    maps.forEach((a) => { const o = document.createElement("option"); o.value = a.browser_download_url; o.textContent = (a.label || a.name.replace(/\.pmtiles$/i, "")) + " (" + fmtMB(a.size) + ")"; sel.appendChild(o); });
+  } catch (e) {
+    sel.innerHTML = '<option value="">List not available</option>';
+    $("regNote").textContent = "The region list needs an internet connection. Maps you already loaded are listed below and work offline.";
+  }
+}
+$("regSel").addEventListener("change", (e) => { const u = e.target.value, a = $("regDl"); a.href = u || "#"; $("regDlBtn").disabled = !u; a.setAttribute("aria-disabled", u ? "false" : "true"); $("regNote").textContent = u ? "Press Download, then choose the downloaded file with Load a map file." : ""; });
+$("btnLoadMap").addEventListener("click", () => $("mapFile").click());
+$("mapFile").addEventListener("change", async (e) => { const files = Array.from(e.target.files || []); for (const f of files) await addMapFile(f); e.target.value = ""; });
+
+const mk = (cls) => L.divIcon({ className: "", html: '<div class="mk ' + cls + '"></div>', iconSize: [16, 16], iconAnchor: [8, 8] });
+function initMap() {
+  if (!window.L || S.map) { if (S.map) setTimeout(() => S.map.invalidateSize(), 100); return; }
+  S.map = L.map("map", { zoomControl: true, worldCopyJump: true }).setView([39.5, -98.35], 4);
+  const OSM_ATTR = '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> contributors';
+  const PROV = { carto: { url: "https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png", opt: { subdomains: "abcd", maxZoom: 19, attribution: OSM_ATTR + ' &copy; <a href="https://carto.com/attributions" target="_blank" rel="noopener">CARTO</a>' } } };
+  let layer = null, okT = 0, badT = 0;
+  const leaveOffline = () => { if (S.offLayer) { S.map.removeLayer(S.offLayer); S.offLayer = null; S.offUse = null; S.offBounds = null; renderOffList(); } };
+  const useProv = (key, remember) => {
+    if (key.indexOf("off:") === 0) {
+      if (remember) store.set("cairn-tiles", key);
+      if (layer) { S.map.removeLayer(layer); layer = null; }
+      $("tileSel").value = key; useOffline(key.slice(4)).then((ok) => { if (!ok) useProv("carto", false); });
+      return;
+    }
+    leaveOffline(); if (remember) store.set("cairn-tiles", key);
+    if (layer) S.map.removeLayer(layer);
+    okT = 0; badT = 0; $("mapNote").hidden = true; $("tileSel").value = key;
+    layer = L.tileLayer(PROV.carto.url, PROV.carto.opt).addTo(S.map); layer.bringToBack();
+    layer.on("tileload", () => { okT++; $("mapNote").hidden = true; });
+    layer.on("tileerror", () => {
+      badT++; if (badT < 4 || okT > 0) return;
+      const offName = S.off.size ? Array.from(S.off.keys())[0] : null;
+      if (offName) { useProv("off:" + offName, false); const n = $("mapNote"); n.hidden = false; n.textContent = 'No internet, so the offline map "' + S.off.get(offName).title + '" is in use.'; return; }
+      const n = $("mapNote"); n.hidden = false; n.textContent = "The street map needs internet. Load an offline map (below) before you go. Your position, nodes and check-ins are still drawn.";
+    });
+  };
+  $("tileSel").addEventListener("change", (e) => useProv(e.target.value, true));
+  S.useProv = useProv;
+  loadStoredMaps().then(() => {
+    let prov = store.get("cairn-tiles") || "carto";
+    if (prov.indexOf("off:") === 0 && S.off.has(prov.slice(4))) useProv(prov, false);
+    else if (navigator.onLine === false && S.off.size) useProv("off:" + Array.from(S.off.keys())[0], false);
+    else useProv("carto", false);
+  });
+  S.gNodes = L.layerGroup().addTo(S.map); S.gChk = L.layerGroup().addTo(S.map);
+  S.you = L.marker([0, 0], { icon: mk("me"), keyboard: false, title: "This station" });
+  S.cov = L.marker([0, 0], { icon: L.divIcon({ className: "covDia", iconSize: [14, 14] }), keyboard: false, title: "Last place with a usable repeater" });
+  S.map.on("dragstart", () => { S.follow = false; $("btnFollow").setAttribute("aria-pressed", "false"); });
+  S.follow = true; S.fitted = false;
+  setTimeout(() => S.map.invalidateSize(), 200);
+}
+function renderMap() {
+  if (!S.map) { initMap(); if (!S.map) return; }
+  S.map.invalidateSize();
+  S.gNodes.clearLayers(); S.gChk.clearLayers();
+  const pts = [];
+  S.nodes.forEach((n) => {
+    const p = n.apos || (n.hpos); if (!p) return;
+    const tt = TYPE[n.type] || ["rep", "node"];
+    L.marker(p, { icon: mk(tt[0]), title: n.name }).bindPopup("<b>" + esc(n.name || n.k.slice(0, 6)) + "</b><br>" + esc(tt[1]) + "<br>SNR " + (+n.snr).toFixed(1) + ", " + (n.hops === 0 ? "direct" : n.hops + " hops") + "<br>" + (n.ms ? fmtAge(now() - n.ms) + " ago" : "") + (n.apos ? "" : "<br><i>(position where I heard it)</i>")).addTo(S.gNodes);
+    pts.push(p);
+  });
+  S.checkins.forEach((c) => { if (c.lat == null) return; L.marker([c.lat, c.lon], { icon: mk("chk"), title: c.id }).bindPopup("<b>" + esc(c.id) + "</b><br>" + fmtAge(now() - c.ms) + " ago").addTo(S.gChk); pts.push([c.lat, c.lon]); });
+  const h = here();
+  if (h) { S.you.setLatLng(h).addTo(S.map); pts.push(h); } else S.map.removeLayer(S.you);
+  const cov = S.frame && S.frame.trip && S.frame.trip.cov;
+  if (cov && cov.lat) { S.cov.setLatLng([cov.lat, cov.lon]).addTo(S.map); } else S.map.removeLayer(S.cov);
+  if (S.follow && h) S.map.setView(h, Math.max(S.map.getZoom(), 12));
+  else if (!S.fitted && pts.length) { S.map.fitBounds(L.latLngBounds(pts).pad(0.3), { maxZoom: 15 }); S.fitted = true; }
+  checkCoverage();
+}
+$("btnFit").addEventListener("click", () => { S.follow = false; $("btnFollow").setAttribute("aria-pressed", "false"); S.fitted = false; renderMap(); });
+$("btnFollow").addEventListener("click", () => { S.follow = !S.follow; $("btnFollow").setAttribute("aria-pressed", S.follow ? "true" : "false"); renderMap(); });
+loadRegionList();
+
+/* ---------------------------------------------------------------- practice mode (no radio needed) */
+function stopDemo() { if (S.demo) { clearInterval(S.demo); S.demo = null; } if (S.mode === "demo") { S.mode = "off"; S.frame = null; S.cairn = null; setStatus("off", "Not connected"); $("btnDemo").textContent = "Practice"; } }
+let demoState = null;
+function demoCommand(line) {
+  const d = demoState; if (!d) return;
+  if (line.indexOf("cairn mode disaster") === 0) d.mode = "disaster";
+  else if (line.indexOf("cairn mode normal") === 0) d.mode = "normal";
+  else if (line.indexOf("cairn time") === 0) d.skew = 0;
+  else if (line.indexOf("cairn ok") === 0) {
+    const g = d.gps, txt = d.id + " Reporting at: " + g[0].toFixed(5) + "," + g[1].toFixed(5);
+    d.okAt = now();
+    addRecord(JSON.stringify({ r: "o", t: Math.round(now() / 1000), u: d.up, id: d.id, ch: 0, x: txt }), now(), false);
+    toast("Check-in sent (practice).");
+  }
+}
+function startDemo() {
+  if (S.mode === "serial") { toast("Disconnect the radio first."); return; }
+  if (S.mode === "demo") { stopDemo(); return; }
+  S.mode = "demo"; setStatus("demo", "Practice data"); $("btnDemo").textContent = "Stop practice";
+  S.nodes = new Map(); S.journal = []; S.jset = new Set(); S.checkins = new Map();
+  const d = demoState = { id: "LC-K7M2P", mode: "normal", gps: [29.7604, -95.3698], up: 600, skew: 90, okAt: 0, tick: 0 };
+  const rt = Math.round(now() / 1000);
+  const reps = [["Hilltop-1", 1, -4.5, -96, 2, 29.8211, -95.4202], ["Downtown RPT", 2, -9.0, -108, 1, 29.7498, -95.3601], ["School Roof", 0, 6.2, -78, 0, 29.7701, -95.3512]];
+  reps.forEach((r, i) => { const k = ["A1B2C3D4E5F0","7F3E9A11B2C3","D40C55E8A901"][i]; addRecord(JSON.stringify({ r: "a", t: rt - 60 * (i + 1), u: 100 + i, ty: 2, n: r[0], k, h: r[1], s: r[2], rs: r[3], la: r[5], lo: r[6] }), now(), false); });
+  addRecord(JSON.stringify({ r: "a", t: rt - 300, u: 80, ty: 1, n: "Alex's radio", k: "BEEFCAFE0001", h: 1, s: -2.0, rs: -99 }), now(), false);
+  addRecord(JSON.stringify({ r: "a", t: rt - 240, u: 90, ty: 3, n: "Neighborhood Board", k: "ABCD00112233", h: 2, s: -7.5, rs: -104, la: 29.77, lo: -95.38 }), now(), false);
+  addRecord(JSON.stringify({ r: "m", t: rt - 200, u: 120, k: "c", f: "Alex", c: "Public", s: -2.5, h: 1, x: "LC-W4PQ8 Reporting at: 29.76810,-95.37400" }), now(), false);
+  addRecord(JSON.stringify({ r: "m", t: rt - 90 * 60, u: 130, k: "c", f: "Dana", c: "Public", s: -5.0, h: 2, x: "LC-9TMX3 Reporting at: 29.80100,-95.41000" }), now(), false);
+  addRecord(JSON.stringify({ r: "m", t: rt - 120, u: 140, k: "c", f: "Sam", c: "Public", s: -1.0, h: 0, x: "Water is rising on Elm St. Need a boat at the school." }), now(), false);
+  const tickDemo = () => {
+    d.tick++; d.up += 1; d.gps = [29.7604 + 0.0002 * Math.sin(d.tick / 30), -95.3698 + 0.0002 * Math.cos(d.tick / 30)];
+    const gone = d.tick % 120 > 90;   // every two minutes the best repeater drops out, to show the red banner
+    const links = gone ? [] : [{ id: "D40C55", name: "School Roof", best: 1, sc: 78, rel: 80, lq: 91, snr: 6.2, rssi: -78, age: 4, hit: 5, n: 6 }, { id: "A1B2C3", name: "Hilltop-1", best: 0, sc: 40, rel: 50, lq: 60, snr: -4.5, rssi: -96, age: 30, hit: 2, n: 4 }];
+    onFrame({ nova: 1, ed: "cairn", v: "0.1.0-alpha-mph", unit: "mph", t: d.tick * 1000, prof: d.mode === "disaster" ? "hike" : "desk", bat: { mv: 0, pct: 0 }, gps: { fix: 1, lat: d.gps[0], lon: d.gps[1], sats: 9, spd: 0 },
+      links, dl: { sent: 3, rep: 1, ok: 2, fail: 0, list: [] }, trip: { km: 0, cov: { lat: 29.8211, lon: -95.4202, m: 7400, brg: 315, age: 60 } }, diag: { rx: 120 + d.tick, tx: 12, snr: 4.2, last_rx_s: 3, up_s: d.up } });
+    S.cairn = { cairn: 1, id: d.id, ver: "0.1.0-alpha", kb: 12, lines: S.journal.length, lost: 0, mode: d.mode, okago: d.okAt ? Math.round((now() - d.okAt) / 1000) : 0, now: Math.round(now() / 1000) - d.skew };
+    reps.forEach((r, i) => { const k = ["A1B2C3D4E5F0","7F3E9A11B2C3","D40C55E8A901"][i]; if (i === 2 && gone) return; onFound({ k, t: 2, n: r[0], hop: r[1], rs: r[3], sn: r[2], c: 5 + d.tick, ago: i === 2 ? 4 : 30 * (i + 1), first: 3000, alat: r[5], alon: r[6] }); });
+    render();
+  };
+  tickDemo(); S.demo = setInterval(tickDemo, 1000);
+}
+$("btnDemo").addEventListener("click", startDemo);
+
+/* ---------------------------------------------------------------- start-up */
+(async function boot() {
+  applyKb();
+  try {
+    const rows = await DB.run("journal", "readonly", (st) => st.getAll());
+    rows.sort((a, b) => 0);
+    rows.forEach((r) => addRecord(r.l, r.rt, false));
+    S.journal.sort((a, b) => (a._ms || 0) - (b._ms || 0));
+  } catch (e) { /* no stored copy: the radio's journal arrives on connect */ }
+  showTab(["station", "nearby", "checkins", "log", "map", "power", "guide"].includes(S.tab) ? S.tab : "station");
+  if (!("serial" in navigator)) notice("This browser cannot connect to a radio over USB. Use Chrome (version 148 or newer on Android). You can still read the log kept on this tablet, and use Practice to try the page.");
+  if ("serviceWorker" in navigator && location.protocol.indexOf("http") === 0) navigator.serviceWorker.register("sw.js").catch(() => {});
+})();
+</script>
+</body>
+</html>

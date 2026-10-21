@@ -54,6 +54,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Dashboard in docs/ is up to date
+        run: |
+          python3 tools/build_dashboard.py
+          git diff --exit-code docs/ || { echo "::error::docs/index.html is out of date: run tools/build_dashboard.py and commit"; exit 1; }
+
       - name: Unit-test NOVA (CAIRN is built on it)
         run: |
           g++ -std=c++17 -Wall -Wextra -Ilodestar -Inova nova/test/test_nova.cpp -o nova_test

@@ -212,6 +212,10 @@ void MyMesh::cairnTick(uint32_t now) {
     else                           { nova_core.runCommand(" profile desk", r, sizeof(r), now, nv_hour); }
     cairn_core.want_mode = 0;
   }
+  if (cairn_core.want_time) {
+    getRTCClock()->setCurrentTime(cairn_core.want_time);   // the dashboard set the radio's clock from the tablet's
+    cairn_core.want_time = 0;
+  }
   if (cairn_core.want_clear) {
     cairn_core.want_clear = false;
     cairnFlush();
@@ -292,11 +296,11 @@ void MyMesh::cairnTick(uint32_t now) {
     if ((int32_t)(now - next_status) >= 0) {
       next_status = now + 5000u;
       uint32_t ago = cairn_core.last_ok_up ? (now / 1000u + 1u - cairn_core.last_ok_up) : 0;
-      Serial.printf("{\"cairn\":1,\"id\":\"%s\",\"ver\":\"%s\",\"kb\":%lu,\"lines\":%lu,\"lost\":%lu,\"mode\":\"%s\",\"okago\":%lu}\n",
+      Serial.printf("{\"cairn\":1,\"id\":\"%s\",\"ver\":\"%s\",\"kb\":%lu,\"lines\":%lu,\"lost\":%lu,\"mode\":\"%s\",\"okago\":%lu,\"now\":%lu}\n",
                     cairn_core.id, CAIRN_VERSION, (unsigned long)(cairn_core.file_bytes / 1024u), (unsigned long)cairn_core.j.total,
                     (unsigned long)(cairn_core.to_flash.lost + cairn_core.to_usb.lost),
                     (nova_core.cfg.profile == nova::PROFILE_HIKE && !nova_core.cfg.quiet_on) ? "disaster" : "normal",
-                    (unsigned long)ago);
+                    (unsigned long)ago, (unsigned long)getRTCClock()->getCurrentTime());
     }
   } else {
     while (cairn_core.j.peek(cairn_core.to_usb) != nullptr) cairn_core.j.advance(cairn_core.to_usb);   // nobody is listening
