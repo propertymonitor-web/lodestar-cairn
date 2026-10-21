@@ -1,4 +1,4 @@
-LODESTAR CAIRN - FEATURES AND COMMANDS (Ver. 1.0.3, ALPHA)
+LODESTAR CAIRN - FEATURES AND COMMANDS (Ver. 1.0.4, ALPHA)
 By FEAR REACTIVE. For the Heltec WiFi LoRa 32 V4 R2 (not the R8).
 ALPHA: tested on a PC and in a browser with practice data, not yet on real hardware.
 
@@ -17,6 +17,9 @@ FEATURES
 - Disaster mode: screen off sooner, quiet hours off, stale repeaters marked sooner. Back to normal with one press.
 - Station page: REACHABLE / NO REPEATER HEARD, best repeater, last usable repeater, last place with coverage.
 - Nearby: repeaters, room servers, companions: SNR, hops, age, distance and compass direction.
+- Chat: send and read messages from the dashboard (the Chat tab). Pick a channel or a person, type up to 140
+  characters, press Send. Replies show in the same conversation. Direct messages need the person to be in the radio's
+  contact list. You can still chat in the MeshCore app over Bluetooth at the same time.
 - Check-ins roster: who reported, when, where, overdue flag, tap to mark NEEDS HELP.
 - Map: offline vector maps, your position, nodes, check-ins, last coverage point.
 - Power: radio battery (if a LiPo is fitted), tablet battery, manual power-bank timers.
@@ -35,12 +38,20 @@ COMMANDS (type in the MeshCore app's command box for your radio, or in a serial 
   cairn                      status: version, ID, journal size
   cairn id                   print the station ID
   cairn ok [channel]         send a check-in now (channel 0-39, default 0)
+  cairn say <ch> <text>      send a message to channel <ch> (0-39), 140 characters at most
+  cairn dm <key12> <text>    send a direct message to the contact whose key starts with these 12 hex characters
+  cairn chans                list the radio's channels (the dashboard asks for this)
   cairn mode disaster        disaster mode on
   cairn mode normal          back to normal
   cairn dump                 send the whole journal to the serial port (the dashboard uses this)
   cairn clear yes            erase the journal ON THE RADIO (the tablet's copy stays)
   cairn time <seconds>       set the radio's clock (seconds since 1970); the dashboard does this automatically
   nova ...                   all NOVA commands
+
+REPEATER AND COMMUNICATIONS HUB
+The CAIRN radio is a companion: it sends and receives your messages, but it does not repeat other people's. The
+repeating is done by the second radio in the kit (XIAO ESP32S3 running PULSAR), powered from the hub. Together they
+are the hub: the companion carries your chat, check-ins and journal, and the repeater extends the range for everyone.
 
 LIMITS
 - The radio cannot see power-bank or tablet charge; the Power tab timers are reminders.

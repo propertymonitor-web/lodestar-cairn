@@ -1,5 +1,6 @@
 // Host-side tests for Cairn.h:  g++ -std=c++17 -Wall -Wextra -Icairn cairn/test/test_cairn.cpp -o t && ./t [lines.jsonl]
 // With a file name, the test also writes every journal line it makes there, so the build can check they are real JSON.
+#include <string>
 #include <stdio.h>
 #include <string.h>
 #include "Cairn.h"
@@ -100,6 +101,20 @@ int main(int argc, char** argv) {
     c.setId("LC-K7M2P4XQ"); c.setId("bad"); CHECK(strcmp(c.id, "LC-K7M2P4XQ") == 0 && c.hasId());
     c.file_bytes = 20480; c.runCommand(" status", r, sizeof(r), 0); CHECK(strstr(r, "LC-K7M2P4XQ") && strstr(r, "20 KB"));
     c.runCommand(" id", r, sizeof(r), 0); CHECK(strcmp(r, "LC-K7M2P4XQ") == 0);
+    c.runCommand(" say 0 Water at Elm St", r, sizeof(r), 0); CHECK(c.want_say && c.say_channel == 0 && strcmp(c.say_text, "Water at Elm St") == 0 && strstr(r, "OK"));
+    c.want_say = false;
+    c.runCommand(" say 7   spaced  text", r, sizeof(r), 0); CHECK(c.want_say && c.say_channel == 7 && strcmp(c.say_text, "spaced  text") == 0); c.want_say = false;
+    c.runCommand(" say 40 hi", r, sizeof(r), 0); CHECK(!c.want_say && strstr(r, "Err"));
+    c.runCommand(" say x hi", r, sizeof(r), 0); CHECK(!c.want_say && strstr(r, "Err"));
+    c.runCommand(" say 0", r, sizeof(r), 0); CHECK(!c.want_say && strstr(r, "Err"));
+    { std::string longm(" say 0 "); longm += std::string(CAIRN_SAY_MAX + 1, 'x'); c.runCommand(longm.c_str(), r, sizeof(r), 0); CHECK(!c.want_say && strstr(r, "too long")); }
+    { std::string okm(" say 0 "); okm += std::string(CAIRN_SAY_MAX, 'y'); c.runCommand(okm.c_str(), r, sizeof(r), 0); CHECK(c.want_say && strlen(c.say_text) == CAIRN_SAY_MAX); c.want_say = false; }
+    c.runCommand(" dm A1B2c3D4E5F6 hello there", r, sizeof(r), 0);
+    CHECK(c.want_dm && c.dm_key[0] == 0xA1 && c.dm_key[1] == 0xB2 && c.dm_key[2] == 0xC3 && c.dm_key[5] == 0xF6 && strcmp(c.say_text, "hello there") == 0); c.want_dm = false;
+    c.runCommand(" dm A1B2C3 hi", r, sizeof(r), 0); CHECK(!c.want_dm && strstr(r, "Err"));
+    c.runCommand(" dm A1B2C3D4E5G6 hi", r, sizeof(r), 0); CHECK(!c.want_dm && strstr(r, "Err"));
+    c.want_say = true; c.runCommand(" say 0 second", r, sizeof(r), 0); CHECK(strstr(r, "still sending")); c.want_say = false;
+    c.runCommand(" chans", r, sizeof(r), 0); CHECK(c.want_chans); c.want_chans = false;
     c.runCommand(" ok", r, sizeof(r), 0); CHECK(c.want_ok && c.ok_channel == 0 && strstr(r, "OK"));
     c.want_ok = false; c.runCommand(" ok 3", r, sizeof(r), 0); CHECK(c.want_ok && c.ok_channel == 3);
     c.want_ok = false; c.runCommand(" ok 99", r, sizeof(r), 0); CHECK(!c.want_ok && strstr(r, "Err"));

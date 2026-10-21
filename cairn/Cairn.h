@@ -15,8 +15,9 @@
 #include <string.h>
 #include <stdarg.h>
 
-#define CAIRN_VERSION  "1.0.3"
+#define CAIRN_VERSION  "1.0.4"
 #define CAIRN_LINE     640       // longest journal line, bytes (a 160-character message can need ~480)
+#define CAIRN_SAY_MAX  140       // longest message the dashboard can send (MeshCore text limits are about this)
 #define CAIRN_RING     24        // lines held in RAM between the radio and the flash / USB writers
 
 namespace cairn {
@@ -219,6 +220,11 @@ public:
   bool want_dump = false;
   bool want_clear = false;
   int  want_mode = 0;        // 1 = disaster, 2 = normal
+  // Messages the dashboard asks the radio to send (`cairn say`, `cairn dm`) and the channel list it asks for.
+  bool want_say = false;     int say_channel = 0;
+  bool want_dm = false;      uint8_t dm_key[6] = {0};
+  char say_text[CAIRN_SAY_MAX + 1] = {0};
+  bool want_chans = false;
   uint32_t want_time = 0;    // set the radio's clock to this (seconds since 1970), from the dashboard
   uint32_t last_ok_up = 0;   // seconds since boot when this station last sent a check-in (0 = none)
 
@@ -260,13 +266,45 @@ public:
       if (*p == 0 || *end != 0 || v < 1700000000UL || v > 4102444800UL) { snprintf(reply, cap, "Err - cairn time <seconds since 1970>"); return; }
       want_time = (uint32_t)v;
       snprintf(reply, cap, "OK - radio clock set");
+    } else if (strncmp(a, "say", 3) == 0 && (a[3] == 0 || a[3] == ' ')) {
+      // cairn say <channel 0-39> <text>
+      const char* p = a + 3; while (*p == ' ') p++;
+      char* end; long ch = strtol(p, &end, 10);
+      if (end == p || ch < 0 || ch > 39 || (*end != ' ' && *end != 0)) { snprintf(reply, cap, "Err - cairn say <channel 0-39> <text>"); return; }
+      p = end; while (*p == ' ') p++;
+      size_t n = strlen(p);
+      if (n == 0) { snprintf(reply, cap, "Err - nothing to send"); return; }
+      if (n > CAIRN_SAY_MAX) { snprintf(reply, cap, "Err - message too long (%u characters, most is %u)", (unsigned)n, (unsigned)CAIRN_SAY_MAX); return; }
+      if (want_say || want_dm) { snprintf(reply, cap, "Err - still sending the last message, try again"); return; }
+      memcpy(say_text, p, n); say_text[n] = 0; say_channel = (int)ch; want_say = true;
+      snprintf(reply, cap, "OK - sending to channel %d", (int)ch);
+    } else if (strncmp(a, "dm", 2) == 0 && (a[2] == 0 || a[2] == ' ')) {
+      // cairn dm <12 hex characters of the contact's key> <text>
+      const char* p = a + 2; while (*p == ' ') p++;
+      uint8_t k[6]; int i = 0;
+      for (; i < 12; i++) {
+        char c = p[i]; int v = (c >= '0' && c <= '9') ? c - '0' : (c >= 'a' && c <= 'f') ? c - 'a' + 10 : (c >= 'A' && c <= 'F') ? c - 'A' + 10 : -1;
+        if (v < 0) break;
+        if (i % 2 == 0) k[i / 2] = (uint8_t)(v << 4); else k[i / 2] |= (uint8_t)v;
+      }
+      if (i != 12 || (p[12] != ' ' && p[12] != 0)) { snprintf(reply, cap, "Err - cairn dm <12 hex characters of the key> <text>"); return; }
+      p += 12; while (*p == ' ') p++;
+      size_t n = strlen(p);
+      if (n == 0) { snprintf(reply, cap, "Err - nothing to send"); return; }
+      if (n > CAIRN_SAY_MAX) { snprintf(reply, cap, "Err - message too long (%u characters, most is %u)", (unsigned)n, (unsigned)CAIRN_SAY_MAX); return; }
+      if (want_say || want_dm) { snprintf(reply, cap, "Err - still sending the last message, try again"); return; }
+      memcpy(dm_key, k, 6); memcpy(say_text, p, n); say_text[n] = 0; want_dm = true;
+      snprintf(reply, cap, "OK - sending direct message");
+    } else if (strncmp(a, "chans", 5) == 0) {
+      want_chans = true;
+      snprintf(reply, cap, "OK - channel list on its way");
     } else if (strncmp(a, "mode", 4) == 0) {
       const char* p = a + 4; while (*p == ' ') p++;
       if (strcmp(p, "disaster") == 0) { want_mode = 1; snprintf(reply, cap, "OK - disaster mode: short screen time, quiet hours off"); }
       else if (strcmp(p, "normal") == 0) { want_mode = 2; snprintf(reply, cap, "OK - normal mode: desk profile"); }
       else snprintf(reply, cap, "cairn mode disaster | normal");
     } else {
-      snprintf(reply, cap, "cairn [status|id|ok [channel]|dump|clear yes|mode disaster|normal|time <epoch>]");
+      snprintf(reply, cap, "cairn [status|id|ok [ch]|say <ch> <text>|dm <key12> <text>|chans|dump|clear yes|mode disaster|normal|time <epoch>]");
     }
   }
 };

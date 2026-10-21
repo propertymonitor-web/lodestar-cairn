@@ -86,6 +86,15 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
 .kb input { flex: 1; }
 .kb button.kbbtn { min-width: 52px; padding: 0 10px; font-size: 22px; }
 
+
+.chatgrid { display: grid; gap: 14px; grid-template-columns: 290px 1fr; }
+@media (max-width: 760px) { .chatgrid { grid-template-columns: 1fr; } }
+.thr { display: flex; justify-content: space-between; align-items: center; width: 100%; text-align: left; margin-bottom: 6px; min-height: 48px; }
+.thr .n { background: var(--bad); color: #fff; border-radius: 999px; padding: 0 8px; font-size: 13px; }
+#chatMsgs { height: min(52vh, 520px); overflow-y: auto; padding: 4px 2px; margin-bottom: 10px; }
+.msg { max-width: 82%; margin: 6px 0; padding: 8px 12px; border-radius: 12px; background: var(--panel2); border: 1px solid var(--line); }
+.msg.me { margin-left: auto; border-color: var(--accent); }
+.msg .who { font-size: 13px; color: var(--muted); }
 #map { height: min(62vh, 640px); border-radius: 12px; border: 1px solid var(--line); background: var(--panel2); }
 #mapNote { margin: 8px 0; padding: 8px 12px; border-radius: 10px; border: 1px solid var(--warn); }
 .covDia { background: var(--warn); border: 2px solid #000; transform: rotate(45deg); }
@@ -794,6 +803,7 @@ svg.leaflet-image-layer.leaflet-interactive path {
 
   <nav class="tabs" id="tabs" role="tablist">
     <button data-tab="station" aria-pressed="true">Station</button>
+    <button data-tab="chat">Chat<span id="chatBadge" class="badge" hidden>0</span></button>
     <button data-tab="nearby">Nearby</button>
     <button data-tab="checkins">Check-ins<span id="lateBadge" class="badge" hidden>0</span></button>
     <button data-tab="log">Log</button>
@@ -841,6 +851,28 @@ svg.leaflet-image-layer.leaflet-interactive path {
         <h2>Journal</h2>
         <dl class="kv" id="journalBox"></dl>
         <div class="row" style="margin-top:10px"><button data-goto="log">Open the log</button></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================================================== CHAT -->
+  <section class="tab" id="tab-chat">
+    <div class="chatgrid">
+      <div class="card">
+        <h2>Conversations</h2>
+        <div id="threadList"></div>
+        <label class="muted small" for="dmPick">Start a direct message</label>
+        <select id="dmPick"><option value="">Choose a person or room...</option></select>
+      </div>
+      <div class="card">
+        <h2 id="threadTitle">Messages</h2>
+        <div id="chatMsgs" aria-live="polite"></div>
+        <div class="kb">
+          <input id="chatText" type="text" placeholder="Type a message" aria-label="Message to send" autocomplete="off">
+          <button class="kbbtn" data-kbfor="chatText" title="On-screen keyboard">&#9000;</button>
+          <button id="btnSend" class="pri" disabled>Send</button>
+        </div>
+        <p class="small muted" style="margin:6px 0 0"><span id="chatCount">0</span>/140 &middot; <span id="chatNote"></span></p>
       </div>
     </div>
   </section>
@@ -946,6 +978,12 @@ svg.leaflet-image-layer.leaflet-interactive path {
         <li>Press <b>SEND CHECK-IN</b>. The radio sends <code>LC-xxxxxxxx Reporting at: latitude,longitude</code>. With no GPS fix it says <code>no GPS fix</code>.</li>
         <li>Every CAIRN station that hears it lists you on its <b>Check-ins</b> page.</li>
       </ul>
+      <h3>2b. Send and read messages</h3>
+      <ul>
+        <li>Open <b>Chat</b>. Pick a channel (left) or start a direct message, type in the box, press <b>Send</b> or Enter. Messages are 140 characters at most.</li>
+        <li>Replies appear in the same conversation. A red number shows messages you have not read.</li>
+        <li>You can also chat in the MeshCore app over Bluetooth; both views show the same traffic.</li>
+      </ul>
       <h3>3. Reading the Station page</h3>
       <ul>
         <li><b>REACHABLE</b> (green): a repeater is heard now. <b>NO REPEATER HEARD</b> (red): move higher or toward the last usable repeater shown.</li>
@@ -964,6 +1002,7 @@ svg.leaflet-image-layer.leaflet-interactive path {
       <h3>6. Commands (typed in the MeshCore app or a serial console)</h3>
       <ul>
         <li><code>cairn</code> station ID and journal size &nbsp; <code>cairn id</code> &nbsp; <code>cairn ok [channel]</code> send a check-in</li>
+        <li><code>cairn say &lt;channel&gt; &lt;text&gt;</code> send a channel message &nbsp; <code>cairn dm &lt;key&gt; &lt;text&gt;</code> direct message &nbsp; <code>cairn chans</code> list channels</li>
         <li><code>cairn mode disaster</code> / <code>cairn mode normal</code> &nbsp; <code>cairn dump</code> send the journal &nbsp; <code>cairn clear yes</code> erase it</li>
         <li><code>cairn time &lt;seconds since 1970&gt;</code> set the radio's clock &nbsp; <code>nova</code> NOVA status</li>
       </ul>
@@ -1046,6 +1085,7 @@ const S = {
   win: 900000, sort: "snr", kind: "all", search: "",
   port: null, reader: null, writer: null, keep: null, demo: null,
   roster: jget("cairn-roster", {}), supplies: jget("cairn-supplies", [{ name: "Power bank 1", hours: 24, start: 0 }, { name: "Power bank 2", hours: 24, start: 0 }]),
+  chans: [], thread: store.get("cairn-thread") || "c:", extra: new Set(), chatSeen: +store.get("cairn-chatseen") || 0,
   off: new Map(), map: null, kbOn: store.get("cairn-kb") === "1",
 };
 const TYPE = { 1: ["comp", "companion"], 2: ["rep", "repeater"], 3: ["room", "room server"], 4: ["sens", "sensor"] };
@@ -1163,6 +1203,7 @@ function onLine(line) {
     else if (line.indexOf('"cairn"') > 0 && line.indexOf('"cairn"') < 4) {
       try {
         const o = JSON.parse(line);
+        if (o.chans) { S.chans = o.chans; }
         if (o.id) { S.cairn = o; S.cairnAt = now(); maybeSetClock(o); }
         if (o.dump === "end") { S.dumping = false; toast("Journal loaded from the radio (" + o.lines + " lines)."); }
       } catch (e) {}
@@ -1196,7 +1237,7 @@ async function connect() {
   const enc = new TextEncoderStream(); enc.readable.pipeTo(S.port.writable).catch(() => {}); S.writer = enc.writable.getWriter();
   const dec = new TextDecoderStream(); S.port.readable.pipeTo(dec.writable).catch(() => {}); S.reader = dec.readable.getReader();
   const hello = () => send("nova hello");
-  hello(); send("cairn id"); S.dumping = true; send("cairn dump");
+  hello(); send("cairn id"); send("cairn chans"); S.dumping = true; send("cairn dump");
   S.keep = setInterval(hello, 3000);
   let buf = "";
   try {
@@ -1225,6 +1266,7 @@ function showTab(t) {
   document.querySelectorAll("section.tab").forEach((s) => s.classList.toggle("on", s.id === "tab-" + t));
   document.querySelectorAll("#tabs button").forEach((b) => b.setAttribute("aria-pressed", b.dataset.tab === t ? "true" : "false"));
   if (t === "map") initMap();
+  if (t === "chat") { S.chatSeen = now(); store.set("cairn-chatseen", String(S.chatSeen)); if (S.mode === "serial") send("cairn chans"); }
   render();
 }
 document.querySelectorAll("#tabs button").forEach((b) => b.addEventListener("click", () => showTab(b.dataset.tab)));
@@ -1352,7 +1394,7 @@ function logRows() {
   });
 }
 function describe(r) {
-  if (r.r === "m") return ["Message" + (r.k === "r" ? " (room)" : r.k === "d" ? " (direct)" : r.k === "x" ? " (reply)" : ""), r.f || r.c || "", (r.c && r.f ? "[" + r.c + "] " : "") + (r.x || "")];
+  if (r.r === "m") return ["Message" + (r.k === "r" ? " (room)" : r.k === "d" ? " (direct)" : r.k === "x" ? " (reply)" : r.k === "s" ? " (sent)" : r.k === "p" ? " (direct, sent)" : ""), r.f || r.c || "", (r.c && r.f ? "[" + r.c + "] " : "") + (r.x || "")];
   if (r.r === "a") { const tt = TYPE[r.ty] || ["", "node"]; return ["Advert: " + tt[1], r.n || r.k, "hops " + r.h + ", SNR " + r.s + ", RSSI " + r.rs + (r.la != null ? ", at " + r.la + "," + r.lo : "")]; }
   if (r.r === "o") return ["Check-in sent", r.id, r.x];
   if (r.r === "b") return ["Station started", r.id, "firmware " + r.v];
@@ -1398,12 +1440,14 @@ function render() {
   const id = S.cairn && S.cairn.id;
   $("sid").textContent = id || "LC-????????"; $("sid").classList.toggle("none", !id);
   if (S.tab === "station") renderStation();
+  else if (S.tab === "chat") renderChat();
   else if (S.tab === "nearby") renderNearby();
   else if (S.tab === "checkins") renderRoster();
   else if (S.tab === "log") renderLog();
   else if (S.tab === "map") renderMap();
   else if (S.tab === "power") { if (!document.activeElement || document.activeElement.tagName !== "INPUT") renderPower(); }
   if (S.tab !== "checkins") renderRosterBadge();
+  renderChatBadge();
   if (S.tab === "station") applyKb();
 }
 function renderRosterBadge() {
@@ -1411,7 +1455,105 @@ function renderRosterBadge() {
   S.checkins.forEach((c) => { if (t - c.ms > late && rosterStatus(c.id) !== "help") n++; });
   const bd = $("lateBadge"); bd.textContent = n; bd.hidden = n === 0;
 }
-setInterval(() => { if (document.hidden) return; if (S.tab === "log" || (document.activeElement && document.activeElement.tagName === "INPUT" && S.tab !== "station")) return; render(); }, 1000);
+setInterval(() => { if (document.hidden) return; if (S.tab === "log" || (document.activeElement && document.activeElement.tagName === "INPUT" && S.tab !== "station" && S.tab !== "chat")) return; render(); }, 1000);
+
+/* ---------------------------------------------------------------- chat: send and read messages */
+const MAXMSG = 140;
+const byteLen = (s) => new TextEncoder().encode(s).length;
+function chatThreads() {
+  const t = [], seen = new Set();
+  const chans = S.chans.length ? S.chans : [{ i: 0, n: "Public" }];
+  chans.forEach((c) => { t.push({ key: "c:" + c.n, kind: "c", name: c.n, idx: c.i }); seen.add("c:" + c.n); });
+  const dm = new Map();
+  S.journal.forEach((r) => {
+    if (r.r === "m" && (r.k === "d" || r.k === "x") && r.f) dm.set(r.f, Math.max(dm.get(r.f) || 0, r._ms || 0));
+    else if (r.r === "m" && r.k === "p" && r.c) dm.set(r.c, Math.max(dm.get(r.c) || 0, r._ms || 0));
+  });
+  S.extra.forEach((n) => { if (!dm.has(n)) dm.set(n, 0); });
+  Array.from(dm.entries()).sort((a, b) => b[1] - a[1]).forEach(([n]) => { t.push({ key: "d:" + n, kind: "d", name: n }); });
+  return t;
+}
+function threadRecs(th) {
+  const idxName = (i) => { const c = S.chans.find((x) => x.i === i); return c ? c.n : (i === 0 ? "Public" : ""); };
+  return S.journal.filter((r) => {
+    if (th.kind === "c") return (r.r === "m" && (r.k === "c" || r.k === "s" || r.k === "r") && r.c === th.name) || (r.r === "o" && idxName(r.ch) === th.name);
+    return r.r === "m" && (((r.k === "d" || r.k === "x") && r.f === th.name) || (r.k === "p" && r.c === th.name));
+  }).sort((a, b) => (a._ms || 0) - (b._ms || 0));
+}
+function unreadFor(th) {
+  return threadRecs(th).filter((r) => r.r === "m" && r.k !== "s" && r.k !== "p" && (r._ms || 0) > S.chatSeen).length;
+}
+function renderChatBadge() {
+  let n = 0; S.journal.forEach((r) => { if (r.r === "m" && (r.k === "c" || r.k === "d") && (r._ms || 0) > S.chatSeen) n++; });
+  const b = $("chatBadge"); if (!b) return; b.textContent = n; b.hidden = n === 0 || S.tab === "chat";
+}
+function currentThread() {
+  const ts = chatThreads();
+  return ts.find((t) => t.key === S.thread) || ts[0];
+}
+function contactKey(name) {
+  for (const n of S.nodes.values()) if (n.name === name && (n.type === 1 || n.type === 3)) return n.k;
+  return null;
+}
+function renderChat() {
+  const ts = chatThreads(), th = currentThread();
+  const tl = $("threadList"); tl.textContent = "";
+  ts.forEach((t) => {
+    const b = document.createElement("button"); b.className = "thr"; b.setAttribute("aria-pressed", th && t.key === th.key ? "true" : "false");
+    const u = t.key === (th && th.key) ? 0 : unreadFor(t);
+    b.innerHTML = "<span>" + (t.kind === "c" ? "# " : "&#9993; ") + esc(t.name) + "</span>" + (u ? '<span class="n">' + u + "</span>" : "");
+    b.addEventListener("click", () => { S.thread = t.key; store.set("cairn-thread", t.key); S.chatSeen = now(); renderChat(); $("chatText").focus(); });
+    tl.appendChild(b);
+  });
+  const pick = $("dmPick"), keep = pick.value;
+  const people = Array.from(S.nodes.values()).filter((n) => (n.type === 1 || n.type === 3) && n.name).sort((a, b) => a.name.localeCompare(b.name));
+  const sig = people.map((n) => n.name).join("|");
+  if (pick.dataset.sig !== sig) {
+    pick.dataset.sig = sig; pick.innerHTML = '<option value="">Choose a person or room...</option>' + people.map((n) => "<option>" + esc(n.name) + "</option>").join("");
+    pick.value = keep;
+  }
+  if (!th) return;
+  $("threadTitle").textContent = (th.kind === "c" ? "# " : "") + th.name + (th.kind === "d" ? " (direct)" : "");
+  const box = $("chatMsgs"), atEnd = box.scrollHeight - box.scrollTop - box.clientHeight < 40;
+  const recs = threadRecs(th).slice(-200);
+  box.innerHTML = recs.map((r) => {
+    const mine = r.r === "o" || r.k === "s" || r.k === "p";
+    const who = mine ? "You" : (r.f || "?");
+    return '<div class="msg' + (mine ? " me" : "") + '"><div class="who">' + esc(who) + " &middot; " + esc(fmtTime(r._ms)) + '</div><div class="txt">' + esc(r.x) + "</div></div>";
+  }).join("") || '<p class="muted">No messages here yet.</p>';
+  if (atEnd) box.scrollTop = box.scrollHeight;
+  updateSendState(th);
+  applyKb();
+}
+function updateSendState(th) {
+  th = th || currentThread();
+  const t = $("chatText").value, n = byteLen(t);
+  $("chatCount").textContent = n; $("chatCount").style.color = n > MAXMSG ? "var(--bad)" : "";
+  let note = "", can = S.mode !== "off" && th && t.trim().length > 0 && n <= MAXMSG;
+  if (S.mode === "off") note = "Connect the radio to send.";
+  else if (th && th.kind === "c" && !S.chans.length && S.mode === "serial") { note = "Waiting for the channel list from the radio..."; }
+  else if (th && th.kind === "d" && !contactKey(th.name)) { note = "This person's key has not been heard yet, so a direct message cannot be sent. Wait for their advert."; can = false; }
+  else if (th && th.kind === "d") note = "Direct messages only reach people saved in the radio's contact list.";
+  else note = "Sent over the mesh to everyone on this channel.";
+  $("chatNote").textContent = note; $("btnSend").disabled = !can;
+}
+function sendChat() {
+  const th = currentThread(), t = $("chatText").value.replace(/[\r\n]+/g, " ").trim();
+  if (!th || !t || byteLen(t) > MAXMSG) return;
+  if (th.kind === "c") {
+    const c = S.chans.find((x) => x.n === th.name), idx = c ? c.i : (S.mode === "demo" || !S.chans.length ? (th.idx != null ? th.idx : 0) : null);
+    if (idx == null) { toast("That channel is not on the radio."); return; }
+    send("cairn say " + idx + " " + t);
+  } else {
+    const k = contactKey(th.name); if (!k) { toast("No key for " + th.name + " yet."); return; }
+    send("cairn dm " + k + " " + t);
+  }
+  $("chatText").value = ""; updateSendState(th);
+}
+$("btnSend").addEventListener("click", sendChat);
+$("chatText").addEventListener("input", () => updateSendState());
+$("chatText").addEventListener("keydown", (e) => { if (e.key === "Enter") { e.preventDefault(); sendChat(); } });
+$("dmPick").addEventListener("change", (e) => { const n = e.target.value; if (!n) return; S.extra.add(n); S.thread = "d:" + n; store.set("cairn-thread", S.thread); e.target.value = ""; renderChat(); $("chatText").focus(); });
 
 /* ---------------------------------------------------------------- controls */
 $("btnConnect").addEventListener("click", connect);
@@ -1605,6 +1747,16 @@ function demoCommand(line) {
   if (line.indexOf("cairn mode disaster") === 0) d.mode = "disaster";
   else if (line.indexOf("cairn mode normal") === 0) d.mode = "normal";
   else if (line.indexOf("cairn time") === 0) d.skew = 0;
+  else if (line.indexOf("cairn chans") === 0) { S.chans = [{ i: 0, n: "Public" }, { i: 1, n: "Neighborhood" }]; }
+  else if (line.indexOf("cairn say ") === 0 || line.indexOf("cairn dm ") === 0) {
+    const m = /^cairn (say|dm) (\S+) (.*)$/.exec(line); if (!m) return;
+    let chan = "";
+    if (m[1] === "say") { const c = S.chans.find((x) => String(x.i) === m[2]); chan = c ? c.n : "Public"; }
+    else { for (const n of S.nodes.values()) if (n.k.indexOf(m[2].toUpperCase()) === 0) chan = n.name; }
+    addRecord(JSON.stringify({ r: "m", t: Math.round(now() / 1000), u: d.up, k: m[1] === "say" ? "s" : "p", f: "Me", c: chan, s: 0, h: -1, x: m[3] }), now(), false);
+    toast("Message sent (practice).");
+    setTimeout(() => addRecord(JSON.stringify({ r: "m", t: Math.round(now() / 1000), u: d.up, k: m[1] === "say" ? "c" : "d", f: m[1] === "say" ? "Alex" : chan, c: m[1] === "say" ? chan : "", s: -3, h: 1, x: "Copy that, got your message." }), now(), false), 2500);
+  }
   else if (line.indexOf("cairn ok") === 0) {
     const g = d.gps, txt = d.id + " Reporting at: " + g[0].toFixed(5) + "," + g[1].toFixed(5);
     d.okAt = now();
@@ -1618,6 +1770,7 @@ function startDemo() {
   S.mode = "demo"; setStatus("demo", "Practice data"); $("btnDemo").textContent = "Stop practice";
   S.nodes = new Map(); S.journal = []; S.jset = new Set(); S.checkins = new Map();
   const d = demoState = { id: "LC-K7M2P4X", mode: "normal", gps: [29.7604, -95.3698], up: 600, skew: 90, okAt: 0, tick: 0 };
+  S.chans = [{ i: 0, n: "Public" }, { i: 1, n: "Neighborhood" }];
   const rt = Math.round(now() / 1000);
   const reps = [["Hilltop-1", 1, -4.5, -96, 2, 29.8211, -95.4202], ["Downtown RPT", 2, -9.0, -108, 1, 29.7498, -95.3601], ["School Roof", 0, 6.2, -78, 0, 29.7701, -95.3512]];
   reps.forEach((r, i) => { const k = ["A1B2C3D4E5F0","7F3E9A11B2C3","D40C55E8A901"][i]; addRecord(JSON.stringify({ r: "a", t: rt - 60 * (i + 1), u: 100 + i, ty: 2, n: r[0], k, h: r[1], s: r[2], rs: r[3], la: r[5], lo: r[6] }), now(), false); });
@@ -1630,9 +1783,9 @@ function startDemo() {
     d.tick++; d.up += 1; d.gps = [29.7604 + 0.0002 * Math.sin(d.tick / 30), -95.3698 + 0.0002 * Math.cos(d.tick / 30)];
     const gone = d.tick % 120 > 90;   // every two minutes the best repeater drops out, to show the red banner
     const links = gone ? [] : [{ id: "D40C55", name: "School Roof", best: 1, sc: 78, rel: 80, lq: 91, snr: 6.2, rssi: -78, age: 4, hit: 5, n: 6 }, { id: "A1B2C3", name: "Hilltop-1", best: 0, sc: 40, rel: 50, lq: 60, snr: -4.5, rssi: -96, age: 30, hit: 2, n: 4 }];
-    onFrame({ nova: 1, ed: "cairn", v: "1.0.3-mph", unit: "mph", t: d.tick * 1000, prof: d.mode === "disaster" ? "hike" : "desk", bat: { mv: 0, pct: 0 }, gps: { fix: 1, lat: d.gps[0], lon: d.gps[1], sats: 9, spd: 0 },
+    onFrame({ nova: 1, ed: "cairn", v: "1.0.4-mph", unit: "mph", t: d.tick * 1000, prof: d.mode === "disaster" ? "hike" : "desk", bat: { mv: 0, pct: 0 }, gps: { fix: 1, lat: d.gps[0], lon: d.gps[1], sats: 9, spd: 0 },
       links, dl: { sent: 3, rep: 1, ok: 2, fail: 0, list: [] }, trip: { km: 0, cov: { lat: 29.8211, lon: -95.4202, m: 7400, brg: 315, age: 60 } }, diag: { rx: 120 + d.tick, tx: 12, snr: 4.2, last_rx_s: 3, up_s: d.up } });
-    S.cairn = { cairn: 1, id: d.id, ver: "1.0.3", kb: 12, lines: S.journal.length, lost: 0, mode: d.mode, okago: d.okAt ? Math.round((now() - d.okAt) / 1000) : 0, now: Math.round(now() / 1000) - d.skew };
+    S.cairn = { cairn: 1, id: d.id, ver: "1.0.4", kb: 12, lines: S.journal.length, lost: 0, mode: d.mode, okago: d.okAt ? Math.round((now() - d.okAt) / 1000) : 0, now: Math.round(now() / 1000) - d.skew };
     reps.forEach((r, i) => { const k = ["A1B2C3D4E5F0","7F3E9A11B2C3","D40C55E8A901"][i]; if (i === 2 && gone) return; onFound({ k, t: 2, n: r[0], hop: r[1], rs: r[3], sn: r[2], c: 5 + d.tick, ago: i === 2 ? 4 : 30 * (i + 1), first: 3000, alat: r[5], alon: r[6] }); });
     render();
   };
@@ -1649,7 +1802,7 @@ $("btnDemo").addEventListener("click", startDemo);
     rows.forEach((r) => addRecord(r.l, r.rt, false));
     S.journal.sort((a, b) => (a._ms || 0) - (b._ms || 0));
   } catch (e) { /* no stored copy: the radio's journal arrives on connect */ }
-  showTab(["station", "nearby", "checkins", "log", "map", "power", "guide"].includes(S.tab) ? S.tab : "station");
+  showTab(["station", "chat", "nearby", "checkins", "log", "map", "power", "guide"].includes(S.tab) ? S.tab : "station");
   if (!("serial" in navigator)) notice("This browser cannot connect to a radio over USB. Use Chrome (version 148 or newer on Android). You can still read the log kept on this tablet, and use Practice to try the page.");
   if ("serviceWorker" in navigator && location.protocol.indexOf("http") === 0) navigator.serviceWorker.register("sw.js").catch(() => {});
 })();

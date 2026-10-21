@@ -1,4 +1,4 @@
-LODESTAR CAIRN - HARDWARE TEST CHECKLIST (Ver. 1.0.3, alpha)
+LODESTAR CAIRN - HARDWARE TEST CHECKLIST (Ver. 1.0.4, alpha)
 By FEAR REACTIVE. Nothing in CAIRN has run on real hardware yet. Work through this at home, then once in the open.
 Write down anything that does not match. Heltec V4 R2 only.
 
@@ -8,13 +8,13 @@ A. FLASH THE COMPANION (Heltec V4 R2)
  3. Pass: the radio boots and the screen shows CAIRN.
 
 B0. SCREEN
-    Pass: the boot splash shows the emblem on the left and LODESTAR / CAIRN / FEAR REACTIVE / Ver. 1.0.3 on the right, and stays up for 5 seconds.
+    Pass: the boot splash shows the emblem on the left and LODESTAR / CAIRN / FEAR REACTIVE / Ver. 1.0.4 on the right, and stays up for 5 seconds.
     Pass: the first page after Home is CAIRN STATION with your ID. Pressing Enter (or holding the button) shows
     "Check-in sending" and the check-in appears in the log.
 
 B. STATION ID
  4. In the MeshCore app (or a serial console) type:  cairn
-    Pass: it prints LODESTAR CAIRN 1.0.3  ID LC-xxxxxxxx (8 characters).
+    Pass: it prints LODESTAR CAIRN 1.0.4  ID LC-xxxxxxxx (8 characters).
  5. Write the ID down. Reboot the radio (cairn is not needed: use the button or unplug/replug). Type  cairn  again.
     Pass: the SAME ID.
  6. Pass: the ID uses no I, O, 0 or 1.
@@ -38,6 +38,14 @@ E. CHECK-IN
 14. Press SEND CHECK-IN. Pass: the Check-ins list shows your own ID and position; the Log shows a "Check-in sent" line.
 15. With a second radio on the same channel, check it receives:  LC-xxxxxxxx Reporting at: lat,lon
     With no fix the text must read:  ... Reporting at: no GPS fix
+
+E2. CHAT
+    a. Chat tab: pick Public, type a message, press Send (or Enter). Pass: a second radio on the channel receives it, and
+       your message appears on the right of the conversation.
+    b. Have the second radio reply. Pass: the reply appears in the same conversation and a red number shows on the Chat tab.
+    c. Start a direct message with a person who has advertised. Pass: it arrives (they must be in the radio's contacts;
+       if not, the dashboard shows "NOT sent" - note this).
+    d. Type 141 characters. Pass: Send is disabled.
 
 F. JOURNAL (store everything)
 16. Let it run 30 minutes near other nodes. Pass: Log shows adverts and messages. Press Download CSV and Download JSON lines, open them.

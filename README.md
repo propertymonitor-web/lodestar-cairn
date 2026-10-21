@@ -1,4 +1,4 @@
-# LODESTAR CAIRN (ALPHA) - Ver. 1.0.3 (release cairn-alpha4)
+# LODESTAR CAIRN (ALPHA) - Ver. 1.0.4 (release cairn-alpha5)
 
 ![CAIRN emblem](docs/cairn-logo.png)
 
@@ -7,6 +7,11 @@ Crisis-use field kit firmware and dashboard for MeshCore, by FEAR REACTIVE.
 CAIRN turns a Heltec V4 R2 companion into a **station**: it gets a permanent ID (`LC-xxxxxxxx`), keeps a journal of **everything it hears**, sends a one-button check-in with GPS, and feeds a tablet dashboard that works with **no internet**.
 
 **Status: ALPHA. The firmware compiles and passes its tests, and the dashboard is tested with practice data, but neither has run on real hardware or on the tablet yet.**
+
+## What changed in cairn-alpha5 (Ver. 1.0.4)
+- **Chat from the dashboard:** a new Chat tab to send and read messages (channels and direct messages, 140 characters). New commands `cairn say`, `cairn dm`, `cairn chans`.
+- Sent messages are stored in the journal with everything else.
+- **About "repeater":** the CAIRN radio is a companion and does not repeat. The kit's second radio (PULSAR) is the repeater; together they are the communications hub.
 
 ## What changed in cairn-alpha4 (Ver. 1.0.3)
 - The boot splash stays up **5 seconds** (was 3) and shows four short lines beside the emblem instead of five, so it can be read at a glance.
@@ -46,6 +51,7 @@ The companion connects to the tablet two ways: **Bluetooth** to the MeshCore app
 - **Check-in** button sends `LC-xxxxxxxx Reporting at: <lat>,<lon>` (or `no GPS fix`) to a channel.
 - **Journal**: every message, advert (repeaters, companions, room servers), check-in and boot, stored on the radio (`/cairn.log`, rotated at 192 KB) and copied to the tablet's browser. Export CSV or JSON lines.
 - **Disaster mode**: screens off sooner, quiet hours off, stale repeaters marked sooner.
+- **Chat**: send and read channel and direct messages from the tablet.
 - **Station page**: REACHABLE / NO REPEATER HEARD, last usable repeater, last place with coverage, GPS, clock, counts.
 - **Nearby**: repeaters, room servers, companions with SNR, hops, age, distance and bearing.
 - **Check-ins roster**: everyone who reported, overdue flags, tap to mark NEEDS HELP.
@@ -69,7 +75,7 @@ Actions → "Build LODESTAR CAIRN" → Run workflow (env `heltec_v4_companion_ra
 Use the **BLE** build: the USB port carries the dashboard. (The USB build uses the port for the companion protocol and has no dashboard.)
 
 ## Commands (serial or MeshCore CLI)
-`cairn` status (shows ID and version) · `cairn id` · `cairn ok [channel]` · `cairn mode disaster|normal` · `cairn dump` · `cairn clear yes` · `cairn time <epoch>`; all NOVA commands also work.
+`cairn` status (shows ID and version) · `cairn id` · `cairn ok [channel]` · `cairn say <ch> <text>` · `cairn dm <key12> <text>` · `cairn chans` · `cairn mode disaster|normal` · `cairn dump` · `cairn clear yes` · `cairn time <epoch>`; all NOVA commands also work.
 
 ## Layout
 `cairn/` firmware logic, OLED screens (`cairn/ui`) and tests · `tools/make_logo.py` draws the emblem · `nova/` vendored NOVA · `tools/apply_cairn.py` patches MeshCore · `dashboard/cairn.html` source · `tools/build_dashboard.py` builds `docs/index.html` (commit the result; CI checks it).
@@ -78,6 +84,7 @@ Use the **BLE** build: the USB port carries the dashboard. (The USB build uses t
 Enable GitHub Pages (Settings → Pages → `main` / `/docs`) then open the page once on the tablet and "Add to Home screen".
 
 Changelog:
+- 1.0.4 (cairn-alpha5): Chat tab and cairn say / dm / chans commands.
 - 1.0.3 (cairn-alpha4): splash stays 5 seconds, MeshCore line removed from the splash.
 - 1.0.2 (cairn-alpha3): OLED emblem splash and CAIRN STATION screen with check-in button.
 - 1.0.1 (cairn-alpha2): 8-character station ID from the radio's public key; version set to 1.0.1; dashboard reads 5- and 8-character check-ins.

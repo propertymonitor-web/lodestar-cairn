@@ -157,7 +157,7 @@ void MyMesh::cairnLogAdvert(mesh::Packet* pkt, int rssi) {
 // "LC-xxxxx Reporting at: <lat>,<lon>" to a channel (0 = the first channel, normally Public).
 bool MyMesh::cairnSendOk(int ch) {
   ChannelDetails channel;
-  if (!getChannel(ch, channel)) return false;
+  if (!getChannel(ch, channel) || channel.name[0] == 0) return false;
   char text[100];
   uint32_t now = millis();
   const lodestar::Position& pos = nova_core.link.position();
@@ -216,6 +216,55 @@ void MyMesh::cairnTick(uint32_t now) {
     Serial.println(ok ? "# check-in sent" : "# check-in NOT sent (no such channel, or the radio could not send)");
 #else
     (void)ok;
+#endif
+  }
+
+  // Messages typed on the dashboard: `cairn say <ch> <text>` and `cairn dm <key> <text>`.
+  if (cairn_core.want_say || cairn_core.want_dm) {
+    bool dm = cairn_core.want_dm;
+    cairn_core.want_say = cairn_core.want_dm = false;
+    bool ok = false;
+    char who[34] = "";
+    if (!dm) {
+      ChannelDetails channel;
+      if (getChannel(cairn_core.say_channel, channel) && channel.name[0] != 0) {
+        ok = sendGroupMessage(getRTCClock()->getCurrentTimeUnique(), channel.channel, _prefs.node_name, cairn_core.say_text, (int)strlen(cairn_core.say_text));
+        if (ok) nova_core.deliveries.onSendChannel(channel.name, nova_core.linkUsable(), _ms->getMillis());
+        snprintf(who, sizeof(who), "%s", channel.name);
+      }
+    } else {
+      ContactInfo* ct = lookupContactByPubKey(cairn_core.dm_key, 6);
+      if (ct) {
+        uint32_t ack = 0, tmo = 0;
+        ok = sendMessage(*ct, getRTCClock()->getCurrentTimeUnique(), 0, cairn_core.say_text, ack, tmo) != MSG_SEND_FAILED;
+        snprintf(who, sizeof(who), "%s", ct->name);
+      }
+    }
+    if (ok) {
+      size_t m = cairn::recMsg(cairn_line, sizeof(cairn_line), getRTCClock()->getCurrentTime(), now / 1000u, dm ? 'p' : 's', _prefs.node_name, who, 0.0f, -1, cairn_core.say_text);
+      if (m) cairn_core.j.push(cairn_line, true);
+    }
+#ifndef ENABLE_USB_INTERFACE
+    if (ok) Serial.println(dm ? "# direct message sent" : "# message sent");
+    else if (dm) Serial.println("# direct message NOT sent (that contact is not in this radio's contact list, or it could not send)");
+    else Serial.println("# message NOT sent (no such channel, or the radio could not send)");
+#endif
+  }
+  if (cairn_core.want_chans) {
+    cairn_core.want_chans = false;
+#ifndef ENABLE_USB_INTERFACE
+    Serial.print("{\"cairn\":1,\"chans\":[");
+    bool first = true;
+    for (int i = 0; i < 40; i++) {
+      ChannelDetails ch;
+      if (!getChannel(i, ch) || ch.name[0] == 0) continue;
+      if (!first) Serial.print(',');
+      first = false;
+      Serial.print("{\"i\":"); Serial.print(i); Serial.print(",\"n\":\"");
+      for (const char* q = ch.name; *q; q++) { if (*q == '"' || *q == '\\') Serial.print('\\'); if ((uint8_t)*q >= 32) Serial.print(*q); }
+      Serial.print("\"}");
+    }
+    Serial.println("]}");
 #endif
   }
 
@@ -350,6 +399,8 @@ def main():
     c = once(c, "      if (nv_n > 0) { nv_buf[nv_n] = 0; nova_core.loadSettings(nv_buf); }\n    }\n  }\n",
              "      if (nv_n > 0) { nv_buf[nv_n] = 0; nova_core.loadSettings(nv_buf); }\n    }\n  }\n  cairnInit();   // LODESTAR CAIRN: station ID and journal\n",
              "NOVA settings restore")
+    # the NOVA serial line buffer is 96 characters: too short for `cairn say <ch> <text>`
+    c = once(c, "  static char nv_line[96];", "  static char nv_line[200];", "serial line buffer")
     # messages
     c = once(c, "  queueMessage(from, TXT_TYPE_PLAIN, pkt, sender_timestamp, NULL, 0, text);\n",
              "  cairnLogDirect('d', from, pkt, text);   // CAIRN journal\n  queueMessage(from, TXT_TYPE_PLAIN, pkt, sender_timestamp, NULL, 0, text);\n", "direct message")
