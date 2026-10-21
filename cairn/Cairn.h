@@ -15,7 +15,7 @@
 #include <string.h>
 #include <stdarg.h>
 
-#define CAIRN_VERSION  "1.0.2"
+#define CAIRN_VERSION  "1.0.3"
 #define CAIRN_LINE     640       // longest journal line, bytes (a 160-character message can need ~480)
 #define CAIRN_RING     24        // lines held in RAM between the radio and the flash / USB writers
 

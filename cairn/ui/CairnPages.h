@@ -19,13 +19,11 @@ static inline void splash(DisplayDriver& d, const char* meshcore_version) {
   d.setTextSize(2);
   d.drawTextCentered(mid, 14, "CAIRN");
   d.setTextSize(1); d.setColor(UIColor::primary_txt);
-  d.drawTextCentered(mid, 34, "FEAR REACTIVE");
+  d.drawTextCentered(mid, 36, "FEAR REACTIVE");
   char b[24];
   snprintf(b, sizeof(b), "Ver. %s", CAIRN_VERSION);
-  d.drawTextCentered(mid, 44, b);
-  d.setColor(UIColor::secondary_txt);
-  snprintf(b, sizeof(b), "MC %.9s", meshcore_version);
-  d.drawTextCentered(mid, 54, b);
+  d.drawTextCentered(mid, 48, b);
+  (void)meshcore_version;   // kept off the splash so it reads in a glance; Settings still shows it
 }
 
 // The station screen: ID, journal, last check-in. Pressing the button sends a check-in.

@@ -1,4 +1,4 @@
-LODESTAR CAIRN - HARDWARE TEST CHECKLIST (Ver. 1.0.2, alpha)
+LODESTAR CAIRN - HARDWARE TEST CHECKLIST (Ver. 1.0.3, alpha)
 By FEAR REACTIVE. Nothing in CAIRN has run on real hardware yet. Work through this at home, then once in the open.
 Write down anything that does not match. Heltec V4 R2 only.
 
@@ -8,13 +8,13 @@ A. FLASH THE COMPANION (Heltec V4 R2)
  3. Pass: the radio boots and the screen shows CAIRN.
 
 B0. SCREEN
-    Pass: the boot splash shows the emblem on the left and LODESTAR / CAIRN / FEAR REACTIVE / Ver. 1.0.2 on the right.
+    Pass: the boot splash shows the emblem on the left and LODESTAR / CAIRN / FEAR REACTIVE / Ver. 1.0.3 on the right, and stays up for 5 seconds.
     Pass: the first page after Home is CAIRN STATION with your ID. Pressing Enter (or holding the button) shows
     "Check-in sending" and the check-in appears in the log.
 
 B. STATION ID
  4. In the MeshCore app (or a serial console) type:  cairn
-    Pass: it prints LODESTAR CAIRN 1.0.2  ID LC-xxxxxxxx (8 characters).
+    Pass: it prints LODESTAR CAIRN 1.0.3  ID LC-xxxxxxxx (8 characters).
  5. Write the ID down. Reboot the radio (cairn is not needed: use the button or unplug/replug). Type  cairn  again.
     Pass: the SAME ID.
  6. Pass: the ID uses no I, O, 0 or 1.

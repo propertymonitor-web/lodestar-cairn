@@ -383,6 +383,7 @@ def main():
              "      _task->showAlert(\"Check-in sending\", 900);\n      return true;\n    }\n"
              "    if (c == KEY_ENTER && _page == HomePage::NV_TRIP) {\n", "key: NV_TRIP")
     u = once(u, "(_page >= HomePage::NV_LINK && _page <= HomePage::NV_RANGE)", "_page == HomePage::CR_STN || (_page >= HomePage::NV_LINK && _page <= HomePage::NV_RANGE)", "render interval")
+    u = once(u, "#define BOOT_SCREEN_MILLIS   3000   // 3 seconds", "#define BOOT_SCREEN_MILLIS   5000   // 5 seconds: CAIRN shows an emblem and the name, give it time to be read", "boot screen time")
     u = once(u, "novaui::splash(display, _version_info);   // LODESTAR NOVA", "cairnui::splash(display, _version_info);   // LODESTAR CAIRN", "splash call")
     open(u_path, "w").write(u)
 

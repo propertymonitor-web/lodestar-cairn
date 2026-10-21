@@ -36,7 +36,7 @@
 #define NOVA_PRODUCT        "CAIRN"
 #define NOVA_EDITION        "cairn"
 #define NOVA_VER_SFX        ""
-#define NOVA_BASE_VERSION   "1.0.2"
+#define NOVA_BASE_VERSION   "1.0.3"
 #elif defined(NOVA_ORION)
 #define NOVA_PRODUCT        "ORION"
 #define NOVA_EDITION        "orion"

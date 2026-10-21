@@ -1630,9 +1630,9 @@ function startDemo() {
     d.tick++; d.up += 1; d.gps = [29.7604 + 0.0002 * Math.sin(d.tick / 30), -95.3698 + 0.0002 * Math.cos(d.tick / 30)];
     const gone = d.tick % 120 > 90;   // every two minutes the best repeater drops out, to show the red banner
     const links = gone ? [] : [{ id: "D40C55", name: "School Roof", best: 1, sc: 78, rel: 80, lq: 91, snr: 6.2, rssi: -78, age: 4, hit: 5, n: 6 }, { id: "A1B2C3", name: "Hilltop-1", best: 0, sc: 40, rel: 50, lq: 60, snr: -4.5, rssi: -96, age: 30, hit: 2, n: 4 }];
-    onFrame({ nova: 1, ed: "cairn", v: "1.0.2-mph", unit: "mph", t: d.tick * 1000, prof: d.mode === "disaster" ? "hike" : "desk", bat: { mv: 0, pct: 0 }, gps: { fix: 1, lat: d.gps[0], lon: d.gps[1], sats: 9, spd: 0 },
+    onFrame({ nova: 1, ed: "cairn", v: "1.0.3-mph", unit: "mph", t: d.tick * 1000, prof: d.mode === "disaster" ? "hike" : "desk", bat: { mv: 0, pct: 0 }, gps: { fix: 1, lat: d.gps[0], lon: d.gps[1], sats: 9, spd: 0 },
       links, dl: { sent: 3, rep: 1, ok: 2, fail: 0, list: [] }, trip: { km: 0, cov: { lat: 29.8211, lon: -95.4202, m: 7400, brg: 315, age: 60 } }, diag: { rx: 120 + d.tick, tx: 12, snr: 4.2, last_rx_s: 3, up_s: d.up } });
-    S.cairn = { cairn: 1, id: d.id, ver: "1.0.2", kb: 12, lines: S.journal.length, lost: 0, mode: d.mode, okago: d.okAt ? Math.round((now() - d.okAt) / 1000) : 0, now: Math.round(now() / 1000) - d.skew };
+    S.cairn = { cairn: 1, id: d.id, ver: "1.0.3", kb: 12, lines: S.journal.length, lost: 0, mode: d.mode, okago: d.okAt ? Math.round((now() - d.okAt) / 1000) : 0, now: Math.round(now() / 1000) - d.skew };
     reps.forEach((r, i) => { const k = ["A1B2C3D4E5F0","7F3E9A11B2C3","D40C55E8A901"][i]; if (i === 2 && gone) return; onFound({ k, t: 2, n: r[0], hop: r[1], rs: r[3], sn: r[2], c: 5 + d.tick, ago: i === 2 ? 4 : 30 * (i + 1), first: 3000, alat: r[5], alon: r[6] }); });
     render();
   };

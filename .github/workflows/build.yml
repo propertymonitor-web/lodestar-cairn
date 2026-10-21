@@ -168,7 +168,7 @@ jobs:
           UNITS: ${{ inputs.units }}
         run: |
           BIN="MeshCore/.pio/build/$FW_ENV/firmware.elf"
-          if [ "$UNITS" = "mph" ]; then WANT="1.0.2-mph"; else WANT="1.0.2"; fi
+          if [ "$UNITS" = "mph" ]; then WANT="1.0.3-mph"; else WANT="1.0.3"; fi
           strings -n 8 "$BIN" | grep -q -x -F "$WANT" || { echo "::error::The version marker $WANT is missing from the build."; exit 1; }
           strings -n 8 "$BIN" | grep -q -F "Reporting at:" || { echo "::error::The check-in text is missing from the build."; exit 1; }
           strings -n 8 "$BIN" | grep -q -F "LODESTAR CAIRN" || { echo "::error::The CAIRN command text is missing from the build."; exit 1; }

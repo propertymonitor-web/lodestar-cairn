@@ -1,4 +1,4 @@
-# LODESTAR CAIRN (ALPHA) - Ver. 1.0.2 (release cairn-alpha3)
+# LODESTAR CAIRN (ALPHA) - Ver. 1.0.3 (release cairn-alpha4)
 
 ![CAIRN emblem](docs/cairn-logo.png)
 
@@ -7,6 +7,9 @@ Crisis-use field kit firmware and dashboard for MeshCore, by FEAR REACTIVE.
 CAIRN turns a Heltec V4 R2 companion into a **station**: it gets a permanent ID (`LC-xxxxxxxx`), keeps a journal of **everything it hears**, sends a one-button check-in with GPS, and feeds a tablet dashboard that works with **no internet**.
 
 **Status: ALPHA. The firmware compiles and passes its tests, and the dashboard is tested with practice data, but neither has run on real hardware or on the tablet yet.**
+
+## What changed in cairn-alpha4 (Ver. 1.0.3)
+- The boot splash stays up **5 seconds** (was 3) and shows four short lines beside the emblem instead of five, so it can be read at a glance.
 
 ## What changed in cairn-alpha3 (Ver. 1.0.2)
 - **OLED:** a new boot splash with the CAIRN emblem (a guiding star over a cairn of stones) and a new **CAIRN STATION** screen (ID, journal size, last check-in; press Enter or hold the button to send a check-in).
@@ -75,6 +78,7 @@ Use the **BLE** build: the USB port carries the dashboard. (The USB build uses t
 Enable GitHub Pages (Settings → Pages → `main` / `/docs`) then open the page once on the tablet and "Add to Home screen".
 
 Changelog:
+- 1.0.3 (cairn-alpha4): splash stays 5 seconds, MeshCore line removed from the splash.
 - 1.0.2 (cairn-alpha3): OLED emblem splash and CAIRN STATION screen with check-in button.
 - 1.0.1 (cairn-alpha2): 8-character station ID from the radio's public key; version set to 1.0.1; dashboard reads 5- and 8-character check-ins.
 - 0.1.0-alpha (cairn-alpha1): first build, 5-character random ID.

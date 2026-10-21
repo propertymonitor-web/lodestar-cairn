@@ -37,7 +37,7 @@ struct Mock : DisplayDriver {
 };
 
 int main() {
-  { Mock m; cairnui::splash(m, "v1.15.0"); CHECK(m.bad == 0 && m.xbm == 1 && m.has("LODESTAR") && m.has("CAIRN") && m.has("FEAR REACTIVE") && m.has("Ver. " CAIRN_VERSION) && m.has("MC v1.15.0")); }
+  { Mock m; cairnui::splash(m, "v1.15.0"); CHECK(m.bad == 0 && m.xbm == 1 && m.has("LODESTAR") && m.has("CAIRN") && m.has("FEAR REACTIVE") && m.has("Ver. " CAIRN_VERSION)); }
   { Mock m; cairnui::splash(m, "v10.200.3000-abcdef"); CHECK(m.bad == 0); }   // a long MeshCore version still fits
   CHECK(CAIRN_LOGO_W == 40 && CAIRN_LOGO_H == 60 && sizeof(cairn_logo) == (CAIRN_LOGO_W / 8) * CAIRN_LOGO_H);
   { cairn::Cairn C; Mock m; cairnui::pageStation(m, C, 100); CHECK(m.bad == 0 && m.has("CAIRN STATION") && m.has("ID not ready") && m.has("no check-in sent yet") && m.has("send check-in")); }
