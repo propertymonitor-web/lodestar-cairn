@@ -1058,6 +1058,7 @@ svg.leaflet-image-layer.leaflet-interactive path {
 <script>
 "use strict";
 const $ = (id) => document.getElementById(id);
+const N = (v) => (Number.isFinite(+v) ? +v : 0);
 const esc = (s) => String(s == null ? "" : s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 const store = {
   get(k) { try { return localStorage.getItem(k); } catch (e) { return null; } },
@@ -1066,7 +1067,7 @@ const store = {
 const jget = (k, d) => { try { const v = store.get(k); return v ? JSON.parse(v) : d; } catch (e) { return d; } };
 const jset = (k, v) => store.set(k, JSON.stringify(v));
 const now = () => Date.now();
-const fmtAge = (ms) => { const s = Math.max(0, Math.round(ms / 1000)); return s < 90 ? s + " s" : s < 5400 ? Math.round(s / 60) + " min" : s < 172800 ? (s / 3600).toFixed(1) + " h" : Math.round(s / 86400) + " d"; };
+const fmtAge = (ms) => { const s = Math.max(0, Math.round(N(ms) / 1000)); return s < 90 ? s + " s" : s < 5400 ? Math.round(s / 60) + " min" : s < 172800 ? (s / 3600).toFixed(1) + " h" : Math.round(s / 86400) + " d"; };
 const fmtTime = (ms) => { if (!ms) return "?"; const d = new Date(ms), t = d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" }); return d.toDateString() === new Date().toDateString() ? t : d.toLocaleDateString([], { month: "short", day: "numeric" }) + " " + t; };
 function toast(t, ms) { const e = $("toast"); e.textContent = t; e.style.display = "block"; clearTimeout(toast.t); toast.t = setTimeout(() => { e.style.display = "none"; }, ms || 3500); }
 function notice(t) { const n = $("notice"); if (t) { n.textContent = t; n.hidden = false; } else n.hidden = true; }
@@ -1319,7 +1320,7 @@ function renderBanner() {
     const best = (S.frame.links || []).find((l) => l.best === 1);
     if (best) {
       cls = "good"; t = "REACHABLE";
-      s = "Best repeater: " + esc(best.name || nameFor(best.id) || best.id) + " &middot; score " + best.sc + " &middot; SNR " + (+best.snr).toFixed(1) + " dB &middot; " + (S.frame.links || []).length + " repeater" + ((S.frame.links || []).length === 1 ? "" : "s") + " heard";
+      s = "Best repeater: " + esc(best.name || nameFor(best.id) || best.id) + " &middot; score " + N(best.sc) + " &middot; SNR " + (+best.snr).toFixed(1) + " dB &middot; " + (S.frame.links || []).length + " repeater" + ((S.frame.links || []).length === 1 ? "" : "s") + " heard";
     } else {
       cls = "bad"; t = "NO REPEATER HEARD";
       const lu = S.lastUsable;
@@ -1343,20 +1344,20 @@ function renderStation() {
   $("modeNow").textContent = c ? "Radio is in " + (dis ? "DISASTER" : "normal") + " mode." : "";
   const g = S.frame && S.frame.gps, tab = new Date();
   let w = row("Tablet time", esc(tab.toLocaleString()));
-  if (c && c.now) { const off = Math.round(Date.now() / 1000 - c.now); w += row("Radio clock", esc(new Date(c.now * 1000).toLocaleTimeString()) + (Math.abs(off) > 30 ? ' <span class="pill-late">(' + off + " s off)</span>" : ' <span class="pill-ok">in step</span>')); }
-  w += row("GPS", g ? (g.fix ? '<span class="pill-ok">fix</span>, ' + g.sats + " satellites" : '<span class="pill-late">no fix</span>' + (g.sats != null ? ", " + g.sats + " satellites" : "")) : '<span class="muted">not reported</span>');
+  if (c && c.now) { const off = Math.round(Date.now() / 1000 - c.now); w += row("Radio clock", esc(new Date(c.now * 1000).toLocaleTimeString()) + (Math.abs(off) > 30 ? ' <span class="pill-late">(' + N(off) + " s off)</span>" : ' <span class="pill-ok">in step</span>')); }
+  w += row("GPS", g ? (g.fix ? '<span class="pill-ok">fix</span>, ' + N(g.sats) + " satellites" : '<span class="pill-late">no fix</span>' + (g.sats != null ? ", " + N(g.sats) + " satellites" : "")) : '<span class="muted">not reported</span>');
   if (g && g.fix) w += row("Position", '<span class="mono">' + (+g.lat).toFixed(5) + ", " + (+g.lon).toFixed(5) + "</span>");
   $("whereBox").innerHTML = w;
   const t = now(), rec = (ty) => Array.from(S.nodes.values()).filter((n) => (ty === 3 ? n.type >= 3 : n.type === ty) && n.ms && t - n.ms <= 900000);
   $("heardCounts").innerHTML = '<span class="chip"><b>' + rec(2).length + '</b> repeaters</span><span class="chip"><b>' + rec(1).length + '</b> companions</span><span class="chip"><b>' + rec(3).length + "</b> room servers</span>";
   const top = rec(2).sort((a, b) => b.snr - a.snr).slice(0, 3);
-  $("topReps").innerHTML = top.length ? top.map((n) => "<div><b>" + esc(n.name || n.k.slice(0, 6)) + '</b> <span class="muted">SNR ' + (+n.snr).toFixed(1) + " &middot; " + (n.hops === 0 ? "direct" : n.hops + " hops") + " &middot; " + fmtAge(t - n.ms) + " ago</span></div>").join("") : '<span class="muted">No repeater in the last 15 minutes.</span>';
+  $("topReps").innerHTML = top.length ? top.map((n) => "<div><b>" + esc(n.name || n.k.slice(0, 6)) + '</b> <span class="muted">SNR ' + (+n.snr).toFixed(1) + " &middot; " + (n.hops === 0 ? "direct" : N(n.hops) + " hops") + " &middot; " + fmtAge(t - n.ms) + " ago</span></div>").join("") : '<span class="muted">No repeater in the last 15 minutes.</span>';
   const msgs = S.journal.filter((r) => r.r === "m").slice(-6).reverse();
   $("latestMsgs").innerHTML = msgs.length ? msgs.map((r) => "<div style=\"padding:4px 0;border-bottom:1px solid var(--line)\"><span class=\"muted\">" + esc(fmtTime(r._ms)) + "</span> <b>" + esc(r.f || r.c || "?") + "</b> " + (r.c && r.f ? '<span class="muted">in ' + esc(r.c) + "</span> " : "") + '<span class="txt">' + esc(r.x) + "</span></div>").join("") : '<span class="muted">No messages in the journal yet.</span>';
   const f = S.frame;
-  $("radioBox").innerHTML = f ? row("Packets heard / sent", (f.diag ? f.diag.rx + " / " + f.diag.tx : "?")) + row("Last heard", f.diag ? f.diag.last_rx_s + " s ago" : "?") + row("Average SNR", f.diag && f.diag.snr != null ? (+f.diag.snr).toFixed(1) + " dB" : "?") +
-    row("Messages sent / delivered", f.dl ? f.dl.sent + " / " + f.dl.ok : "?") + row("Firmware", esc(f.v || "")) : '<dd class="muted">No reading yet.</dd>';
-  $("journalBox").innerHTML = row("On this tablet", S.journal.length + " records") + row("On the radio", c ? c.kb + " KB" : "?") + row("Station started", c && c.lines != null ? c.lines + " lines this session" : "?") + row("Dropped", c && c.lost ? '<span class="pill-late">' + c.lost + "</span>" : "0");
+  $("radioBox").innerHTML = f ? row("Packets heard / sent", (f.diag ? N(f.diag.rx) + " / " + N(f.diag.tx) : "?")) + row("Last heard", f.diag ? N(f.diag.last_rx_s) + " s ago" : "?") + row("Average SNR", f.diag && f.diag.snr != null ? (+f.diag.snr).toFixed(1) + " dB" : "?") +
+    row("Messages sent / delivered", f.dl ? N(f.dl.sent) + " / " + N(f.dl.ok) : "?") + row("Firmware", esc(f.v || "")) : '<dd class="muted">No reading yet.</dd>';
+  $("journalBox").innerHTML = row("On this tablet", S.journal.length + " records") + row("On the radio", c ? N(c.kb) + " KB" : "?") + row("Station started", c && c.lines != null ? N(c.lines) + " lines this session" : "?") + row("Dropped", c && c.lost ? '<span class="pill-late">' + N(c.lost) + "</span>" : "0");
 }
 function renderNearby() {
   $("nbRep").innerHTML = nodeTable(nodeList(2)); $("nbRoom").innerHTML = nodeTable(nodeList(3)); $("nbComp").innerHTML = nodeTable(nodeList(1));
@@ -1372,7 +1373,7 @@ function renderRoster() {
     if (isLate && st !== "help") overdue++;
     const p = c.lat != null ? [c.lat, c.lon] : null;
     s += "<tr><td class=\"mono\"><b>" + esc(c.id) + "</b>" + (S.cairn && S.cairn.id === c.id ? ' <span class="tag comp">this station</span>' : "") + "</td><td>" + esc(c.from || c.chan || "") + "</td><td>" + esc(fmtAge(t - c.ms)) + " ago" +
-      (isLate ? ' <span class="pill-late">overdue</span>' : "") + "</td><td>" + (p ? '<span class="mono">' + p[0].toFixed(5) + ", " + p[1].toFixed(5) + "</span> " + esc(relPos(p)) + ' <a href="geo:' + p[0] + "," + p[1] + '">open in maps app</a>' : '<span class="muted">no GPS fix</span>') + "</td>" +
+      (isLate ? ' <span class="pill-late">overdue</span>' : "") + "</td><td>" + (p ? '<span class="mono">' + p[0].toFixed(5) + ", " + p[1].toFixed(5) + "</span> " + esc(relPos(p)) + ' <a href="geo:' + N(p[0]) + "," + N(p[1]) + '">open in maps app</a>' : '<span class="muted">no GPS fix</span>') + "</td>" +
       '<td><button data-roster="' + esc(c.id) + '">' + (st === "help" ? '<span class="pill-help">NEEDS HELP</span>' : st === "ok" ? '<span class="pill-ok">OK</span>' : "Unknown") + "</button></td></tr>";
   });
   if (!a.length) s += '<tr><td colspan="5" class="muted">No check-ins heard yet. When another CAIRN station presses its check-in button, it appears here.</td></tr>';
@@ -1723,7 +1724,7 @@ function renderMap() {
   S.nodes.forEach((n) => {
     const p = n.apos || (n.hpos); if (!p) return;
     const tt = TYPE[n.type] || ["rep", "node"];
-    L.marker(p, { icon: mk(tt[0]), title: n.name }).bindPopup("<b>" + esc(n.name || n.k.slice(0, 6)) + "</b><br>" + esc(tt[1]) + "<br>SNR " + (+n.snr).toFixed(1) + ", " + (n.hops === 0 ? "direct" : n.hops + " hops") + "<br>" + (n.ms ? fmtAge(now() - n.ms) + " ago" : "") + (n.apos ? "" : "<br><i>(position where I heard it)</i>")).addTo(S.gNodes);
+    L.marker(p, { icon: mk(tt[0]), title: n.name }).bindPopup("<b>" + esc(n.name || n.k.slice(0, 6)) + "</b><br>" + esc(tt[1]) + "<br>SNR " + (+n.snr).toFixed(1) + ", " + (n.hops === 0 ? "direct" : N(n.hops) + " hops") + "<br>" + (n.ms ? fmtAge(now() - n.ms) + " ago" : "") + (n.apos ? "" : "<br><i>(position where I heard it)</i>")).addTo(S.gNodes);
     pts.push(p);
   });
   S.checkins.forEach((c) => { if (c.lat == null) return; L.marker([c.lat, c.lon], { icon: mk("chk"), title: c.id }).bindPopup("<b>" + esc(c.id) + "</b><br>" + fmtAge(now() - c.ms) + " ago").addTo(S.gChk); pts.push([c.lat, c.lon]); });
