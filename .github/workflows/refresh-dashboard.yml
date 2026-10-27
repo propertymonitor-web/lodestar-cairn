@@ -1,0 +1,23 @@
+name: Refresh dashboard in releases
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths: ["docs/index.html"]
+permissions:
+  contents: write
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Replace dashboard.html in every release that carries one
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          cp docs/index.html dashboard.html
+          gh release list --limit 200 --json tagName --jq '.[].tagName' | while read -r tag; do
+            if gh release view "$tag" --json assets --jq '.assets[].name' | grep -qx dashboard.html; then
+              echo "updating $tag"; gh release upload "$tag" dashboard.html --clobber
+            fi
+          done

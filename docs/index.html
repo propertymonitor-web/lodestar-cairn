@@ -122,6 +122,81 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
 }
 </style>
 <style>
+/*TACTICAL-CSS*/
+:root {
+  --bg: #050b0a; --panel: #0a1512; --panel2: #0f1f1a; --line: #1d3b31; --ink: #e4fff1; --ink2: #a6d4bd; --muted: #6e9c86;
+  --accent: #3fe0ff; --good: #3dffa8; --warn: #ffb020; --bad: #ff4d4d; --info: #b08cff; --rep: #3dffa8; --comp: #3fe0ff; --room: #ffb020;
+  --mono: ui-monospace, "SF Mono", "Cascadia Mono", Consolas, Menlo, monospace; --glow: 0 0 10px rgba(63,224,255,.25);
+}
+:root[data-theme="light"] {
+  --bg: #e3e9e4; --panel: #f6faf6; --panel2: #e9efe9; --line: #aebfb4; --ink: #0b1a14; --ink2: #28443a; --muted: #50695c;
+  --accent: #0a6f8a; --good: #0b7a4f; --warn: #a15f00; --bad: #c4302b; --rep: #0b7a4f; --comp: #0a6f8a; --room: #a15f00; --glow: none;
+}
+html, body { background-color: var(--bg); }
+body { background-image: linear-gradient(rgba(61,255,168,.045) 1px, transparent 1px), linear-gradient(90deg, rgba(61,255,168,.045) 1px, transparent 1px); background-size: 38px 38px; background-attachment: fixed; }
+:root[data-theme="light"] body { background-image: linear-gradient(rgba(10,70,50,.06) 1px, transparent 1px), linear-gradient(90deg, rgba(10,70,50,.06) 1px, transparent 1px); }
+:root:not([data-theme="light"]) body::after { content: ""; position: fixed; inset: 0; pointer-events: none; z-index: 3000; background: repeating-linear-gradient(0deg, rgba(0,0,0,.18) 0 1px, transparent 1px 3px); opacity: .35; }
+button { border-radius: 4px; letter-spacing: .03em; }
+button:hover { box-shadow: var(--glow); }
+:root[data-theme="light"] nav.tabs button[aria-pressed="true"] { color: var(--accent); background: var(--panel); }
+button.pri { background: transparent; color: var(--accent); border: 2px solid var(--accent); text-transform: uppercase; letter-spacing: .08em; box-shadow: inset 0 0 12px rgba(63,224,255,.12); }
+button.pri:hover:not(:disabled) { background: var(--accent); color: #031418; }
+button[aria-pressed="true"] { background: var(--accent); color: #031418; box-shadow: var(--glow); }
+:root[data-theme="light"] button[aria-pressed="true"], :root[data-theme="light"] button.pri:hover:not(:disabled) { color: #fff; }
+input[type=text], input[type=search], input[type=number], select { border-radius: 4px; font-family: var(--mono); }
+.brand { font-family: var(--mono); text-transform: uppercase; letter-spacing: .14em; }
+.brand::before { content: "\25E4 "; color: var(--accent); }
+.brand small { font-family: var(--mono); letter-spacing: .2em; text-transform: uppercase; color: var(--accent); }
+.sid { border-radius: 2px; border-width: 2px; box-shadow: var(--glow), inset 0 0 10px rgba(63,224,255,.12); }
+.chip { border-radius: 2px; font-family: var(--mono); font-size: 14px; text-transform: uppercase; letter-spacing: .05em; }
+.chip i { box-shadow: 0 0 8px currentColor; }
+.chip[data-s="live"] i { box-shadow: 0 0 9px var(--good); animation: pulse 1.6s ease-in-out infinite; }
+.hud { display: flex; flex-wrap: wrap; gap: 4px 22px; align-items: center; padding: 7px 12px; margin: 0 0 10px; border: 1px solid var(--line); border-left: 4px solid var(--accent); background: linear-gradient(90deg, rgba(63,224,255,.08), transparent 70%); font-family: var(--mono); font-size: 13px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+.hud b { color: var(--ink); font-weight: 700; margin-left: 4px; }
+.hud .hm[data-m="disaster"] b { color: var(--warn); animation: blink 1.2s step-end infinite; }
+nav.tabs { gap: 4px; border-bottom: 1px solid var(--line); }
+nav.tabs button { border-radius: 0; border: 1px solid var(--line); border-bottom: 3px solid transparent; font-family: var(--mono); text-transform: uppercase; letter-spacing: .1em; font-size: 15px; background: var(--panel); }
+nav.tabs button[aria-pressed="true"] { background: var(--panel2); color: var(--accent); border-bottom-color: var(--accent); box-shadow: var(--glow); }
+.card { position: relative; border-radius: 3px; border-color: var(--line); background: linear-gradient(180deg, var(--panel2), var(--panel) 38px); box-shadow: inset 0 0 24px rgba(63,224,255,.03); }
+.card::before, .card::after { content: ""; position: absolute; width: 14px; height: 14px; border: 2px solid var(--accent); pointer-events: none; opacity: .85; }
+.card::before { top: -1px; left: -1px; border-right: 0; border-bottom: 0; }
+.card::after { bottom: -1px; right: -1px; border-left: 0; border-top: 0; }
+.card h2 { font-family: var(--mono); color: var(--accent); letter-spacing: .18em; padding-bottom: 6px; border-bottom: 1px dashed var(--line); }
+.card h2::before { content: "\258C"; margin-right: 8px; }
+.banner { position: relative; border-radius: 3px; border-width: 1px; border-left-width: 10px; font-family: var(--mono); background: linear-gradient(90deg, rgba(255,255,255,.04), transparent 60%), var(--panel); }
+.banner::before { content: "LINK STATUS"; display: block; font-size: 12px; letter-spacing: .24em; color: var(--muted); margin-bottom: 4px; }
+.banner .t { text-transform: uppercase; letter-spacing: .08em; text-shadow: 0 0 14px currentColor; }
+.banner.good { box-shadow: 0 0 22px rgba(61,255,168,.12); }
+.banner.bad { box-shadow: 0 0 22px rgba(255,77,77,.2); animation: alarm 1.6s ease-in-out infinite; }
+.banner .s { font-family: var(--font); }
+.okbtn { border-radius: 3px; background-image: repeating-linear-gradient(135deg, rgba(255,176,32,.0) 0 14px, rgba(255,176,32,.10) 14px 28px); border-color: var(--warn); color: var(--warn); }
+.okbtn:hover:not(:disabled) { background: var(--warn); color: #1c1200; }
+.seg { border-radius: 2px; }
+table { font-size: 16px; } td, th { border-bottom-color: var(--line); } td.num, td.mono, .kv dd { font-family: var(--mono); }
+th { font-family: var(--mono); color: var(--accent); }
+.tag { border-radius: 2px; font-family: var(--mono); text-transform: uppercase; font-size: 12px; letter-spacing: .06em; }
+.msg { border-radius: 3px; } .bar2 { border-radius: 2px; } .bar2 > div { border-radius: 0; box-shadow: 0 0 8px currentColor; }
+#toast { border-radius: 3px; font-family: var(--mono); } #map { border-radius: 3px; }
+/* radar card */
+.radargrid { display: grid; grid-template-columns: minmax(280px, 460px) 1fr; gap: 18px; align-items: start; }
+.radarbox { position: relative; width: 100%; aspect-ratio: 1 / 1; max-width: 460px; }
+.radarbox canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; border-radius: 50%; }
+.radartip { position: absolute; pointer-events: none; background: rgba(0,10,8,.92); color: #e4fff1; border: 1px solid var(--accent); padding: 5px 9px; border-radius: 2px; font: 13px var(--mono); max-width: 260px; z-index: 5; }
+.radarlist { max-height: 340px; overflow-y: auto; border: 1px solid var(--line); background: var(--panel); }
+.rr { display: grid; grid-template-columns: 22px 1fr auto; gap: 2px 10px; padding: 6px 10px; border-bottom: 1px solid var(--line); align-items: center; }
+.rr.hi { background: rgba(63,224,255,.12); }
+.rr .nm { font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.rr .mt { grid-column: 2 / 4; font: 13px var(--mono); color: var(--muted); }
+.rr .sy { font-size: 20px; line-height: 1; text-align: center; }
+.rr .sy.rep { color: var(--rep); } .rr .sy.comp { color: var(--comp); } .rr .sy.room { color: var(--room); } .rr .sy.sens { color: var(--info); }
+.radarleg { display: flex; flex-wrap: wrap; gap: 6px 16px; margin: 8px 0 0; font: 13px var(--mono); color: var(--muted); }
+@media (max-width: 860px) { .radargrid { grid-template-columns: 1fr; } .radarbox { margin: 0 auto; } }
+@keyframes pulse { 50% { opacity: .45; } } @keyframes blink { 50% { opacity: .25; } }
+@keyframes alarm { 50% { box-shadow: 0 0 34px rgba(255,77,77,.45); } }
+@media (prefers-reduced-motion: reduce) { .banner.bad, .chip[data-s="live"] i, .hud .hm[data-m="disaster"] b { animation: none; } }
+@media print { body::after { display: none !important; } .hud, #radarCard { display: none !important; } body { background-image: none; } }
+</style>
+<style>
 /* required styles */
 
 .leaflet-pane,
@@ -799,6 +874,7 @@ svg.leaflet-image-layer.leaflet-interactive path {
     <button id="btnDemo" title="Fill the page with made-up data to practise">Practice</button>
     <button id="btnConnect" class="pri">Connect radio</button>
   </header>
+  <!--HUD-BEGIN--><div class="hud" role="status" aria-label="Station status strip"><span>Zulu<b id="hudZ">--:--:--</b></span><span>Local<b id="hudL">--:--:--</b></span><span class="hm" id="hudMw" data-m="normal">Mode<b id="hudM">OFFLINE</b></span><span>Rep/Cmp/Room 15 min<b id="hudC">0/0/0</b></span><span>GPS<b id="hudG">N/A</b></span></div><!--HUD-END-->
   <div id="notice" class="notice" hidden></div>
 
   <nav class="tabs" id="tabs" role="tablist">
@@ -839,6 +915,20 @@ svg.leaflet-image-layer.leaflet-interactive path {
         <div class="row" id="heardCounts"></div>
         <div id="topReps" style="margin-top:10px"></div>
       </div>
+<!--RADAR-BEGIN-->      <div class="card span2" id="radarCard">
+        <h2>Radar &middot; contacts heard now</h2>
+        <div class="radargrid">
+          <div class="radarbox"><canvas id="radarCv" role="img" aria-label="Radar of the repeaters, companions and room servers this station has heard recently. The same contacts are listed beside it."></canvas><div class="radartip" id="radarTip" hidden></div></div>
+          <div>
+            <div class="row"><label for="radarWin" class="small muted">Show contacts heard in the last</label>
+              <select id="radarWin" style="max-width:170px"><option value="300000">5 minutes</option><option value="900000" selected>15 minutes</option><option value="3600000">1 hour</option></select></div>
+            <div id="radarList" class="radarlist" style="margin-top:10px"></div>
+            <div class="radarleg"><span><b style="color:var(--rep)">&#9679;</b> repeater</span><span><b style="color:var(--comp)">&#9650;</b> companion</span><span><b style="color:var(--room)">&#9670;</b> room server</span><span>solid = position known</span><span>hollow = placed by signal strength</span></div>
+            <p class="small muted" id="radarNote" style="margin:8px 0 0"></p>
+          </div>
+        </div>
+      </div>
+<!--RADAR-END-->
       <div class="card span2">
         <h2>Latest messages</h2>
         <div id="latestMsgs" class="small"></div>
@@ -1807,6 +1897,108 @@ $("btnDemo").addEventListener("click", startDemo);
   if (!("serial" in navigator)) notice("This browser cannot connect to a radio over USB. Use Chrome (version 148 or newer on Android). You can still read the log kept on this tablet, and use Practice to try the page.");
   if ("serviceWorker" in navigator && location.protocol.indexOf("http") === 0) navigator.serviceWorker.register("sw.js").catch(() => {});
 })();
+/*RADAR-JS-BEGIN*/
+/* ---------------------------------------------------------------- tactical status strip and radar (display only: reads S.nodes, sends nothing) */
+(function () {
+  const TAU = Math.PI * 2, PERIOD = 6500, reduce = !!(window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches);
+  const R = { cv: null, g: null, win: 900000, sig: 0, prev: 0, t0: performance.now(), lit: new Map(), rows: [], range: 1000, rangeT: 1000, hi: "", css: null, cssAt: 0, listAt: 0, raf: 0 };
+  try { const w = +store.get("cairn-radarwin"); if (w === 300000 || w === 900000 || w === 3600000) R.win = w; } catch (e) { /* default */ }
+  const hash = (k) => { let h = 2166136261; for (let i = 0; i < k.length; i++) { h ^= k.charCodeAt(i); h = Math.imul(h, 16777619); } return (h >>> 0) / 4294967296; };
+  const RINGS = [250, 500, 1000, 2000, 5000, 10000, 20000, 50000, 100000, 200000, 500000];
+  function colours() { const t = performance.now(); if (R.css && t - R.cssAt < 1500) return R.css; const cs = getComputedStyle(document.documentElement), v = (n) => cs.getPropertyValue(n).trim(); R.cssAt = t; R.css = { ink: v("--ink"), muted: v("--muted"), line: v("--line"), accent: v("--accent"), rep: v("--rep"), comp: v("--comp"), room: v("--room"), sens: v("--info"), good: v("--good"), panel: v("--panel"), bad: v("--bad"), light: document.documentElement.getAttribute("data-theme") === "light" }; return R.css; }
+  function contacts() {
+    const t = now(), h = here(), out = [];
+    S.nodes.forEach((n) => { if (!n.ms || t - n.ms > R.win || !(n.type >= 1)) return; const p = n.apos; let ang, dist = -1, pos = false; if (h && p) { ang = bearing(h, p) * Math.PI / 180; dist = distM(h, p); pos = true; } else ang = hash(n.k) * TAU; out.push({ n, ang, dist, pos }); });
+    let far = 0; out.forEach((c) => { if (c.pos && c.dist > far) far = c.dist; });
+    R.rangeT = RINGS.find((r) => r >= far * 1.08) || RINGS[RINGS.length - 1]; if (!far) R.rangeT = 1000;
+    out.forEach((c) => { c.frac = c.pos ? Math.min(0.97, c.dist / R.range) : 0.9 - 0.75 * Math.min(1, Math.max(0, ((+c.n.snr) + 20) / 35)); });
+    return out;
+  }
+  function size() { const cv = R.cv, w = Math.max(200, Math.round(cv.clientWidth)), d = Math.min(2, window.devicePixelRatio || 1); if (cv.width !== Math.round(w * d)) { cv.width = Math.round(w * d); cv.height = Math.round(w * d); } R.g = cv.getContext("2d"); R.g.setTransform(cv.width / w, 0, 0, cv.width / w, 0, 0); return w; }
+  function shape(g, type, x, y, r, solid, col) {
+    g.beginPath();
+    if (type === 2) g.arc(x, y, r, 0, TAU); else if (type === 1) { g.moveTo(x, y - r * 1.15); g.lineTo(x + r * 1.05, y + r * 0.8); g.lineTo(x - r * 1.05, y + r * 0.8); g.closePath(); } else { g.moveTo(x, y - r * 1.2); g.lineTo(x + r * 1.1, y); g.lineTo(x, y + r * 1.2); g.lineTo(x - r * 1.1, y); g.closePath(); }
+    if (solid) { g.fillStyle = col; g.fill(); } else { g.lineWidth = 2; g.strokeStyle = col; g.stroke(); }
+  }
+  function frame() {
+    R.raf = 0; const cv = R.cv; if (!cv || S.tab !== "station" || document.hidden) return;
+    const w = size(), g = R.g, C = colours(), t = performance.now(), cx = w / 2, cy = w / 2, rad = w / 2 - 22;
+    const sig = reduce ? 0 : (((t - R.t0) % PERIOD) / PERIOD) * TAU, prev = R.prev; R.prev = sig;
+    R.range += (R.rangeT - R.range) * 0.05;
+    const list = contacts(); R.rows = list;
+    g.clearRect(0, 0, w, w);
+    /* face */
+    const bgc = g.createRadialGradient(cx, cy, 0, cx, cy, rad + 20); if (C.light) { bgc.addColorStop(0, "#eaf5ee"); bgc.addColorStop(1, "#cfe0d5"); } else { bgc.addColorStop(0, "#07251c"); bgc.addColorStop(1, "#020c09"); }
+    g.fillStyle = bgc; g.beginPath(); g.arc(cx, cy, rad + 18, 0, TAU); g.fill();
+    g.strokeStyle = C.accent; g.lineWidth = 2; g.beginPath(); g.arc(cx, cy, rad + 18, 0, TAU); g.stroke();
+    g.strokeStyle = C.light ? "rgba(10,90,60,.35)" : "rgba(61,255,168,.28)"; g.lineWidth = 1;
+    for (let i = 1; i <= 4; i++) { g.beginPath(); g.arc(cx, cy, rad * i / 4, 0, TAU); g.stroke(); }
+    for (let a = 0; a < 360; a += 30) { const r = a * Math.PI / 180; g.beginPath(); g.moveTo(cx + Math.sin(r) * rad * 0.06, cy - Math.cos(r) * rad * 0.06); g.lineTo(cx + Math.sin(r) * rad, cy - Math.cos(r) * rad); g.stroke(); }
+    for (let a = 0; a < 360; a += 5) { const r = a * Math.PI / 180, l = a % 10 ? 4 : 8; g.beginPath(); g.moveTo(cx + Math.sin(r) * (rad + 18), cy - Math.cos(r) * (rad + 18)); g.lineTo(cx + Math.sin(r) * (rad + 18 - l), cy - Math.cos(r) * (rad + 18 - l)); g.stroke(); }
+    g.font = "bold 13px ui-monospace, Consolas, monospace"; g.textAlign = "center"; g.textBaseline = "middle"; g.fillStyle = C.accent;
+    [["N", 0], ["E", 90], ["S", 180], ["W", 270]].forEach((d) => { const r = d[1] * Math.PI / 180; g.fillText(d[0], cx + Math.sin(r) * (rad + 6), cy - Math.cos(r) * (rad + 6)); });
+    g.font = "11px ui-monospace, Consolas, monospace"; g.fillStyle = C.muted; g.textAlign = "left";
+    for (let i = 1; i <= 4; i++) { const m = R.range * i / 4; g.fillText(fmtDist(m), cx + 4, cy - rad * i / 4 - 7); }
+    /* sweep */
+    if (!reduce) {
+      for (let k = 0; k < 44; k++) { const a1 = sig - k * 0.028 - Math.PI / 2, a0 = a1 - 0.03, al = 0.34 * Math.pow(1 - k / 44, 2); g.fillStyle = C.light ? "rgba(10,140,80," + al * 0.8 + ")" : "rgba(61,255,168," + al + ")"; g.beginPath(); g.moveTo(cx, cy); g.arc(cx, cy, rad, a0, a1 + 0.002); g.closePath(); g.fill(); }
+      g.strokeStyle = C.good; g.lineWidth = 2; g.shadowColor = C.good; g.shadowBlur = C.light ? 0 : 8; g.beginPath(); g.moveTo(cx, cy); g.lineTo(cx + Math.sin(sig) * rad, cy - Math.cos(sig) * rad); g.stroke(); g.shadowBlur = 0;
+    }
+    /* contacts: lit when the beam crosses them, then fade until the next pass */
+    const seen = new Set(), pts = [];
+    list.forEach((c) => {
+      const k = c.n.k; seen.add(k); let a = c.ang % TAU; if (a < 0) a += TAU;
+      const crossed = prev <= sig ? (prev <= a && a < sig) : (a >= prev || a < sig);
+      if (!reduce && crossed) R.lit.set(k, t);
+      let al; if (reduce) al = 0.9; else { const l = R.lit.get(k); if (l === undefined) return; al = Math.max(0, 1 - (t - l) / (PERIOD * 1.02)); al = Math.pow(al, 1.3); }
+      if (al <= 0.03) return;
+      const x = cx + Math.sin(c.ang) * c.frac * rad, y = cy - Math.cos(c.ang) * c.frac * rad, col = C[(TYPE[c.n.type] || ["sens"])[0]] || C.sens, since = reduce ? 9999 : t - R.lit.get(k);
+      pts.push({ c, x, y });
+      if (since < 700) { g.strokeStyle = col; g.globalAlpha = (1 - since / 700) * 0.8; g.lineWidth = 2; g.beginPath(); g.arc(x, y, 6 + since / 18, 0, TAU); g.stroke(); }
+      g.globalAlpha = al; g.shadowColor = col; g.shadowBlur = C.light ? 0 : 12 * al; shape(g, c.n.type, x, y, 6.5, c.pos, col); g.shadowBlur = 0;
+      if (al > 0.4 || R.hi === k) { g.globalAlpha = Math.max(al, R.hi === k ? 1 : 0); g.font = "12px ui-monospace, Consolas, monospace"; g.textAlign = x > cx ? "left" : "right"; g.textBaseline = "middle"; g.fillStyle = C.ink; g.fillText((c.n.name || c.n.k.slice(0, 6)).slice(0, 18), x + (x > cx ? 11 : -11), y); }
+      g.globalAlpha = 1;
+    });
+    R.pts = pts; for (const k of R.lit.keys()) if (!seen.has(k)) R.lit.delete(k);      // no longer heard: gone from the radar
+    /* centre and corner readouts */
+    g.globalAlpha = 1; g.fillStyle = C.accent; g.beginPath(); g.arc(cx, cy, 4, 0, TAU); g.fill(); g.strokeStyle = C.accent; g.lineWidth = 1.5; g.beginPath(); g.arc(cx, cy, 9, 0, TAU); g.stroke();
+    if (!list.length) { g.fillStyle = C.muted; g.font = "bold 15px ui-monospace, Consolas, monospace"; g.textAlign = "center"; g.textBaseline = "middle"; g.fillText(S.mode === "off" ? "NO RADIO CONNECTED" : "NO CONTACTS HEARD", cx, cy + rad * 0.4); }
+    g.font = "12px ui-monospace, Consolas, monospace"; g.textAlign = "left"; g.textBaseline = "top"; g.fillStyle = C.muted;
+    const cnt = (ty) => list.filter((c) => (ty === 3 ? c.n.type >= 3 : c.n.type === ty)).length;
+    g.fillText("REP " + cnt(2) + "  CMP " + cnt(1) + "  RM " + cnt(3), 6, 4);
+    g.textAlign = "right"; g.fillText("RNG " + fmtDist(R.range), w - 6, 4);
+    g.textAlign = "left"; g.textBaseline = "bottom"; g.fillText(reduce ? "STATIC" : "SWEEP " + (PERIOD / 1000).toFixed(1) + "s", 6, w - 4);
+    if (t - R.listAt > 1000) { R.listAt = t; fillList(list); }
+    R.raf = requestAnimationFrame(frame);
+  }
+  function fillList(list) {
+    const h = here(), t = now(), a = list.slice().sort((x, y) => y.n.snr - x.n.snr);
+    $("radarList").innerHTML = a.length ? a.map((c) => { const n = c.n, tt = TYPE[n.type] || ["sens", "node"], sym = n.type === 2 ? "&#9679;" : n.type === 1 ? "&#9650;" : "&#9670;";
+      return '<div class="rr' + (R.hi === n.k ? " hi" : "") + '" data-k="' + esc(n.k) + '"><span class="sy ' + tt[0] + '">' + sym + '</span><span class="nm">' + esc(n.name || "(no name)") + '</span><span class="small">' + esc(tt[1]) + '</span><span class="mt">SNR ' + (+n.snr).toFixed(1) + " dB &middot; RSSI " + esc(n.rssi) + " &middot; " + (n.hops === 0 ? "direct" : N(n.hops) + " hops") + " &middot; " + fmtAge(t - n.ms) + " ago" + (c.pos && h ? " &middot; " + esc(fmtDist(c.dist) + " " + compass(c.ang * 180 / Math.PI)) : "") + "</span></div>"; }).join("") : '<p class="muted" style="margin:10px">Nothing heard in this time.</p>';
+    $("radarList").querySelectorAll(".rr").forEach((el) => { el.addEventListener("mouseenter", () => { R.hi = el.dataset.k; }); el.addEventListener("mouseleave", () => { R.hi = ""; }); });
+    const np = list.filter((c) => !c.pos).length;
+    $("radarNote").textContent = (reduce ? "Motion is reduced on this device, so contacts are shown steady. " : "Each contact lights when the sweep passes it and fades until the next pass. A contact that is no longer heard leaves the radar. ") + (np ? np + " contact" + (np === 1 ? " has" : "s have") + " no known position, so " + (np === 1 ? "it is" : "they are") + " placed by signal strength (stronger is nearer the centre) at an arbitrary direction." : (h ? "" : "No GPS fix, so distances are not shown."));
+  }
+  function start() { if (!R.raf && R.cv && S.tab === "station" && !document.hidden) R.raf = requestAnimationFrame(frame); }
+  function hud() {
+    const d = new Date(), p = (v) => String(v).padStart(2, "0"), c = S.cairn, h = here();
+    $("hudZ").textContent = p(d.getUTCHours()) + ":" + p(d.getUTCMinutes()) + ":" + p(d.getUTCSeconds()) + "Z"; $("hudL").textContent = p(d.getHours()) + ":" + p(d.getMinutes()) + ":" + p(d.getSeconds());
+    const dis = c && c.mode === "disaster"; $("hudM").textContent = S.mode === "off" ? "OFFLINE" : dis ? "DISASTER" : "NORMAL"; $("hudMw").dataset.m = dis ? "disaster" : "normal";
+    const t = now(), cnt = (ty) => Array.from(S.nodes.values()).filter((n) => (ty === 3 ? n.type >= 3 : n.type === ty) && n.ms && t - n.ms <= 900000).length;
+    $("hudC").textContent = cnt(2) + "/" + cnt(1) + "/" + cnt(3); $("hudG").textContent = h ? "FIX" : S.frame && S.frame.gps ? "NO FIX" : "N/A";
+  }
+  function init() {
+    R.cv = $("radarCv"); const sel = $("radarWin"); sel.value = String(R.win);
+    sel.addEventListener("change", () => { R.win = +sel.value; try { store.set("cairn-radarwin", String(R.win)); } catch (e) { /* ok */ } R.lit.clear(); });
+    R.cv.addEventListener("pointermove", (ev) => { const r = R.cv.getBoundingClientRect(), x = ev.clientX - r.left, y = ev.clientY - r.top, tip = $("radarTip"); let best = null, bd = 18; (R.pts || []).forEach((p) => { const d = Math.hypot(p.x - x, p.y - y); if (d < bd) { bd = d; best = p; } }); if (best) { const n = best.c.n; R.hi = n.k; tip.hidden = false; tip.textContent = (n.name || n.k.slice(0, 6)) + " – " + (TYPE[n.type] || ["", "node"])[1] + " – SNR " + (+n.snr).toFixed(1) + " dB – " + (n.hops === 0 ? "direct" : n.hops + " hops") + " – " + fmtAge(now() - n.ms) + " ago"; tip.style.left = Math.min(x + 14, r.width - 230) + "px"; tip.style.top = Math.max(0, y - 34) + "px"; } else { R.hi = ""; tip.hidden = true; } });
+    R.cv.addEventListener("pointerleave", () => { R.hi = ""; $("radarTip").hidden = true; });
+    document.addEventListener("visibilitychange", start);
+    document.querySelectorAll("#tabs button").forEach((b) => b.addEventListener("click", () => setTimeout(start, 0)));
+    hud(); setInterval(hud, 1000); start();
+  }
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", init); else init();
+})();
+/*RADAR-JS-END*/
 </script>
 </body>
 </html>
