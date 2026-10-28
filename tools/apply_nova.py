@@ -290,6 +290,26 @@ ALERT_CHAN = '''  bool ls_alert = nova_core.mayAlert(false, nova::Nova::localHou
 '''
 
 
+CREDIT_MARK = "LODESTAR-CREDIT"
+CREDIT_CPP = """// ===========================================================================  LODESTAR-CREDIT
+// Engineered by Aries Thorne & Todd Steinhauer for Wolf Reactive Systems,
+// with MeshCore community guidance and assistance.
+// ===========================================================================
+__attribute__((used)) static const char LODESTAR_CREDIT[] = "Engineered by Aries Thorne & Todd Steinhauer for Wolf Reactive Systems, with MeshCore community guidance and assistance.";
+"""
+
+
+def add_credit(path):
+    """Put the credit at the top of the patched source file (a comment, and a string that stays in the firmware image). Safe to run twice."""
+    with open(path) as f:
+        t = f.read()
+    if CREDIT_MARK in t:
+        return
+    with open(path, "w") as f:
+        f.write(CREDIT_CPP + t)
+
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--meshcore", required=True, help="path to a MeshCore checkout")
@@ -384,6 +404,7 @@ def main():
         with open(p, "w") as f:
             f.write(body)
 
+    add_credit(paths["c"])
     print("LODESTAR NOVA applied:")
     print("  + src/helpers/Nova.h, src/helpers/Lodestar.h, examples/companion_radio/ui-new/NovaPages.h")
     print("  ~ examples/companion_radio/MyMesh.h        (hooks)")

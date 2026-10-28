@@ -345,6 +345,26 @@ void MyMesh::cairnTick(uint32_t now) {
 '''
 
 
+CREDIT_MARK = "LODESTAR-CREDIT"
+CREDIT_CPP = """// ===========================================================================  LODESTAR-CREDIT
+// Engineered by Aries Thorne & Todd Steinhauer for Wolf Reactive Systems,
+// with MeshCore community guidance and assistance.
+// ===========================================================================
+__attribute__((used)) static const char LODESTAR_CREDIT[] = "Engineered by Aries Thorne & Todd Steinhauer for Wolf Reactive Systems, with MeshCore community guidance and assistance.";
+"""
+
+
+def add_credit(path):
+    """Put the credit at the top of the patched source file (a comment, and a string that stays in the firmware image). Safe to run twice."""
+    with open(path) as f:
+        t = f.read()
+    if CREDIT_MARK in t:
+        return
+    with open(path, "w") as f:
+        f.write(CREDIT_CPP + t)
+
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--meshcore", required=True, help="path to a MeshCore checkout")
@@ -438,6 +458,7 @@ def main():
     u = once(u, "novaui::splash(display, _version_info);   // LODESTAR NOVA", "cairnui::splash(display, _version_info);   // LODESTAR CAIRN", "splash call")
     open(u_path, "w").write(u)
 
+    add_credit(c_path)
     print("LODESTAR CAIRN applied:")
     print("  + src/helpers/Cairn.h")
     print("  ~ examples/companion_radio/MyMesh.h, MyMesh.cpp  (station ID, journal, check-in, cairn commands)")
