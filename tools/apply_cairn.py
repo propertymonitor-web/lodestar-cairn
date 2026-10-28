@@ -347,10 +347,10 @@ void MyMesh::cairnTick(uint32_t now) {
 
 CREDIT_MARK = "LODESTAR-CREDIT"
 CREDIT_CPP = """// ===========================================================================  LODESTAR-CREDIT
-// Engineered by Aries Thorne & Todd Steinhauer for Wolf Reactive Systems,
+// Engineered by Aries Thorne & Todd Steinhauer for Wolf Reactive Systems (WRS),
 // with MeshCore community guidance and assistance.
 // ===========================================================================
-__attribute__((used)) static const char LODESTAR_CREDIT[] = "Engineered by Aries Thorne & Todd Steinhauer for Wolf Reactive Systems, with MeshCore community guidance and assistance.";
+__attribute__((used)) static const char LODESTAR_CREDIT[] = "Engineered by Aries Thorne & Todd Steinhauer for Wolf Reactive Systems (WRS), with MeshCore community guidance and assistance.";
 """
 
 
