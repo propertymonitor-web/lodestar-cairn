@@ -384,7 +384,7 @@ def main():
               "render interval")
     u = patch(u, r"(#ifndef UI_NO_HIBERNATE\n    if \(c == KEY_ENTER && _page == HomePage::SHUTDOWN\) \{)",
               lambda m: KEY_PAGES + m.group(1), "handleInput: SHUTDOWN key")
-    # boot splash: LODESTAR / NOVA / by FEAR REACTIVE instead of the MeshCore logo
+    # boot splash: LODESTAR / NOVA / by Wolf Reactive Systems (WRS) instead of the MeshCore logo
     u = patch(u, r"(  int render\(DisplayDriver& display\) override \{\n)    // meshcore logo.*?(    return 1000;\n)",
               lambda m: m.group(1) + "    novaui::splash(display, _version_info);   // LODESTAR NOVA\n" + m.group(2), "splash screen", flags=re.S)
     # screen timeout from the profile

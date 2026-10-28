@@ -1,5 +1,5 @@
 // Nova - LODESTAR NOVA companion features for MeshCore.
-// By FEAR REACTIVE.
+// By Wolf Reactive Systems (WRS).
 //
 // Header-only and free of Arduino / MeshCore dependencies so everything can be
 // unit-tested on a PC (see nova/test). The MeshCore glue lives in

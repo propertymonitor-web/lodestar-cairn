@@ -1,5 +1,5 @@
 LODESTAR CAIRN - HARDWARE TEST CHECKLIST (Ver. 1.0.4, alpha)
-By FEAR REACTIVE. Nothing in CAIRN has run on real hardware yet. Work through this at home, then once in the open.
+By Wolf Reactive Systems (WRS). Nothing in CAIRN has run on real hardware yet. Work through this at home, then once in the open.
 Write down anything that does not match. Heltec V4 R2 only.
 
 A. FLASH THE COMPANION (Heltec V4 R2)
@@ -8,7 +8,7 @@ A. FLASH THE COMPANION (Heltec V4 R2)
  3. Pass: the radio boots and the screen shows CAIRN.
 
 B0. SCREEN
-    Pass: the boot splash shows the emblem on the left and LODESTAR / CAIRN / FEAR REACTIVE / Ver. 1.0.4 on the right, and stays up for 5 seconds.
+    Pass: the boot splash shows the emblem on the left and LODESTAR / CAIRN / WRS / Ver. 1.0.4 on the right, and stays up for 5 seconds.
     Pass: the first page after Home is CAIRN STATION with your ID. Pressing Enter (or holding the button) shows
     "Check-in sending" and the check-in appears in the log.
 

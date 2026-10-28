@@ -1,5 +1,5 @@
 // NovaPages - the LODESTAR NOVA screens for the 128x64 OLED.
-// By FEAR REACTIVE.
+// By Wolf Reactive Systems (WRS).
 //
 // Plain drawing functions: they read from nova::Nova and draw on a DisplayDriver, nothing else.
 // tools/apply_nova.py copies this file into MeshCore's companion UI and calls it from the home
@@ -253,7 +253,7 @@ static inline void splash(DisplayDriver& d, const char* meshcore_version) {
   d.drawTextCentered(mid, 2, "LODESTAR");
   d.drawTextCentered(mid, 19, NOVA_PRODUCT);
   d.setColor(UIColor::primary_txt); d.setTextSize(1);
-  d.drawTextCentered(mid, 40, "by FEAR REACTIVE");
+  d.drawTextCentered(mid, 40, "by WRS");
   char b[32]; snprintf(b, sizeof(b), "MeshCore %.12s", meshcore_version);
   d.setColor(UIColor::secondary_txt);
   d.drawTextCentered(mid, 53, b);

@@ -1,5 +1,5 @@
 LODESTAR CAIRN - FLASHING AND SETUP GUIDE (Ver. 1.0.4, ALPHA)
-By FEAR REACTIVE. Written for a beginner. You need a Heltec WiFi LoRa 32 V4 R2 (check the back: R2, not R8).
+By Wolf Reactive Systems (WRS). Written for a beginner. You need a Heltec WiFi LoRa 32 V4 R2 (check the back: R2, not R8).
 
 WHAT YOU NEED
 - The Heltec V4 R2 with its antenna fitted BEFORE power (powering a LoRa radio without an antenna can damage it).

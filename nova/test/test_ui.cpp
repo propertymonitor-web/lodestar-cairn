@@ -88,7 +88,7 @@ int main() {
     CHECK(!(m.bad + m2.bad + m3.bad + m3b.bad + m3c.bad + m3d.bad + m4.bad + m5.bad + m6.bad + m6b.bad + m7.bad + m8.bad));
   }
   // ---- splash fits, and says who made it ----
-  { Mock m; splash(m, "v1.15.0"); CHECK(m.bad == 0 && m.has("LODESTAR") && m.has(NOVA_PRODUCT) && m.has("by FEAR REACTIVE") && m.has("MeshCore v1.15.0"));
+  { Mock m; splash(m, "v1.15.0"); CHECK(m.bad == 0 && m.has("LODESTAR") && m.has(NOVA_PRODUCT) && m.has("by WRS") && m.has("MeshCore v1.15.0"));
     Mock m2; splash(m2, "v10.200.3000-abcdef"); CHECK(m2.bad == 0); }
   // ---- the arrow points the right way (checked on the squares it draws) ----
   {

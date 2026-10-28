@@ -3,7 +3,7 @@
 ![CAIRN emblem](docs/cairn-logo.png)
 
 
-Crisis-use field kit firmware and dashboard for MeshCore, by FEAR REACTIVE.
+Crisis-use field kit firmware and dashboard for MeshCore, by Wolf Reactive Systems (WRS).
 CAIRN turns a Heltec V4 R2 companion into a **station**: it gets a permanent ID (`LC-xxxxxxxx`), keeps a journal of **everything it hears**, sends a one-button check-in with GPS, and feeds a tablet dashboard that works with **no internet**.
 
 **Status: ALPHA. The firmware compiles and passes its tests, and the dashboard is tested with practice data, but neither has run on real hardware or on the tablet yet.**

@@ -1,5 +1,5 @@
 // CairnPages - the LODESTAR CAIRN boot splash and station screen for the 128x64 OLED.
-// By FEAR REACTIVE. Plain drawing functions, like NovaPages.h. tools/apply_cairn.py copies this
+// By Wolf Reactive Systems (WRS). Plain drawing functions, like NovaPages.h. tools/apply_cairn.py copies this
 // (and CairnLogo.h) into MeshCore's companion UI.
 #pragma once
 
@@ -19,7 +19,7 @@ static inline void splash(DisplayDriver& d, const char* meshcore_version) {
   d.setTextSize(2);
   d.drawTextCentered(mid, 14, "CAIRN");
   d.setTextSize(1); d.setColor(UIColor::primary_txt);
-  d.drawTextCentered(mid, 36, "FEAR REACTIVE");
+  d.drawTextCentered(mid, 36, "WRS");
   char b[24];
   snprintf(b, sizeof(b), "Ver. %s", CAIRN_VERSION);
   d.drawTextCentered(mid, 48, b);

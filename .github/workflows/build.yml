@@ -198,7 +198,7 @@ jobs:
         run: |
           MC=$(cut -c1-10 out/meshcore_commit.txt)
           FILES="out/firmware-merged.bin out/firmware.bin"; [ -f out/dashboard.html ] && FILES="$FILES out/dashboard.html"
-          NOTES="LODESTAR CAIRN field-station companion firmware for the Heltec WiFi LoRa 32 V4 R2 (ESP32-S3R2, OLED), by FEAR REACTIVE. Alpha test build ($FW_ENV) on MeshCore commit $MC. Not for the V4-R8.
+          NOTES="LODESTAR CAIRN field-station companion firmware for the Heltec WiFi LoRa 32 V4 R2 (ESP32-S3R2, OLED), by Wolf Reactive Systems (WRS). Alpha test build ($FW_ENV) on MeshCore commit $MC. Not for the V4-R8.
 
           CAIRN is LODESTAR NOVA plus: a station ID (LC-xxxxxxxx) that survives reboots, a journal of every message and advert the radio hears (kept on the radio and streamed to the dashboard), a check-in message (LC-xxxxxxxx Reporting at: lat,lon), and a disaster mode. Download firmware-merged.bin and flash it at https://flasher.meshcore.io (Custom Firmware). firmware.bin is the application-only image for updating an existing install without erasing. See the README for setup and the command list.
 
