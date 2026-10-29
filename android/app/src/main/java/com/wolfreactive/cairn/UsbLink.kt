@@ -130,7 +130,7 @@ class UsbLink(private val ctx: Context, private val hub: Hub) {
             val p = drv.ports[0]
             p.open(conn)
             p.setParameters(115200, 8, UsbSerialPort.STOPBITS_1, UsbSerialPort.PARITY_NONE)
-            try { p.setDTR(true); p.setRTS(false) } catch (_: Exception) { }      // the repeater only talks when the host says it is listening
+            try { p.setDTR(true); p.setRTS(true) } catch (_: Exception) { }      // DTR and RTS both on: any other combination restarts a XIAO ESP32-S3 / Heltec V4 radio
             port = p; openName = d.deviceName
             splitter.clear()
             val m = SerialInputOutputManager(p, object : SerialInputOutputManager.Listener {

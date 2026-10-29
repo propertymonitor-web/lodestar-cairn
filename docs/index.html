@@ -1901,6 +1901,8 @@ async function connect() {
     stopDemo();
     S.port = await navigator.serial.requestPort();
     await S.port.open({ baudRate: 115200 });
+    // DTR and RTS both on is the one control-line state that does not restart these radios (any other combination reboots them)
+    try { await S.port.setSignals({ dataTerminalReady: true, requestToSend: true }); } catch (e) { /* this browser cannot set them */ }
   } catch (e) { if (e.name !== "NotFoundError") notice("Could not open the radio's USB port: " + e.message + ". Close other apps that use it and try again."); return; }
   S.mode = "serial"; setStatus("wait", "Connected, waiting for data"); $("btnConnect").textContent = "Disconnect";
   const enc = new TextEncoderStream(); enc.readable.pipeTo(S.port.writable).catch(() => {}); S.writer = enc.writable.getWriter();
