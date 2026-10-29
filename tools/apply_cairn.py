@@ -46,6 +46,7 @@ static char cairn_line[CAIRN_LINE];
 #define CAIRN_LOG_FILE  "/cairn.log"
 #define CAIRN_LOG_OLD   "/cairn.1"
 #define CAIRN_ID_FILE   "/cairn.id"
+#define CAIRN_CFG_FILE  "/cairn.cfg"
 #ifndef CAIRN_LOG_MAX
 #define CAIRN_LOG_MAX   (192u * 1024u)      // the journal keeps about this much, plus the same again in /cairn.1
 #endif
@@ -75,7 +76,19 @@ void MyMesh::cairnInit() {
   cairn_core.setId(nid);
 #ifdef ESP32
   cairn_core.file_bytes = cairnSizeOf(fs, CAIRN_LOG_FILE);
+  {   // settings kept over a restart: mode, antenna, automatic check-in, help beacon ...
+    File cf = fs->open(CAIRN_CFG_FILE, "r");
+    if (cf) {
+      char cb[96];
+      int cn = cf.read((uint8_t*)cb, sizeof(cb) - 1);
+      cf.close();
+      if (cn > 0) { cb[cn] = 0; cairn::loadConfig(cb, cairn_core.cfg); }
+    }
+  }
 #endif
+  if (cairn_core.cfg.mode == 1) cairn_core.want_mode = 1;   // Disaster mode comes back after a restart
+  cairn_core.want_power = true;
+  cairn_core.autoReset(millis() / 1000u);
   size_t n = cairn::recBoot(cairn_line, sizeof(cairn_line), ep, cairn_core.id, CAIRN_VERSION);
   if (n) cairn_core.j.push(cairn_line, true);
 }
@@ -154,26 +167,118 @@ void MyMesh::cairnLogAdvert(mesh::Packet* pkt, int rssi) {
   if (n) cairn_core.j.push(cairn_line, false);
 }
 
-// "LC-xxxxx Reporting at: <lat>,<lon>" to a channel (0 = the first channel, normally Public).
-bool MyMesh::cairnSendOk(int ch) {
+void MyMesh::cairnSaveCfg() {
+#ifdef ESP32
+  char cb[96];
+  size_t cn = cairn::saveConfig(cairn_core.cfg, cb, sizeof(cb));
+  if (cn == 0) return;
+  FILESYSTEM* fs = _store->getPrimaryFS();
+  File cf = fs->open(CAIRN_CFG_FILE, "w", true);
+  if (!cf) return;
+  cf.write((const uint8_t*)cb, cn);
+  cf.close();
+#endif
+}
+
+// Send a text to channel `ch` as a group message and write it in the journal. False when there is no such channel.
+bool MyMesh::cairnSendText(int ch, const char* text, size_t n) {
   ChannelDetails channel;
-  if (!getChannel(ch, channel) || channel.name[0] == 0) return false;
-  char text[100];
-  uint32_t now = millis();
-  const lodestar::Position& pos = nova_core.link.position();
-  size_t n = cairn::okMessage(cairn_core.id, nova_core.link.hasFix(now), pos.lat_e6, pos.lon_e6, text, sizeof(text));
-  if (n == 0) return false;
+  if (n == 0 || !getChannel(ch, channel) || channel.name[0] == 0) return false;
   if (!sendGroupMessage(getRTCClock()->getCurrentTimeUnique(), channel.channel, _prefs.node_name, text, (int)n)) return false;
   nova_core.deliveries.onSendChannel(channel.name, nova_core.linkUsable(), _ms->getMillis());
-  cairn_core.last_ok_up = now / 1000u + 1u;
+  uint32_t now = millis();
   size_t m = cairn::recOwn(cairn_line, sizeof(cairn_line), getRTCClock()->getCurrentTime(), now / 1000u, cairn_core.id, ch, text);
   if (m) cairn_core.j.push(cairn_line, true);
   return true;
 }
 
+// The position-carrying messages: kind 0 check-in, 1 help, 2 status (arg = code), 3 mark (arg = kind), 4 low battery (arg = percent).
+bool MyMesh::cairnSendKind(int ch, int kind, int arg) {
+  char text[120];
+  uint32_t now = millis();
+  const lodestar::Position& pos = nova_core.link.position();
+  bool fix = nova_core.link.hasFix(now);
+  size_t n = 0;
+  switch (kind) {
+    case 0: n = cairn::okMessage(cairn_core.id, fix, pos.lat_e6, pos.lon_e6, text, sizeof(text)); break;
+    case 1: n = cairn::helpMessage(cairn_core.id, fix, pos.lat_e6, pos.lon_e6, text, sizeof(text)); break;
+    case 2: n = cairn::statusMessage(cairn_core.id, arg, fix, pos.lat_e6, pos.lon_e6, text, sizeof(text)); break;
+    case 3: n = cairn::markMessage(cairn_core.id, arg, fix, pos.lat_e6, pos.lon_e6, text, sizeof(text)); break;
+    case 4: n = cairn::lowBatMessage(cairn_core.id, arg, fix, pos.lat_e6, pos.lon_e6, text, sizeof(text)); break;
+  }
+  if (n == 0 || !cairnSendText(ch, text, n)) return false;
+  if (kind == 0) cairn_core.last_ok_up = now / 1000u + 1u;
+  return true;
+}
+
+// "LC-xxxxx Reporting at: <lat>,<lon>" to a channel.
+bool MyMesh::cairnSendOk(int ch) { return cairnSendKind(ch, 0, 0); }
+
+// Add, make, remove or show the key of a channel, then tell the dashboard what happened.
+void MyMesh::cairnChannelOp() {
+  int op = cairn_core.chan_op;
+  cairn_core.chan_op = 0;
+  static const char* OPS[] = {"", "add", "new", "remove", "key"};
+  ChannelDetails cd;
+  int idx = -1;
+  const char* why = "";
+  bool ok = false;
+  uint8_t key[16];
+  if (op == 1 || op == 2) {
+    if (op == 2) getRNG()->random(key, 16); else memcpy(key, cairn_core.chan_key, 16);
+    for (int i = 0; i < CAIRN_MAX_CHANNELS && idx < 0; i++) {
+      static const uint8_t z16[16] = {0};
+      if (getChannel(i, cd) && cd.name[0] != 0 && memcmp(cd.channel.secret, key, 16) == 0 && memcmp(cd.channel.secret + 16, z16, 16) == 0) idx = i;
+    }
+    if (idx >= 0) { why = "already"; ok = true; }
+    else {
+      for (int i = 1; i < CAIRN_MAX_CHANNELS && idx < 0; i++) if (getChannel(i, cd) && cd.name[0] == 0) idx = i;
+      if (idx < 0) why = "full";
+      else {
+        ChannelDetails nd;
+        memset(&nd, 0, sizeof(nd));
+        strncpy(nd.name, cairn_core.chan_name, sizeof(nd.name) - 1);
+        memcpy(nd.channel.secret, key, 16);
+        if (setChannel(idx, nd)) { saveChannels(); ok = true; } else { why = "failed"; idx = -1; }
+      }
+    }
+  } else if (op == 3) {
+    idx = cairn_core.chan_idx;
+    if (idx > 0 && getChannel(idx, cd) && cd.name[0] != 0) {
+      ChannelDetails nd;
+      memset(&nd, 0, sizeof(nd));
+      if (setChannel(idx, nd)) {
+        saveChannels(); ok = true;
+        if (cairn_core.cfg.main_chan == idx) { cairn_core.cfg.main_chan = 0; cairn_core.cfg_dirty = true; }
+      } else why = "failed";
+    } else why = "none";
+  } else if (op == 4) {
+    idx = cairn_core.chan_idx;
+    ok = getChannel(idx, cd) && cd.name[0] != 0;
+    if (!ok) why = "none";
+  }
+#ifndef ENABLE_USB_INTERFACE
+  auto pname = [](const char* nm) { for (const char* q = nm; *q; q++) { if (*q == '"' || *q == '\\') Serial.print('\\'); if ((uint8_t)*q >= 32) Serial.print(*q); } };
+  if (op == 4 && ok) {
+    char hx[33];
+    cairn::hex16(cd.channel.secret, hx);
+    Serial.print("{\"cairn\":1,\"chankey\":{\"i\":"); Serial.print(idx); Serial.print(",\"n\":\""); pname(cd.name); Serial.print("\",\"k\":\""); Serial.print(hx); Serial.println("\"}}");
+  } else {
+    if (ok && op != 3) getChannel(idx, cd);
+    Serial.print("{\"cairn\":1,\"chanres\":{\"op\":\""); Serial.print(OPS[op]); Serial.print("\",\"ok\":"); Serial.print(ok ? 1 : 0);
+    Serial.print(",\"i\":"); Serial.print(idx); Serial.print(",\"why\":\""); Serial.print(why); Serial.print("\",\"n\":\"");
+    if (op != 3 && ok) pname(cd.name);
+    Serial.println("\"}}");
+  }
+#else
+  (void)OPS;
+#endif
+  cairn_core.want_chans = true;
+}
+
 // `cairn ...` typed on the USB serial port.
 void MyMesh::cairnCommand(const char* args) {
-  char r[200];
+  char r[420];
   cairn_core.runCommand(args, r, sizeof(r), millis() / 1000u);
   Serial.print("# ");
   Serial.println(r);
@@ -186,6 +291,52 @@ void MyMesh::cairnTick(uint32_t now) {
   if (pend > 0 && (cairn_core.j.urgent() || pend >= CAIRN_RING / 2 || (int32_t)(now - next_flush) >= 0)) {
     cairnFlush();
     next_flush = now + 20000u;
+  }
+
+  uint32_t up = now / 1000u;
+  cairn_core.ctx.freq_mhz = _prefs.freq;
+  cairn_core.ctx.hw_max = MAX_LORA_TX_POWER;
+  cairn_core.ctx.setting = _prefs.tx_power_dbm;
+  cairn_core.ctx.batt_pct = nova_core.batt.pct();
+  cairn_core.ctx.external = board.isExternalPowered();
+  cairn_core.updateEco();
+  static bool eco_before = false;
+  if (eco_before != cairn_core.eco_low) { eco_before = cairn_core.eco_low; cairn_core.want_power = true; cairn_core.autoReset(up); }
+  if (cairn_core.want_power) {
+    cairn_core.want_power = false;
+    int w = cairn_core.wantedSetting();                 // -100: not the US band, leave the power alone
+    if (w != -100 && w != (int)_prefs.tx_power_dbm) {
+      _prefs.tx_power_dbm = (int8_t)w;
+      radio_driver.setTxPower(_prefs.tx_power_dbm);
+      savePrefs();
+      cairn_core.ctx.setting = w;
+    }
+  }
+  if (cairn_core.cfg_dirty) { cairn_core.cfg_dirty = false; cairnSaveCfg(); }
+  if (cairn_core.chan_op) cairnChannelOp();
+
+  // One message per pass at most, so the radio is never asked to send two at once.
+  if (cairn_core.helpDue(up)) {
+    cairn_core.want_help_now = false;
+    cairnSendKind(cairn_core.helpChannel(), 1, 0);
+    cairn_core.helpSent(up);                             // even if it could not send: try again at the next beat
+  } else if (cairn_core.want_help_stop) {
+    cairn_core.want_help_stop = false;
+    cairnSendKind(cairn_core.helpChannel(), 0, 0);       // "Reporting at": everyone sees the call was cancelled
+    cairn_core.help_chan = -1;
+  } else if (cairn_core.want_status) {
+    int code = cairn_core.want_status, ch = cairn_core.msgChannel();
+    cairn_core.want_status = 0; cairn_core.msg_channel = -1;
+    cairnSendKind(ch, 2, code);
+  } else if (cairn_core.want_mark) {
+    int code = cairn_core.want_mark, ch = cairn_core.msgChannel();
+    cairn_core.want_mark = 0; cairn_core.msg_channel = -1;
+    cairnSendKind(ch, 3, code);
+  } else if (cairn_core.lowBatDue()) {
+    cairnSendKind(cairn_core.cfg.main_chan, 4, cairn_core.ctx.batt_pct);
+  } else if (cairn_core.autoDue(up)) {
+    cairnSendKind(cairn_core.cfg.main_chan, 0, 0);
+    cairn_core.autoReset(up);
   }
 
   int nv_hour = nova::Nova::localHour(getRTCClock()->getCurrentTime(), _prefs.tz_offset);
@@ -255,16 +406,17 @@ void MyMesh::cairnTick(uint32_t now) {
 #ifndef ENABLE_USB_INTERFACE
     Serial.print("{\"cairn\":1,\"chans\":[");
     bool first = true;
-    for (int i = 0; i < 40; i++) {
+    for (int i = 0; i < CAIRN_MAX_CHANNELS; i++) {
       ChannelDetails ch;
       if (!getChannel(i, ch) || ch.name[0] == 0) continue;
       if (!first) Serial.print(',');
       first = false;
       Serial.print("{\"i\":"); Serial.print(i); Serial.print(",\"n\":\"");
       for (const char* q = ch.name; *q; q++) { if (*q == '"' || *q == '\\') Serial.print('\\'); if ((uint8_t)*q >= 32) Serial.print(*q); }
-      Serial.print("\"}");
+      Serial.print("\",\"t\":\""); Serial.print(cairn::chanKind(ch.name, ch.channel.secret)); Serial.print("\"}");
     }
-    Serial.println("]}");
+    Serial.print("],\"mc\":"); Serial.print(cairn_core.cfg.main_chan); Serial.print(",\"max\":"); Serial.print(CAIRN_MAX_CHANNELS);
+    Serial.println("}");
 #endif
   }
 
@@ -327,12 +479,8 @@ void MyMesh::cairnTick(uint32_t now) {
     static uint32_t next_status = 0;
     if ((int32_t)(now - next_status) >= 0) {
       next_status = now + 5000u;
-      uint32_t ago = cairn_core.last_ok_up ? (now / 1000u + 1u - cairn_core.last_ok_up) : 0;
-      Serial.printf("{\"cairn\":1,\"id\":\"%s\",\"ver\":\"%s\",\"kb\":%lu,\"lines\":%lu,\"lost\":%lu,\"mode\":\"%s\",\"okago\":%lu,\"now\":%lu}\n",
-                    cairn_core.id, CAIRN_VERSION, (unsigned long)(cairn_core.file_bytes / 1024u), (unsigned long)cairn_core.j.total,
-                    (unsigned long)(cairn_core.to_flash.lost + cairn_core.to_usb.lost),
-                    (nova_core.cfg.profile == nova::PROFILE_HIKE && !nova_core.cfg.quiet_on) ? "disaster" : "normal",
-                    (unsigned long)ago, (unsigned long)getRTCClock()->getCurrentTime());
+      char sj[720];
+      if (cairn_core.statusJson(sj, sizeof(sj), now / 1000u, getRTCClock()->getCurrentTime(), cairn_core.to_flash.lost + cairn_core.to_usb.lost)) Serial.println(sj);
     }
   } else {
     while (cairn_core.j.peek(cairn_core.to_usb) != nullptr) cairn_core.j.advance(cairn_core.to_usb);   // nobody is listening
@@ -396,7 +544,11 @@ def main():
              "  void cairnLogDirect(char kind, const ContactInfo& from, mesh::Packet* pkt, const char* text);\n"
              "  void cairnLogChannel(int idx, mesh::Packet* pkt, const char* text);\n"
              "  void cairnLogAdvert(mesh::Packet* pkt, int rssi);\n"
-             "  bool cairnSendOk(int ch);\n",
+             "  bool cairnSendOk(int ch);\n"
+             "  bool cairnSendText(int ch, const char* text, size_t n);\n"
+             "  bool cairnSendKind(int ch, int kind, int arg);\n"
+             "  void cairnSaveCfg();\n"
+             "  void cairnChannelOp();\n",
              "novaTick declaration")
     h = once(h, "extern nova::Nova nova_core;   // LODESTAR NOVA", "extern nova::Nova nova_core;   // LODESTAR NOVA\nextern cairn::Cairn cairn_core;   // LODESTAR CAIRN",
              "nova_core extern")
@@ -444,16 +596,28 @@ def main():
     shutil.copyfile(CAIRN_LOGO, os.path.join(comp, "ui-new", "CairnLogo.h"))
     u = open(u_path).read()
     u = once(u, '#include "NovaPages.h"\n', '#include "NovaPages.h"\n#include "CairnPages.h"\n', "NovaPages include")
-    u = once(u, "    FIRST,\n    NV_LINK,", "    FIRST,\n    CR_STN,       // LODESTAR CAIRN station screen\n    NV_LINK,", "HomePage enum")
+    u = once(u, "    FIRST,\n    NV_LINK,", "    FIRST,\n    CR_STN,       // LODESTAR CAIRN station screen\n    CR_HELP,      // LODESTAR CAIRN help call\n    CR_PWR,       // LODESTAR CAIRN mode and power\n    NV_LINK,", "HomePage enum")
     u = once(u, "    } else if (_page == HomePage::NV_LINK) {\n",
              "    } else if (_page == HomePage::CR_STN) {\n      cairnui::pageStation(display, cairn_core, millis() / 1000u);\n"
+             "    } else if (_page == HomePage::CR_HELP) {\n      cairnui::pageHelp(display, cairn_core, millis(), millis() / 1000u);\n"
+             "    } else if (_page == HomePage::CR_PWR) {\n      cairnui::pagePower(display, cairn_core);\n"
              "    } else if (_page == HomePage::NV_LINK) {\n", "render: NV_LINK branch")
     u = once(u, "    if (c == KEY_ENTER && _page == HomePage::NV_TRIP) {\n",
              "    if (c == KEY_ENTER && _page == HomePage::CR_STN) {   // CAIRN: send a check-in\n"
-             "      cairn_core.ok_channel = 0; cairn_core.want_ok = true;\n"
+             "      cairn_core.ok_channel = cairn_core.cfg.main_chan; cairn_core.want_ok = true;\n"
              "      _task->showAlert(\"Check-in sending\", 900);\n      return true;\n    }\n"
+             "    if (c == KEY_ENTER && _page == HomePage::CR_HELP) {   // CAIRN: arm, then send, or cancel the help call\n"
+             "      uint32_t hm = millis();\n"
+             "      if (cairn_core.cfg.help_on) { cairn_core.stopHelp(); _task->showAlert(\"Help call cancelled\", 1200); }\n"
+             "      else if (cairn_core.arm_until_ms && (int32_t)(cairn_core.arm_until_ms - hm) > 0) { cairn_core.arm_until_ms = 0; cairn_core.startHelp(hm / 1000u, -1); _task->showAlert(\"HELP call sending\", 1500); }\n"
+             "      else { cairn_core.arm_until_ms = hm + 5000u; }\n"
+             "      return true;\n    }\n"
+             "    if (c == KEY_ENTER && _page == HomePage::CR_PWR) {   // CAIRN: switch Standard / Disaster\n"
+             "      char rr[200];\n"
+             "      cairn_core.runCommand(cairn_core.disaster() ? \" mode standard\" : \" mode disaster\", rr, sizeof(rr), millis() / 1000u);\n"
+             "      _task->showAlert(cairn_core.disaster() ? \"DISASTER mode\" : \"STANDARD mode\", 1200);\n      return true;\n    }\n"
              "    if (c == KEY_ENTER && _page == HomePage::NV_TRIP) {\n", "key: NV_TRIP")
-    u = once(u, "(_page >= HomePage::NV_LINK && _page <= HomePage::NV_RANGE)", "_page == HomePage::CR_STN || (_page >= HomePage::NV_LINK && _page <= HomePage::NV_RANGE)", "render interval")
+    u = once(u, "(_page >= HomePage::NV_LINK && _page <= HomePage::NV_RANGE)", "_page == HomePage::CR_STN || _page == HomePage::CR_HELP || _page == HomePage::CR_PWR || (_page >= HomePage::NV_LINK && _page <= HomePage::NV_RANGE)", "render interval")
     u = once(u, "#define BOOT_SCREEN_MILLIS   3000   // 3 seconds", "#define BOOT_SCREEN_MILLIS   5000   // 5 seconds: CAIRN shows an emblem and the name, give it time to be read", "boot screen time")
     u = once(u, "novaui::splash(display, _version_info);   // LODESTAR NOVA", "cairnui::splash(display, _version_info);   // LODESTAR CAIRN", "splash call")
     open(u_path, "w").write(u)

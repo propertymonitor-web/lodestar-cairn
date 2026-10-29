@@ -45,6 +45,13 @@ int main() {
     Mock m; cairnui::pageStation(m, C, 100); CHECK(m.bad == 0 && m.has("LC-K7M2P4XQ") && m.has("log 20KB 0 lines") && m.has("check-in 40s ago"));
     Mock m2; cairnui::pageStation(m2, C, 700); CHECK(m2.bad == 0 && m2.has("check-in 10m ago"));
     Mock m3; cairnui::pageStation(m3, C, 20000); CHECK(m3.bad == 0 && m3.has("check-in 5.5h ago")); }
+  { cairn::Cairn C; Mock m; cairnui::pageHelp(m, C, 1000, 100); CHECK(m.bad == 0 && m.has("I NEED HELP"));
+    C.arm_until_ms = 5000; Mock m2; cairnui::pageHelp(m2, C, 1000, 100); CHECK(m2.bad == 0 && m2.has("SEND HELP CALL?"));
+    Mock m2b; cairnui::pageHelp(m2b, C, 6000, 100); CHECK(m2b.has("I NEED HELP"));    // the arm window ran out
+    C.cfg.help_on = 1; C.helpSent(100); Mock m3; cairnui::pageHelp(m3, C, 1000, 130); CHECK(m3.bad == 0 && m3.has("HELP BEACON ON") && m3.has("next call in 270s") && m3.has("cancel")); }
+  { cairn::Cairn C; C.ctx.setting = 22; C.ctx.batt_pct = 88; C.ctx.external = true; Mock m; cairnui::pagePower(m, C);
+    CHECK(m.bad == 0 && m.has("STANDARD MODE") && m.has("radio 28 dBm (631 mW)") && m.has("battery 88% +power") && m.has("full range"));
+    C.cfg.mode = 1; C.eco_low = true; C.ctx.batt_pct = -1; C.ctx.external = false; Mock m2; cairnui::pagePower(m2, C); CHECK(m2.bad == 0 && m2.has("DISASTER MODE") && m2.has("saving battery") && m2.has("battery ?")); }
   if (fails) { printf("%d FAILED\n", fails); return 1; }
   printf("all CAIRN screen tests passed\n");
   return 0;
