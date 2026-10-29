@@ -135,13 +135,7 @@ public:
   // how long an acknowledgement should take.
   void onSend(uint32_t ack, bool flood, uint32_t timeout_ms, const char* who, bool link_ok, uint32_t now) {
     if (ack == 0) return;                       // nothing to track without an ack code
-    int slot = -1;
-    uint32_t oldest = 0;
-    for (int i = 0; i < NOVA_MAX_DELIVERIES; i++) {
-      if (!_d[i].used) { slot = i; break; }
-      if (slot < 0 || _d[i].seq < _d[slot].seq) slot = i;
-    }
-    (void)oldest;
+    int slot = oldestSlot();
     Delivery& d = _d[slot];
     memset(&d, 0, sizeof(d));
     d.used = true; d.flood = flood; d.state = D_SENT; d.via = -1;
@@ -154,12 +148,7 @@ public:
   // The phone sent a message to a channel (Public, a private channel...). Channel messages carry no
   // acknowledgement, so the most NOVA can tell you is whether a repeater picked it up.
   void onSendChannel(const char* name, bool link_ok, uint32_t now) {
-    int slot = -1;
-    for (int i = 0; i < NOVA_MAX_DELIVERIES; i++) {
-      if (!_d[i].used) { slot = i; break; }
-      if (slot < 0 || _d[i].seq < _d[slot].seq) slot = i;
-    }
-    Delivery& d = _d[slot];
+    Delivery& d = _d[oldestSlot()];
     memset(&d, 0, sizeof(d));
     d.used = true; d.flood = true; d.chan = true; d.state = D_SENT; d.via = -1;
     d.sent_ms = now; d.timeout_ms = 10000u;
@@ -253,6 +242,16 @@ public:
 private:
   Delivery _d[NOVA_MAX_DELIVERIES];
   uint32_t _seq = 0;
+
+  // A free slot, or else the one holding the oldest message.
+  int oldestSlot() const {
+    int slot = 0;
+    for (int i = 0; i < NOVA_MAX_DELIVERIES; i++) {
+      if (!_d[i].used) return i;
+      if (_d[i].seq < _d[slot].seq) slot = i;
+    }
+    return slot;
+  }
 };
 
 // ----------------------------------------------------------------------------
@@ -396,7 +395,6 @@ public:
       FoundNode& n = _e[slot]; memset(&n, 0, sizeof(n));
       n.used = true; memcpy(n.key, payload, 6); n.first_ms = now;
       n.hops = hops; n.rssi = (int8_t)rs; n.snr_q = (int16_t)sq;
-      n.has_here = false;
     }
     FoundNode& n = _e[slot];
     bool changed = fresh;
@@ -573,7 +571,7 @@ private:
 class Battery {
 public:
   Battery() { reset(); }
-  void reset() { _n = 0; _head = 0; _mv_f = 0; _last_sample = 0; _have = false; _charging = false; _since_change = 0; }
+  void reset() { _n = 0; _head = 0; _mv_f = 0; _last_sample = 0; _have = false; _charging = false; }
 
   // Single-cell Li-ion/LiPo, resting-ish voltage to percent. Approximate: a loaded cell reads low.
   static int percent(int mv) {
@@ -598,7 +596,7 @@ public:
     _mv_f = _have ? _mv_f + 0.1f * ((float)mv - _mv_f) : (float)mv;
     if (!_have || charging != _charging) {
       _charging = charging; _n = 0; _head = 0;             // plugging in or out starts a fresh trend
-      _last_sample = now; _have = true; _since_change = now;
+      _last_sample = now; _have = true;
       push(now);
       return;
     }
@@ -645,7 +643,7 @@ private:
   struct S { uint32_t t; uint16_t mv; };
   S _s[NOVA_BATT_SAMPLES];
   int _n, _head;
-  float _mv_f; uint32_t _last_sample, _since_change; bool _have, _charging;
+  float _mv_f; uint32_t _last_sample; bool _have, _charging;
 
   void push(uint32_t now) {
     if (_n < NOVA_BATT_SAMPLES) { _s[(_head + _n) % NOVA_BATT_SAMPLES] = { now, (uint16_t)mv() }; _n++; }

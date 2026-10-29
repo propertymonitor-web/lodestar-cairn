@@ -280,7 +280,7 @@ th { font-family: var(--mono); color: var(--accent); }
     <h1>CAIRN</h1>
     <div class="sub">Lodestar &middot; emergency &amp; field communications</div>
     <div class="bar"><i></i></div>
-    <div class="ver">WOLF REACTIVE SYSTEMS (WRS) &nbsp;&middot;&nbsp; VER. <span id="splVer">1.2.0</span></div>
+    <div class="ver">WOLF REACTIVE SYSTEMS (WRS) &nbsp;&middot;&nbsp; VER. <span id="splVer">1.3.0</span></div>
   </div>
   <div class="cred"><b>Engineered by: Aries Thorne &amp; Todd Steinhauer for Wolf Reactive Systems (WRS)</b><br>Special thanks to the NTXMESH community, Meshcore Community, and Pat Steinhauer-Scates for their guidance and support.</div>
 </div>
@@ -622,7 +622,7 @@ const TYPE = { 1: ["comp", "companion"], 2: ["rep", "repeater"], 3: ["room", "ro
 const CHECKIN_RE = /\b(LC-(?:[A-HJ-NP-Z2-9]{8}|[A-HJ-NP-Z2-9]{5})) (Reporting|NEEDS HELP|STATUS [A-Z ]+?|MARK [A-Z ]+?|LOW BATTERY \d+%) at: (?:(-?\d{1,3}\.\d+),(-?\d{1,3}\.\d+)|no GPS fix)/;
 const STATUS_LABEL = ["", "NEED MEDICAL", "NEED WATER", "NEED FOOD", "NEED SHELTER", "NEED TRANSPORT", "EVACUATING", "STAYING PUT", "CAN HELP"];
 const MARK_LABEL = ["", "WATER", "SHELTER", "MEDICAL AID", "HAZARD", "MEETING POINT", "ROAD BLOCKED", "SUPPLIES"];
-const DASH_VER = "1.2.0";
+const DASH_VER = "1.3.0";
 const STN = !!window.CairnBridge;   // true only inside the CAIRN Station tablet app
 const nice = (l) => l.charAt(0) + l.slice(1).toLowerCase();
 const PLAUSIBLE = (sec) => sec > 1700000000 && sec < 4102444800;

@@ -21,7 +21,7 @@
 #include <string.h>
 #include <stdarg.h>
 
-#define CAIRN_VERSION  "1.2.0"
+#define CAIRN_VERSION  "1.3.0"
 #define CAIRN_LINE     640       // longest journal line, bytes (a 160-character message can need ~480)
 #define CAIRN_SAY_MAX  140       // longest message the dashboard can send (MeshCore text limits are about this)
 #define CAIRN_RING     24        // lines held in RAM between the radio and the flash / USB writers
@@ -477,8 +477,8 @@ public:
   void autoReset(uint32_t up) { auto_next_up = cfg.auto_min ? up + autoEvery() : 0; if (cfg.auto_min && auto_next_up == 0) auto_next_up = 1; }
   uint32_t helpIn(uint32_t up) const { return (cfg.help_on && help_next_up && (int32_t)(help_next_up - up) > 0) ? help_next_up - up : 0; }
 
-  void startHelp(uint32_t up, int ch) {
-    (void)up; help_chan = ch;
+  void startHelp(int ch) {
+    help_chan = ch;
     cfg.help_on = 1; help_next_up = 0; want_help_now = true; want_power = true; cfg_dirty = true;
   }
   void stopHelp() {
@@ -598,7 +598,7 @@ public:
       } else {
         int ch = -1;
         if (*p) { char* end; long v = strtol(p, &end, 10); if (end == p || *end != 0 || v < 0 || v >= CAIRN_MAX_CHANNELS) { snprintf(reply, cap, "cairn help [channel] | cairn help off"); return; } ch = (int)v; }
-        startHelp(up, ch);
+        startHelp(ch);
         snprintf(reply, cap, "OK - HELP beacon ON: NEEDS HELP and your position every %d min until cancelled (cairn help off)", cfg.beacon_min);
       }
     } else if (cmd(a, "beacon")) {

@@ -2,12 +2,10 @@
 package com.wolfreactive.cairn
 
 import android.app.Activity
-import android.content.ComponentName
 import android.content.Intent
 import android.net.Uri
 import android.provider.Settings
 import android.webkit.JavascriptInterface
-import org.json.JSONArray
 import org.json.JSONObject
 
 /**
@@ -16,8 +14,6 @@ import org.json.JSONObject
  * events (see Hub.emit and the dashboard's window.cairnNative).
  */
 class Bridge(private val act: Activity, private val hub: Hub) {
-    private fun s(o: Any) = o.toString()
-
     @JavascriptInterface fun info(): String = JSONObject()
         .put("app", BuildInfo.VERSION).put("android", android.os.Build.VERSION.RELEASE).put("sdk", android.os.Build.VERSION.SDK_INT)
         .put("model", android.os.Build.MODEL ?: "").put("gemini", geminiInstalled())

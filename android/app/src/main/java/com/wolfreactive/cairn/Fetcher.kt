@@ -119,4 +119,4 @@ class Fetcher(private val hub: Hub, private val store: Store) {
     fun cancel(name: String) { if (running.containsKey(name)) running[name] = false }
 }
 
-object BuildInfo { const val VERSION = "1.2.0" }
+object BuildInfo { const val VERSION = "1.3.0" }

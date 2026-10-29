@@ -289,7 +289,9 @@ void MyMesh::cairnCommand(const char* args) {
 void MyMesh::cairnTick(uint32_t now) {
   static uint32_t next_flush = 0;
   uint32_t pend = cairn_core.j.pending(cairn_core.to_flash);
-  if (pend > 0 && (cairn_core.j.urgent() || pend >= CAIRN_RING / 2 || (int32_t)(now - next_flush) >= 0)) {
+  if (pend == 0) {
+    next_flush = now + 20000u;          // idle: keep the deadline close so the comparison below stays valid after weeks of uptime
+  } else if (cairn_core.j.urgent() || pend >= CAIRN_RING / 2 || (int32_t)(now - next_flush) >= 0) {
     cairnFlush();
     next_flush = now + 20000u;
   }
@@ -388,7 +390,9 @@ void MyMesh::cairnTick(uint32_t now) {
       ContactInfo* ct = lookupContactByPubKey(cairn_core.dm_key, 6);
       if (ct) {
         uint32_t ack = 0, tmo = 0;
-        ok = sendMessage(*ct, getRTCClock()->getCurrentTimeUnique(), 0, cairn_core.say_text, ack, tmo) != MSG_SEND_FAILED;
+        int res = sendMessage(*ct, getRTCClock()->getCurrentTimeUnique(), 0, cairn_core.say_text, ack, tmo);
+        ok = res != MSG_SEND_FAILED;
+        if (ok) nova_core.deliveries.onSend(ack, res == MSG_SEND_SENT_FLOOD, tmo, ct->name, nova_core.linkUsable(), _ms->getMillis());
         snprintf(who, sizeof(who), "%s", ct->name);
       }
     }
@@ -469,6 +473,8 @@ void MyMesh::cairnTick(uint32_t now) {
 #else
   cairn_core.want_dump = false;
 #endif
+  static uint32_t next_status = 0;
+  static bool dash_was_on = false;
   if (nova_core.dash_on) {
     for (int i = 0; i < 4; i++) {
       const char* l = cairn_core.j.peek(cairn_core.to_usb);
@@ -477,13 +483,15 @@ void MyMesh::cairnTick(uint32_t now) {
       Serial.write('\n');
       cairn_core.j.advance(cairn_core.to_usb);
     }
-    static uint32_t next_status = 0;
+    if (!dash_was_on) next_status = now;                 // a page just connected: first status line right away
+    dash_was_on = true;
     if ((int32_t)(now - next_status) >= 0) {
       next_status = now + 5000u;
       char sj[720];
       if (cairn_core.statusJson(sj, sizeof(sj), now / 1000u, getRTCClock()->getCurrentTime(), cairn_core.to_flash.lost + cairn_core.to_usb.lost)) Serial.println(sj);
     }
   } else {
+    dash_was_on = false;
     while (cairn_core.j.peek(cairn_core.to_usb) != nullptr) cairn_core.j.advance(cairn_core.to_usb);   // nobody is listening
   }
 #else
@@ -670,7 +678,7 @@ def main():
              "    if (c == KEY_ENTER && _page == HomePage::CR_HELP) {   // CAIRN: arm, then send, or cancel the help call\n"
              "      uint32_t hm = millis();\n"
              "      if (cairn_core.cfg.help_on) { cairn_core.stopHelp(); _task->showAlert(\"Help call cancelled\", 1200); }\n"
-             "      else if (cairn_core.arm_until_ms && (int32_t)(cairn_core.arm_until_ms - hm) > 0) { cairn_core.arm_until_ms = 0; cairn_core.startHelp(hm / 1000u, -1); _task->showAlert(\"HELP call sending\", 1500); }\n"
+             "      else if (cairn_core.arm_until_ms && (int32_t)(cairn_core.arm_until_ms - hm) > 0) { cairn_core.arm_until_ms = 0; cairn_core.startHelp(-1); _task->showAlert(\"HELP call sending\", 1500); }\n"
              "      else { cairn_core.arm_until_ms = hm + 5000u; }\n"
              "      return true;\n    }\n"
              "    if (c == KEY_ENTER && _page == HomePage::CR_PWR) {   // CAIRN: switch Standard / Disaster\n"

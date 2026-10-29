@@ -27,10 +27,10 @@ MOCK = r"""
     wxfc: { properties: { periods: [{ name: "Tonight", temperature: 68, temperatureUnit: "F", shortForecast: "Clear", windSpeed: "5 mph", windDirection: "N" }, { name: "Thursday", temperature: 85, temperatureUnit: "F", shortForecast: "Sunny", windSpeed: "10 mph", windDirection: "S" }] } },
     wxalerts: { features: [{ properties: { event: "Flood Watch", severity: "Moderate", headline: "Flood Watch until 6 PM", areaDesc: "Harris County", expires: soon, instruction: "Turn around, do not drown." } }] },
     quakes: { features: [{ properties: { mag: 2.6, place: "5 km N of Somewhere, TX", time: Date.now() - 3600000 } }] },
-    releases: [{ tag_name: "cairn-alpha7", draft: false, published_at: "2026-10-29T00:00:00Z", assets: [{ name: "cairn-station-9.9.9.apk", size: 5000000, browser_download_url: "https://github.com/x/y/releases/download/cairn-alpha7/cairn-station-9.9.9.apk" }, { name: "firmware-merged.bin", size: 1700000, browser_download_url: "https://github.com/x/y/releases/download/cairn-alpha7/firmware-merged.bin" }] }],
+    releases: [{ tag_name: "cairn-beta1", draft: false, published_at: "2026-10-29T00:00:00Z", assets: [{ name: "cairn-station-9.9.9.apk", size: 5000000, browser_download_url: "https://github.com/x/y/releases/download/cairn-beta1/cairn-station-9.9.9.apk" }, { name: "firmware-merged.bin", size: 1700000, browser_download_url: "https://github.com/x/y/releases/download/cairn-beta1/firmware-merged.bin" }] }],
   })[key];
   window.CairnBridge = {
-    info: () => JSON.stringify({ app: "1.2.0", lastRadio: { addr: "", name: "" } }),
+    info: () => JSON.stringify({ app: "1.3.0", lastRadio: { addr: "", name: "" } }),
     snapshot: () => "{}",
     netNow: () => JSON.stringify(net),
     wifiSettings: () => calls.push(["wifi"]), bluetoothSettings: () => calls.push(["btsettings"]), androidSettings: () => {},

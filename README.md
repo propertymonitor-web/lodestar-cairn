@@ -1,4 +1,4 @@
-# LODESTAR CAIRN (ALPHA) - Ver. 1.2.0 (release cairn-alpha7)
+# LODESTAR CAIRN (BETA) - Ver. 1.3.0 (release cairn-beta1)
 
 ![CAIRN emblem](docs/cairn-logo.png)
 
@@ -6,10 +6,17 @@
 Crisis-use field kit firmware and dashboard for MeshCore, by Wolf Reactive Systems (WRS).
 CAIRN turns a Heltec V4 R2 companion into a **station**: it gets a permanent ID (`LC-xxxxxxxx`), keeps a journal of **everything it hears**, sends a one-button check-in with GPS, and feeds a tablet dashboard that works with **no internet**.
 
-**Status: ALPHA. The firmware compiles and passes its tests, and the dashboard is tested with practice data, but neither has run on real hardware or on the tablet yet.**
+**Status: BETA. The features are complete and the code has had a full review and bug-fix pass. The firmware compiles and passes its tests, and the dashboard is tested with practice data, but neither has run on real hardware or on the tablet yet. "Beta" here means feature-complete and ready for field testing, not field-proven.**, and the dashboard is tested with practice data, but neither has run on real hardware or on the tablet yet.**
+
+## What changed in cairn-beta1 (Ver. 1.3.0): code review and Beta
+- **Promoted from Alpha to Beta.** No new features; this release is a review of all the firmware, the glue that patches MeshCore, the tablet app and the dashboard.
+- **Fixed: long-uptime timers.** Three timers compared `millis()` with a deadline that started at 0, which stops working after 24.8 days without a restart (the dashboard status line, the dashboard JSON stream, the flash write of the journal). A station left running for weeks could stop updating the dashboard or hold adverts in memory. They now start from the moment they are needed.
+- **Fixed: dashboard direct messages are tracked.** A `cairn dm` sent from the dashboard now shows up in the delivery list (sent, repeated, delivered or failed) like any other message.
+- **Tidied:** dead variables and duplicated code removed in the NOVA, LODESTAR and CAIRN sources and in the tablet app; the unit tests were re-run with the compiler's address and undefined-behaviour checkers on.
+- Version numbers: firmware, dashboard and tablet app are all 1.3.0.
 
 ## What changed in cairn-alpha7 (Ver. 1.2.0): the CAIRN Station tablet app
-- **Android app "CAIRN Station"** (`android/`, built by GitHub Actions, attached to the release as `cairn-station-1.2.0.apk`): the dashboard inside an app that can be the tablet's Home screen. Start-up steps: splash, **Wi-Fi (the only skippable step)**, **repeater over the USB cable (required)**, **companion radio over Bluetooth (required)**, then the dashboard. If either link drops later, the steps return.
+- **Android app "CAIRN Station"** (`android/`, built by GitHub Actions, attached to the release as `cairn-station-1.2.0.apk` in alpha7; later releases are named for their own version): the dashboard inside an app that can be the tablet's Home screen. Start-up steps: splash, **Wi-Fi (the only skippable step)**, **repeater over the USB cable (required)**, **companion radio over Bluetooth (required)**, then the dashboard. If either link drops later, the steps return.
 - **Firmware: CAIRN text over Bluetooth.** The radio now answers `nova`/`cairn` commands and streams its journal and status over the Bluetooth companion link (one extra frame type, 0xC8), not only over USB. The USB path is unchanged. **The tablet app needs firmware 1.2.0.**
 - **Files screen:** the day's journal and repeater logs, saved reports, downloads; view, send by email, copy to Download/CAIRN, delete.
 - **Repeater card** on the Station screen: the repeater's own text, status requests every 30 s, send a command, set its clock.
@@ -103,6 +110,7 @@ Use the **BLE** build: the USB port carries the dashboard. (The USB build uses t
 Enable GitHub Pages (Settings → Pages → `main` / `/docs`) then open the page once on the tablet and "Add to Home screen".
 
 Changelog:
+- 1.3.0 (cairn-beta1): Beta. Code review, long-uptime timer fix, dashboard direct messages tracked.
 - 1.2.0 (cairn-alpha7): CAIRN Station Android tablet app, CAIRN text over Bluetooth, Files, repeater card, Online (weather, earthquakes, updates, map download, Gemini).
 - 1.1.0 (cairn-alpha6): Easy view, help/status/mark messages, channel add/remove, Standard/Disaster power plan, power calculator, alerts, splash, new field guide.
 - 1.0.4 (cairn-alpha5): Chat tab and cairn say / dm / chans commands.

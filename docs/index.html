@@ -981,7 +981,7 @@ body:not(.station) .st { display: none !important; }
     <h1>CAIRN</h1>
     <div class="sub">Lodestar &middot; emergency &amp; field communications</div>
     <div class="bar"><i></i></div>
-    <div class="ver">WOLF REACTIVE SYSTEMS (WRS) &nbsp;&middot;&nbsp; VER. <span id="splVer">1.2.0</span></div>
+    <div class="ver">WOLF REACTIVE SYSTEMS (WRS) &nbsp;&middot;&nbsp; VER. <span id="splVer">1.3.0</span></div>
   </div>
   <div class="cred"><b>Engineered by: Aries Thorne &amp; Todd Steinhauer for Wolf Reactive Systems (WRS)</b><br>Special thanks to the NTXMESH community, Meshcore Community, and Pat Steinhauer-Scates for their guidance and support.</div>
 </div>
@@ -1407,7 +1407,7 @@ body:not(.station) .st { display: none !important; }
 
 <div class="g-top">
   <div>
-    <div class="g-mut">LODESTAR CAIRN &middot; Cairn Tactical Unit (CTU) &middot; Version 1.2.0 &middot; Wolf Reactive Systems (WRS)</div>
+    <div class="g-mut">LODESTAR CAIRN &middot; Cairn Tactical Unit (CTU) &middot; Version 1.3.0 &middot; Wolf Reactive Systems (WRS)</div>
     <h1>CAIRN Field Guide</h1>
     <div class="g-lead">How to send &ldquo;I&rsquo;m OK&rdquo; and &ldquo;I need help&rdquo; when phones do not work.</div>
   </div>
@@ -1613,7 +1613,7 @@ body:not(.station) .st { display: none !important; }
 <li><b>Do not stand close to the antenna while sending.</b> Keep the antenna a little away from your body and from other people when you are sending a lot.</li>
 <li><b>No licence needed in the US.</b> CAIRN is designed to stay inside the limit for unlicensed (FCC Part 15) radios in the 902&ndash;928 MHz band. For that to be true, use only the antenna the radio expects (or enter the right number). You may not cause harmful interference, and you must accept interference from others.</li>
 <li><b>Outside the US,</b> follow your own country&rsquo;s rules for this kind of radio, and check the radio&rsquo;s frequency setting.</li>
-<li><b>This is ALPHA software.</b> It is still being tested. Practise with it before you rely on it. It is a help, not a guarantee.</li></ul>
+<li><b>This is BETA software.</b> It has been through a full code review and tests on a PC, but it has not yet run on real hardware. Practise with it before you rely on it. It is a help, not a guarantee.</li></ul>
 
 <h2 id="g-cmd">12. Commands (for helpers)</h2>
 <p class="g-mut">You never need these to use CAIRN. They can be typed into the <b>Console</b> (Full view &rarr; Station) or a serial terminal. Every button above sends one of them.</p>
@@ -1743,7 +1743,7 @@ const TYPE = { 1: ["comp", "companion"], 2: ["rep", "repeater"], 3: ["room", "ro
 const CHECKIN_RE = /\b(LC-(?:[A-HJ-NP-Z2-9]{8}|[A-HJ-NP-Z2-9]{5})) (Reporting|NEEDS HELP|STATUS [A-Z ]+?|MARK [A-Z ]+?|LOW BATTERY \d+%) at: (?:(-?\d{1,3}\.\d+),(-?\d{1,3}\.\d+)|no GPS fix)/;
 const STATUS_LABEL = ["", "NEED MEDICAL", "NEED WATER", "NEED FOOD", "NEED SHELTER", "NEED TRANSPORT", "EVACUATING", "STAYING PUT", "CAN HELP"];
 const MARK_LABEL = ["", "WATER", "SHELTER", "MEDICAL AID", "HAZARD", "MEETING POINT", "ROAD BLOCKED", "SUPPLIES"];
-const DASH_VER = "1.2.0";
+const DASH_VER = "1.3.0";
 const STN = !!window.CairnBridge;   // true only inside the CAIRN Station tablet app
 const nice = (l) => l.charAt(0) + l.slice(1).toLowerCase();
 const PLAUSIBLE = (sec) => sec > 1700000000 && sec < 4102444800;

@@ -34,13 +34,13 @@ on:
         required: false
         type: boolean
       release_tag:
-        description: "NEW release tag, e.g. cairn-alpha1. Required when publishing; it must not exist yet"
+        description: "NEW release tag, e.g. cairn-beta1. Required when publishing; it must not exist yet"
         default: ""
         required: false
         type: string
       release_title:
         description: "Release title"
-        default: "LODESTAR CAIRN (ALPHA)"
+        default: "LODESTAR CAIRN (BETA)"
         required: false
         type: string
 
@@ -172,7 +172,7 @@ jobs:
           APK=android/app/build/outputs/apk/release/app-release.apk
           "$BT/aapt" dump badging "$APK" > badging.txt
           grep -q "package: name='com.wolfreactive.cairn.station'" badging.txt || { echo "::error::wrong package name"; exit 1; }
-          grep -q "versionName='1.2.0'" badging.txt || { echo "::error::wrong version"; exit 1; }
+          grep -q "versionName='1.3.0'" badging.txt || { echo "::error::wrong version"; exit 1; }
           grep -q "android.intent.category.HOME" <("$BT/aapt" dump xmltree "$APK" AndroidManifest.xml) || { echo "::error::the app is not offered as a Home app"; exit 1; }
           unzip -l "$APK" | grep -q "assets/station.html" || { echo "::error::the dashboard is not inside the app"; exit 1; }
           "$BT/apksigner" verify --print-certs "$APK" | head -3
@@ -209,7 +209,7 @@ jobs:
           TAG: ${{ inputs.release_tag }}
         run: |
           if [ -z "$TAG" ]; then
-            echo "::error::Publishing needs a release tag. Type a NEW one, for example cairn-alpha1."
+            echo "::error::Publishing needs a release tag. Type a NEW one, for example cairn-beta1."
             exit 1
           fi
           if gh release view "$TAG" >/dev/null 2>&1; then
@@ -254,7 +254,7 @@ jobs:
           BIN="MeshCore/.pio/build/$FW_ENV/firmware.elf"
           if [ "$UNITS" = "mph" ]; then WANT="1.0.4-mph"; else WANT="1.0.4"; fi   # the NOVA base version it is built on
           strings -n 5 "$BIN" | grep -q -x -F "$WANT" || { echo "::error::The version marker $WANT is missing from the build."; exit 1; }
-          strings -n 5 "$BIN" | grep -q -x -F "1.2.0" || { echo "::error::The CAIRN version marker 1.2.0 is missing from the build."; exit 1; }
+          strings -n 5 "$BIN" | grep -q -x -F "1.3.0" || { echo "::error::The CAIRN version marker 1.3.0 is missing from the build."; exit 1; }
           strings -n 5 "$BIN" | grep -q -F "NEEDS HELP" || { echo "::error::The help text is missing from the build."; exit 1; }
           strings -n 5 "$BIN" | grep -q -x -F "Reporting" || { echo "::error::The check-in text is missing from the build."; exit 1; }
           strings -n 5 "$BIN" | grep -q -F "no GPS fix" || { echo "::error::The no-GPS text is missing from the build."; exit 1; }
@@ -297,6 +297,6 @@ jobs:
 
           CAIRN is LODESTAR NOVA plus: a station ID (LC-xxxxxxxx) that survives reboots, a journal of every message and advert the radio hears (kept on the radio and streamed to the dashboard), check-in, help (NEEDS HELP), status and place-mark messages that carry GPS position, add/remove chat channels, Standard and Disaster modes that use the highest transmit power the US unlicensed rule allows for your antenna, battery saving, and a tablet dashboard with an Easy view. The field guide (PDF and web page) and a one-page quick-start card are attached, with the CAIRN Station Android tablet app (cairn-station-*.apk, alpha, see android/README.md; it needs this firmware). Download firmware-merged.bin and flash it at https://flasher.meshcore.io (Custom Firmware). firmware.bin is the application-only image for updating an existing install without erasing. See the README for setup and the command list.
 
-          ALPHA software: not proven in the field. A radio mesh is a backup, not a replacement for 911."
+          BETA software: reviewed and tested on a PC, not yet proven in the field. A radio mesh is a backup, not a replacement for 911."
           gh release create "$TAG" $FILES \
             --target "$GITHUB_SHA" --title "$TITLE" --notes "$NOTES" --prerelease

@@ -3,7 +3,7 @@
 Engineered by: Aries Thorne & Todd Steinhauer for Wolf Reactive Systems (WRS)
 Special thanks to the NTXMESH community, Meshcore Community, and Pat Steinhauer-Scates for their guidance and support.
 
-**ALPHA. This app has been compiled and unit-tested by the GitHub build and its screens have been tested in a desktop browser with a pretend tablet. It has NOT yet been run on a real tablet, with a real radio or a real repeater.** Treat the first run as a test and report what you see.
+**BETA. This app has been compiled and unit-tested by the GitHub build and its screens have been tested in a desktop browser with a pretend tablet. It has NOT yet been run on a real tablet, with a real radio or a real repeater.** Treat the first run as a test and report what you see.
 
 ## What it is
 
@@ -29,11 +29,11 @@ If the repeater or the radio drops out later, the steps come back until both are
 
 ## Install on the tablet
 
-1. Download `cairn-station-1.2.0.apk` from the Releases page (on the tablet, with Wi-Fi).
+1. Download `cairn-station-1.3.0.apk` from the Releases page (on the tablet, with Wi-Fi).
 2. Open it from Files/Downloads. Android asks to allow "install unknown apps" for that app: allow it once.
 3. Open **CAIRN Station**. Allow Bluetooth when asked.
 4. To make it the tablet's start-up screen: Android **Settings > Apps > Default apps > Home app** (the wording differs by maker) and choose **CAIRN Station**. The Android navigation bar stays available, so Gemini and Settings can still be reached; Home returns to CAIRN.
-5. Flash CAIRN **1.2.0** firmware to the companion radio (see the setup guide). The repeater keeps its normal repeater firmware.
+5. Flash CAIRN **1.3.0** firmware to the companion radio (see the setup guide). The repeater keeps its normal repeater firmware.
 
 First Bluetooth connection: Android asks for the PIN shown on the radio's own screen.
 

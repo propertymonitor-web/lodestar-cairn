@@ -115,7 +115,7 @@ public:
     memset(_p, 0, sizeof(_p));
     _best = -1; _best_score = 0; _challenger = -1; _chal_count = 0;
     _topn = 0; _last_eval = 0; _eval_valid = false;
-    _cancels = 0; _tx_tracked = 0;
+    _cancels = 0;
     for (int i = 0; i < LODESTAR_MAX_UPLINKS; i++) _score[i] = 0;
   }
 
@@ -171,7 +171,6 @@ public:
     memcpy(p.path, path, (size_t)count * sz);
     p.tx_ms = now; p.window_ms = window_ms;
     p.cand_mask = mask; p.hit_mask = 0;
-    _tx_tracked++;
   }
 
   // A flood packet was heard. `from` is the uplink index of its last hop (or -1).
@@ -493,7 +492,7 @@ private:
   int      _best, _challenger, _top[LODESTAR_TOPK], _topn;
   float    _best_score;
   uint8_t  _chal_count;
-  uint32_t _last_eval, _cancels, _tx_tracked;
+  uint32_t _last_eval, _cancels;
   bool     _eval_valid;
   Position _pos{};                     // not cleared by reset(): it is not part of the uplink table
   int32_t  _anchor_lat = 0, _anchor_lon = 0;     // start of the current speed window

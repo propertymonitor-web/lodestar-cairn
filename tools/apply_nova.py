@@ -146,14 +146,14 @@ void MyMesh::novaTick(uint32_t nv_now) {
     nv_len = 0;
     if (strncmp(nv_line, "nova", 4) != 0 || (nv_line[4] != 0 && nv_line[4] != ' ')) continue;
     int nv_hour = nova::Nova::localHour(getRTCClock()->getCurrentTime(), _prefs.tz_offset);
-    if (strncmp(nv_line + 4, " json", 5) == 0) { nv_next_json = 0; nova_core.dash_on = true; nova_core.dash_until_ms = nv_now + 4000u; continue; }
+    if (strncmp(nv_line + 4, " json", 5) == 0) { nv_next_json = nv_now; nova_core.dash_on = true; nova_core.dash_until_ms = nv_now + 4000u; continue; }
     char nv_reply[160];
     nova_core.runCommand(nv_line + 4, nv_reply, sizeof(nv_reply), nv_now, nv_hour);
     Serial.print("# ");
     Serial.println(nv_reply);
   }
   static bool nv_was_on = false;
-  if (nova_core.dash_on && !nv_was_on) nova_core.found.markAllDirty();   // a page just connected: send it everything found so far
+  if (nova_core.dash_on && !nv_was_on) { nova_core.found.markAllDirty(); nv_next_json = nv_now; }   // a page just connected: send it everything found so far, now
   nv_was_on = nova_core.dash_on;
   if (nova_core.dash_on && (int32_t)(nv_now - nv_next_json) >= 0) {
     nv_next_json = nv_now + 1000u;
