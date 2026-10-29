@@ -8,7 +8,7 @@ page_url = (pathlib.Path(__file__).resolve().parents[2] / "docs" / "index.html")
 errs = []
 def check(c, msg):
     if not c:
-        print("FAIL:", msg); errs.append(msg)
+        print("FAIL:", msg); print("::error::station test: " + msg.replace("\n", " ")[:300]); errs.append(msg)
 
 MOCK = r"""
 (() => {
@@ -87,16 +87,17 @@ with sync_playwright() as p:
         check("Repeater" in pg.inner_text("#gTitle"), tag + "step 2 is the repeater")
         check(pg.locator("#gBtns [data-act=next]").is_disabled(), tag + "repeater step cannot be skipped")
         check("XIAO" in pg.inner_text("#gBody"), tag + "USB device listed")
-        pg.click("#gBody [data-act=usb]"); pg.wait_for_timeout(400)
+        pg.click("#gBody [data-act=usb]"); pg.wait_for_selector("#gBtns [data-act=next]:not([disabled])", timeout=8000)
         check(not pg.locator("#gBtns [data-act=next]").is_disabled(), tag + "Continue works once the repeater is connected")
         pg.click("#gBtns [data-act=next]"); pg.wait_for_timeout(300)
         check("Companion" in pg.inner_text("#gTitle"), tag + "step 3 is the companion radio")
         check(pg.locator("#gBtns [data-act=next]").is_disabled(), tag + "radio step cannot be skipped")
         check("MeshCore-Test" in pg.inner_text("#gBody"), tag + "radio found by the scan")
-        pg.click("#gBody [data-act=ble]"); pg.wait_for_timeout(700)
+        pg.click("#gBody [data-act=ble]"); pg.wait_for_selector("#gBtns [data-act=next]:not([disabled])", timeout=8000)
         check(not pg.locator("#gBtns [data-act=next]").is_disabled(), tag + "Open the dashboard works once the radio is connected")
-        pg.click("#gBtns [data-act=next]"); pg.wait_for_timeout(600)
+        pg.click("#gBtns [data-act=next]"); pg.wait_for_selector("#gate", state="hidden", timeout=8000)
         check(pg.locator("#gate").is_hidden(), tag + "dashboard opens")
+        pg.wait_for_function("document.getElementById('sid').textContent.indexOf('LC-K7M2P4XQ') >= 0", timeout=8000)
         calls = pg.evaluate("window.__calls")
         sent = [c[1] for c in calls if c[0] == "ble"]
         check("nova hello" in sent and "cairn id" in sent and "cairn dump" in sent, tag + "dashboard asks the radio for its data over Bluetooth: %s" % sent[:6])
@@ -129,7 +130,8 @@ with sync_playwright() as p:
         pg.click("#tabs button[data-tab=online]"); pg.wait_for_timeout(300)
         check(pg.locator("#onSync").is_disabled(), tag + "fetching is off with no internet")
         pg.fill("#wxPos", "29.76, -95.37")
-        pg.evaluate("window.__net.wifi = true; window.__net.online = true; window.__emit('net', window.__net)"); pg.wait_for_timeout(1500)
+        pg.evaluate("window.__net.wifi = true; window.__net.online = true; window.__emit('net', window.__net)")
+        pg.wait_for_function("document.getElementById('upList').innerText.indexOf('newer tablet app') >= 0", timeout=15000)
         check(not pg.locator("#btnGem").is_disabled(), tag + "Gemini turns on with internet")
         check("Flood Watch" in pg.inner_text("#wxAlerts"), tag + "weather alert shown")
         check("Houston" in pg.inner_text("#wxWhere"), tag + "weather place shown")
@@ -149,7 +151,7 @@ with sync_playwright() as p:
         # link lost -> steps come back by themselves
         if vp["width"] == 1280:
             pg.evaluate("window.__emit('ble', {state: 'closed', msg: 'The radio disconnected.', addr: '', name: ''})")
-            pg.wait_for_timeout(13500)
+            pg.wait_for_selector("#gate", state="visible", timeout=25000)
             check(pg.locator("#gate").is_visible() and "Companion" in pg.inner_text("#gTitle"), tag + "steps return when the radio link is lost")
             check(pg.locator("#gBtns [data-act=next]").is_disabled(), tag + "and cannot be dismissed without the radio")
         check(not js, tag + "no page errors: %s" % js)
