@@ -105,6 +105,8 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
 .mk { width: 16px; height: 16px; border: 2px solid #fff; box-shadow: 0 0 0 1px #000; }
 .mk.rep { background: var(--rep); border-radius: 50%; } .mk.comp { background: var(--comp); } .mk.room { background: var(--room); border-radius: 3px; transform: rotate(45deg); }
 .mk.chk { background: var(--info); border-radius: 50% 50% 50% 0; transform: rotate(-45deg); }
+.mk.hlp { background: var(--bad); border-radius: 50%; animation: pulse 1s ease-in-out infinite; width: 22px; height: 22px; }
+.mk.mkr { background: var(--warn); transform: rotate(45deg); border-radius: 2px; }
 .mk.me { background: #fff; border: 4px solid var(--accent); border-radius: 50%; }
 .leaflet-container { font: inherit; color: #111; }
 .leaflet-popup-content { color: #111; }
@@ -124,6 +126,67 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
   section.tab { display: none !important; } section#tab-guide { display: block !important; }
   .card { border: 1px solid #999; background: #fff; } .guide code { background: #eee; }
 }
+
+.homebtns { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+@media (max-width: 560px) { .homebtns { grid-template-columns: 1fr; } }
+.bigbtn { width: 100%; min-height: 120px; font-size: 30px; font-weight: 800; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; border-radius: 12px; border-width: 3px; line-height: 1.1; text-align: center; }
+.bigbtn small { font-size: 16px; font-weight: 600; opacity: .9; }
+.bigbtn.ok { border-color: var(--good); color: var(--good); background: transparent; }
+.bigbtn.ok:hover:not(:disabled) { background: var(--good); color: #02140c; }
+.bigbtn.help { border-color: var(--bad); color: var(--bad); background: transparent; }
+.bigbtn.help:hover:not(:disabled) { background: var(--bad); color: #fff; }
+.bigbtn.help.on { background: var(--bad); color: #fff; }
+.pickgrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 8px; }
+.pickgrid button { min-height: 58px; font-weight: 700; }
+#alerts { display: grid; gap: 8px; margin: 0 0 10px; }
+.al { border: 3px solid var(--bad); border-radius: 12px; background: var(--panel); padding: 12px 16px; }
+.al.warn { border-color: var(--warn); }
+.al .t { font-size: 24px; font-weight: 800; color: var(--bad); line-height: 1.15; } .al.warn .t { color: var(--warn); }
+.al .row { margin-top: 8px; }
+.ready { list-style: none; padding: 0; margin: 0; }
+.ready li { padding: 7px 0; border-bottom: 1px solid var(--line); display: flex; gap: 10px; }
+.ready .i { flex: 0 0 28px; font-weight: 900; text-align: center; }
+.ready .i.ok { color: var(--good); } .ready .i.warn { color: var(--warn); } .ready .i.bad { color: var(--bad); }
+.overlay { position: fixed; inset: 0; background: rgba(0,0,0,.75); display: flex; align-items: center; justify-content: center; z-index: 4000; padding: 16px; }
+.dlg { background: var(--panel); border: 3px solid var(--bad); border-radius: 14px; padding: 22px; max-width: 540px; width: 100%; }
+.dlg h3 { margin: 0 0 8px; font-size: 26px; color: var(--bad); }
+.dlg .row button { flex: 1; min-height: 64px; font-size: 20px; font-weight: 800; }
+body.easy .adv { display: none !important; }
+.chrow { display: flex; flex-wrap: wrap; gap: 6px 10px; align-items: center; padding: 8px 0; border-bottom: 1px solid var(--line); }
+.chrow .nm { flex: 1; min-width: 140px; font-weight: 700; }
+.chrow button { min-height: 42px; padding: 4px 12px; }
+.keybox { margin: 8px 0; padding: 10px 12px; border: 2px dashed var(--warn); border-radius: 10px; word-break: break-all; }
+details.fold { margin-top: 14px; border-top: 1px dashed var(--line); padding-top: 10px; }
+details.fold > summary { cursor: pointer; font-weight: 800; min-height: 44px; display: flex; align-items: center; }
+.calc label { display: block; margin: 8px 0 2px; color: var(--muted); font-size: 14px; }
+.calcout { margin-top: 12px; padding: 12px; border: 1px solid var(--accent); border-radius: 10px; }
+#conLog { height: 180px; overflow-y: auto; font: 13px var(--mono); background: var(--panel2); border: 1px solid var(--line); padding: 8px; white-space: pre-wrap; word-break: break-word; }
+.pwrline { font-size: 22px; font-weight: 800; }
+.lvl { display: inline-block; padding: 2px 10px; border-radius: 999px; font-weight: 800; font-size: 14px; border: 1px solid currentColor; }
+
+#splash { position: fixed; inset: 0; z-index: 9000; display: flex; align-items: center; justify-content: center; overflow: hidden; background: radial-gradient(ellipse at 50% 42%, #08281f 0%, #03100c 55%, #010504 100%); color: #e4fff1; font-family: ui-monospace, "SF Mono", "Cascadia Mono", Consolas, Menlo, monospace; cursor: pointer; transition: opacity .6s ease; }
+#splash.out { opacity: 0; pointer-events: none; }
+#splash .grid { position: absolute; inset: 0; background-image: linear-gradient(rgba(61,255,168,.07) 1px, transparent 1px), linear-gradient(90deg, rgba(61,255,168,.07) 1px, transparent 1px); background-size: 6vmin 6vmin; }
+#splash .rings { position: absolute; width: 120vmin; height: 120vmin; left: 50%; top: 50%; transform: translate(-50%, -50%); border-radius: 50%; border: 1px solid rgba(61,255,168,.25); box-shadow: 0 0 0 12vmin rgba(61,255,168,0), inset 0 0 0 12vmin rgba(0,0,0,0); }
+#splash .rings::before, #splash .rings::after { content: ""; position: absolute; border-radius: 50%; border: 1px solid rgba(61,255,168,.22); inset: 14%; }
+#splash .rings::after { inset: 30%; }
+#splash .sweep { position: absolute; width: 120vmin; height: 120vmin; left: 50%; top: 50%; margin: -60vmin 0 0 -60vmin; border-radius: 50%; background: conic-gradient(from 0deg, rgba(61,255,168,0) 0deg, rgba(61,255,168,.0) 270deg, rgba(61,255,168,.28) 358deg, rgba(61,255,168,0) 360deg); animation: spl-sweep 4.5s linear infinite; }
+#splash .box { position: relative; display: flex; flex-direction: column; align-items: center; text-align: center; padding: 3vmin; max-width: 96vw; }
+#splash svg { width: min(34vmin, 300px); height: auto; filter: drop-shadow(0 0 2.2vmin rgba(63,224,255,.55)); }
+#splash .kick { font-size: clamp(11px, 1.9vmin, 20px); letter-spacing: .5em; color: #3fe0ff; margin-top: 2.4vmin; text-transform: uppercase; }
+#splash h1 { margin: .6vmin 0 0; font-size: clamp(34px, 11vmin, 150px); letter-spacing: .18em; font-weight: 800; line-height: 1; text-shadow: 0 0 3vmin rgba(61,255,168,.55); padding-left: .18em; }
+#splash .sub { font-size: clamp(13px, 2.6vmin, 30px); letter-spacing: .28em; color: #a6d4bd; margin-top: 1.6vmin; text-transform: uppercase; }
+#splash .bar { width: min(60vmin, 70vw); height: 4px; background: rgba(61,255,168,.18); margin-top: 3.6vmin; overflow: hidden; border-radius: 2px; }
+#splash .bar i { display: block; height: 100%; width: 100%; background: #3dffa8; box-shadow: 0 0 10px #3dffa8; transform-origin: left; animation: spl-load 3.6s ease-out forwards; }
+#splash .ver { font-size: clamp(11px, 1.9vmin, 20px); color: #6e9c86; margin-top: 1.6vmin; letter-spacing: .2em; }
+#splash .cred { position: absolute; left: 0; right: 0; bottom: 2.4vmin; font-size: clamp(10px, 1.55vmin, 16px); line-height: 1.55; color: #6e9c86; text-align: center; padding: 0 3vw; }
+#splash .cred b { color: #a6d4bd; font-weight: 600; }
+#splash .tap { position: absolute; right: 2.4vmin; top: 2vmin; font-size: clamp(10px, 1.5vmin, 15px); color: #6e9c86; letter-spacing: .2em; }
+#splash .corner { position: absolute; width: 7vmin; height: 7vmin; border: 3px solid #3fe0ff; opacity: .8; }
+#splash .c1 { left: 2vmin; top: 2vmin; border-right: 0; border-bottom: 0; } #splash .c2 { right: 2vmin; bottom: 2vmin; border-left: 0; border-top: 0; }
+#splash .star { animation: spl-pulse 2.2s ease-in-out infinite; transform-origin: 50% 50%; }
+@keyframes spl-sweep { to { transform: rotate(360deg); } } @keyframes spl-load { from { transform: scaleX(0); } to { transform: scaleX(1); } } @keyframes spl-pulse { 50% { opacity: .55; } }
+@media (prefers-reduced-motion: reduce) { #splash .sweep, #splash .star { animation: none; } #splash .bar i { animation: none; } #splash { transition: none; } }
 </style>
 <style>
 /*TACTICAL-CSS*/
@@ -205,7 +268,21 @@ th { font-family: var(--mono); color: var(--accent); }
 </style>
 <style>.credit{max-width:1180px;margin:28px auto 22px;padding:14px 16px 0;border-top:1px dashed var(--line,#8886);text-align:center;color:var(--muted,#789);font-size:13px;line-height:1.55}.credit b{color:var(--ink2,inherit);font-weight:600}</style>
 </head>
-<body>
+<body class="easy">
+<div id="splash" role="img" aria-label="LODESTAR CAIRN. Tap to continue.">
+  <div class="grid"></div><div class="rings"></div><div class="sweep"></div><div class="corner c1"></div><div class="corner c2"></div>
+  <div class="tap">TAP TO CONTINUE</div>
+  <div class="box">
+    <svg viewBox="0 0 120 150" aria-hidden="true"><g class="star" fill="#3fe0ff"><path d="M60 4 L65 22 L83 27 L65 32 L60 50 L55 32 L37 27 L55 22 Z"/><circle cx="60" cy="27" r="3" fill="#eafffa"/></g>
+      <g fill="#0f1f1a" stroke="#3dffa8" stroke-width="3"><ellipse cx="60" cy="128" rx="46" ry="15"/><ellipse cx="60" cy="100" rx="34" ry="13"/><ellipse cx="60" cy="75" rx="23" ry="11"/><ellipse cx="60" cy="54" rx="13" ry="8" /></g></svg>
+    <div class="kick">Cairn Tactical Unit</div>
+    <h1>CAIRN</h1>
+    <div class="sub">Lodestar &middot; emergency &amp; field communications</div>
+    <div class="bar"><i></i></div>
+    <div class="ver">WOLF REACTIVE SYSTEMS (WRS) &nbsp;&middot;&nbsp; VER. <span id="splVer">1.1.0</span></div>
+  </div>
+  <div class="cred"><b>Engineered by: Aries Thorne &amp; Todd Steinhauer for Wolf Reactive Systems (WRS)</b><br>Special thanks to the NTXMESH community, Meshcore Community, and Pat Steinhauer-Scates for their guidance and support.</div>
+</div>
 <div class="wrap">
   <header class="bar">
     <h1 class="brand">LODESTAR CAIRN<small>field station</small></h1>
@@ -214,49 +291,86 @@ th { font-family: var(--mono); color: var(--accent); }
     <span id="status" class="chip" data-s="off"><i></i><span id="statusText">Not connected</span></span>
     <button id="btnKb" aria-pressed="false" title="Show or hide the on-screen keyboard (the physical keyboard always works)">&#9000; Keyboard</button>
     <button id="btnTheme" title="Dark or light">&#9788; Theme</button>
+    <button id="btnView" title="Easy view shows only the main screens. Full view shows everything.">Full view</button>
     <button id="btnDemo" title="Fill the page with made-up data to practise">Practice</button>
     <button id="btnConnect" class="pri">Connect radio</button>
   </header>
   <!--HUD-BEGIN--><div class="hud" role="status" aria-label="Station status strip"><span>Zulu<b id="hudZ">--:--:--</b></span><span>Local<b id="hudL">--:--:--</b></span><span class="hm" id="hudMw" data-m="normal">Mode<b id="hudM">OFFLINE</b></span><span>Rep/Cmp/Room 15 min<b id="hudC">0/0/0</b></span><span>GPS<b id="hudG">N/A</b></span></div><!--HUD-END-->
   <div id="notice" class="notice" hidden></div>
+  <div id="alerts" aria-live="assertive"></div>
 
   <nav class="tabs" id="tabs" role="tablist">
-    <button data-tab="station" aria-pressed="true">Station</button>
+    <button data-tab="home" aria-pressed="true">Home</button>
+    <button data-tab="checkins">People<span id="lateBadge" class="badge" hidden>0</span></button>
     <button data-tab="chat">Chat<span id="chatBadge" class="badge" hidden>0</span></button>
-    <button data-tab="nearby">Nearby</button>
-    <button data-tab="checkins">Check-ins<span id="lateBadge" class="badge" hidden>0</span></button>
-    <button data-tab="log">Log</button>
     <button data-tab="map">Map</button>
     <button data-tab="power">Power</button>
     <button data-tab="guide">Guide</button>
+    <button data-tab="station" class="adv">Station</button>
+    <button data-tab="nearby" class="adv">Nearby</button>
+    <button data-tab="log" class="adv">Log</button>
   </nav>
 
-  <!-- ===================================================== STATION -->
-  <section class="tab on" id="tab-station">
-    <div id="banner" class="banner off" role="status" aria-live="polite"><div class="t">Radio not connected</div><div class="s">Plug the radio into the hub, then press Connect radio.</div></div>
+  <!-- ===================================================== HOME -->
+  <section class="tab on" id="tab-home">
+    <div id="homeBanner" class="banner off" role="status" aria-live="polite"><div class="t">Radio not connected</div><div class="s">Plug the radio into the hub, then press Connect radio.</div></div>
     <div class="grid" style="margin-top:14px">
+      <div class="card span2">
+        <h2>Tell people how you are</h2>
+        <div class="homebtns">
+          <button id="hmOk" class="bigbtn ok" disabled>I'M OK<small>Sends your name tag and position</small></button>
+          <button id="hmHelp" class="bigbtn help" disabled>I NEED HELP<small>Calls for help every few minutes until you cancel</small></button>
+        </div>
+        <p id="hmLast" class="small muted" style="margin:10px 0 0"></p>
+        <div class="row" style="margin-top:6px"><label for="hmChan" class="small muted">These go to channel</label><select id="hmChan" style="max-width:300px"><option value="0">0 - Public</option></select>
+          <span class="small muted">(Public is heard by everyone nearby.)</span></div>
+      </div>
       <div class="card">
-        <h2>Check in</h2>
-        <button id="btnOk" class="okbtn pri" disabled>SEND CHECK-IN: I'M OK</button>
-        <p class="small muted" style="margin:8px 0 0">Sends <b id="okPreview" class="mono">LC-???????? Reporting at: ...</b> to channel
-          <input id="okChan" type="number" min="0" max="39" value="0" style="width:84px;display:inline-block;min-height:40px"> (0 is normally Public).</p>
-        <p id="okLast" class="small muted" style="margin:4px 0 0"></p>
+        <h2>Send a status</h2>
+        <div class="pickgrid" id="stGrid"></div>
+        <p class="small muted" style="margin:8px 0 0">One tap tells everyone what you need or are doing, with your position.</p>
+      </div>
+      <div class="card">
+        <h2>Mark this place</h2>
+        <div class="pickgrid" id="mkGrid"></div>
+        <p class="small muted" style="margin:8px 0 0">Stand at the spot, then tap what it is. It appears on everyone's map.</p>
       </div>
       <div class="card">
         <h2>Mode</h2>
-        <div class="seg" role="group" aria-label="Mode"><button id="modeNormal" aria-pressed="true">Normal</button><button id="modeDisaster" aria-pressed="false">DISASTER</button></div>
-        <p class="small muted" style="margin:8px 0 0">Disaster mode: the radio's screen goes off sooner, quiet hours are switched off so nothing is silenced, and repeaters that stop answering are marked stale sooner.</p>
-        <p class="small muted" id="modeNow" style="margin:4px 0 0"></p>
+        <div class="seg" role="group" aria-label="Mode"><button id="modeStandard" aria-pressed="true">STANDARD</button><button id="modeDisaster" aria-pressed="false">DISASTER</button></div>
+        <p class="small" style="margin:10px 0 0"><b>Standard</b> is for every day: the strongest radio power the rules allow, and it saves battery by itself when the battery runs low.</p>
+        <p class="small" style="margin:6px 0 0"><b>Disaster</b> is for an emergency: always the strongest allowed power, even on a low battery; quiet hours are off; the radio screen turns off sooner.</p>
+        <p class="small muted" id="modeNow" style="margin:6px 0 0"></p>
+        <div class="row" style="margin-top:8px"><button id="btnSound" aria-pressed="true">Sound for help calls: ON</button></div>
       </div>
+      <div class="card">
+        <h2>Ready check</h2>
+        <ul class="ready" id="readyList"></ul>
+        <p id="readySum" class="pwrline" style="margin:10px 0 0"></p>
+      </div>
+      <div class="card span2">
+        <h2>Who is around</h2>
+        <div class="row" id="heardCounts"></div>
+        <div id="topReps" style="margin-top:10px"></div>
+        <div id="homeLatest" class="small" style="margin-top:10px"></div>
+      </div>
+      <div class="card span2">
+        <h2>Situation report</h2>
+        <p class="small muted" style="margin:0 0 8px">A short summary of who has checked in, who needs help, and what has been marked. Read it out, copy it, save it, or send the one-line version to everyone.</p>
+        <div class="row"><button id="btnSitrep" class="pri">Make a report</button><button id="btnSitrepSend" disabled>Send one-line version</button><button id="btnSitrepCopy" disabled>Copy</button><button id="btnSitrepSave" disabled>Save as a file</button></div>
+        <pre id="sitrepBox" class="txt mono small" style="margin-top:10px;white-space:pre-wrap" hidden></pre>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================================================== STATION -->
+  <section class="tab" id="tab-station">
+    <div id="banner" class="banner off" role="status" aria-live="polite"><div class="t">Radio not connected</div><div class="s">Plug the radio into the hub, then press Connect radio.</div></div>
+    <div class="grid" style="margin-top:14px">
       <div class="card">
         <h2>Where &amp; when</h2>
         <dl class="kv" id="whereBox"></dl>
         <div class="row" style="margin-top:10px"><button id="btnSetClock">Set radio clock from this tablet</button></div>
-      </div>
-      <div class="card">
-        <h2>Heard in the last 15 minutes</h2>
-        <div class="row" id="heardCounts"></div>
-        <div id="topReps" style="margin-top:10px"></div>
       </div>
 <!--RADAR-BEGIN-->      <div class="card span2" id="radarCard">
         <h2>Radar &middot; contacts heard now</h2>
@@ -280,6 +394,12 @@ th { font-family: var(--mono); color: var(--accent); }
         <h2>Radio</h2>
         <dl class="kv" id="radioBox"></dl>
       </div>
+      <div class="card span2">
+        <h2>Console (commands and replies)</h2>
+        <div id="conLog" aria-live="off"></div>
+        <form id="conForm" class="kb" style="margin-top:8px"><input id="conIn" type="text" placeholder="for example: cairn power status" aria-label="Command to send to the radio" autocomplete="off" autocapitalize="off" spellcheck="false"><button type="button" class="kbbtn" data-kbfor="conIn" title="On-screen keyboard">&#9000;</button><button class="pri" type="submit">Send</button></form>
+        <p class="small muted" style="margin:6px 0 0">Type <span class="mono">cairn</span> for the list of commands. Every command here is also in the field guide.</p>
+      </div>
       <div class="card">
         <h2>Journal</h2>
         <dl class="kv" id="journalBox"></dl>
@@ -296,6 +416,23 @@ th { font-family: var(--mono); color: var(--accent); }
         <div id="threadList"></div>
         <label class="muted small" for="dmPick">Start a direct message</label>
         <select id="dmPick"><option value="">Choose a person or room...</option></select>
+        <details class="fold" id="chanMgr">
+          <summary>Channels: add or remove</summary>
+          <p class="small muted" style="margin:6px 0">A channel is a group everyone with the same name (and key) can read. <b>Public</b> is heard by everyone nearby. Slots used: <b id="chUsed">?</b> of <b id="chMax">40</b>.</p>
+          <div id="chanList"></div>
+          <div id="keyBox" class="keybox" hidden></div>
+          <h3 style="margin:14px 0 4px;font-size:17px">Join an open channel</h3>
+          <p class="small muted" style="margin:0 0 4px">Anyone who types the same name joins the same channel, so do not use it for secrets. Letters, numbers and dashes.</p>
+          <div class="kb"><span style="align-self:center;font-weight:800;font-size:22px">#</span><input id="chTag" type="text" placeholder="water-tank" aria-label="Open channel name" autocomplete="off" autocapitalize="off" spellcheck="false"><button class="kbbtn" data-kbfor="chTag" title="On-screen keyboard">&#9000;</button><button id="btnChTag" class="pri" disabled>Add</button></div>
+          <h3 style="margin:14px 0 4px;font-size:17px">Make a private channel</h3>
+          <p class="small muted" style="margin:0 0 4px">The radio makes a secret key. Only people you give the name and key to can read it.</p>
+          <div class="kb"><input id="chNew" type="text" placeholder="Family" aria-label="Private channel name" autocomplete="off" maxlength="31"><button class="kbbtn" data-kbfor="chNew" title="On-screen keyboard">&#9000;</button><button id="btnChNew" class="pri" disabled>Make</button></div>
+          <h3 style="margin:14px 0 4px;font-size:17px">Join a private channel</h3>
+          <p class="small muted" style="margin:0 0 4px">Type the name and the 32-character key you were given.</p>
+          <div class="kb"><input id="chPN" type="text" placeholder="Name" aria-label="Private channel name to join" autocomplete="off" maxlength="31"><button class="kbbtn" data-kbfor="chPN" title="On-screen keyboard">&#9000;</button></div>
+          <div class="kb" style="margin-top:6px"><input id="chPK" type="text" placeholder="32 letters and numbers (0-9, a-f)" aria-label="Channel key" autocomplete="off" autocapitalize="off" spellcheck="false" maxlength="32"><button class="kbbtn" data-kbfor="chPK" title="On-screen keyboard">&#9000;</button><button id="btnChPriv" class="pri" disabled>Join</button></div>
+          <p class="small muted" id="chMsg" style="margin:8px 0 0"></p>
+        </details>
       </div>
       <div class="card">
         <h2 id="threadTitle">Messages</h2>
@@ -327,14 +464,20 @@ th { font-family: var(--mono); color: var(--accent); }
 
   <!-- ===================================================== CHECK-INS -->
   <section class="tab" id="tab-checkins">
-    <div class="card">
-      <div class="row">
-        <h2 style="margin:0">Check-in roster</h2><span class="grow"></span>
-        <label class="muted small" for="lateMin">Overdue after (minutes)</label>
-        <input id="lateMin" type="number" min="1" max="1440" value="30" style="width:96px">
+    <div class="grid">
+      <div class="card span2">
+        <h2>Needs and places</h2>
+        <div id="needsBox"></div>
       </div>
-      <p class="small muted">Built from every message that reads <span class="mono">LC-xxxxxxxx Reporting at: ...</span>. Tap a status to change it (kept on this tablet).</p>
-      <div id="rosterBox" style="overflow-x:auto"></div>
+      <div class="card span2">
+        <div class="row">
+          <h2 style="margin:0">People who have reported</h2><span class="grow"></span>
+          <label class="muted small" for="lateMin">Overdue after (minutes)</label>
+          <input id="lateMin" type="number" min="1" max="1440" value="30" style="width:96px">
+        </div>
+        <p class="small muted">Built from every CAIRN message heard: I'M OK, NEEDS HELP, status, marked places and low-battery warnings. Tap <b>Got it</b> on a help call once someone is dealing with it.</p>
+        <div id="rosterBox" style="overflow-x:auto"></div>
+      </div>
     </div>
   </section>
 
@@ -384,8 +527,37 @@ th { font-family: var(--mono); color: var(--accent); }
   <!-- ===================================================== POWER -->
   <section class="tab" id="tab-power">
     <div class="grid">
+      <div class="card span2" id="pwrCard">
+        <h2>Radio power and settings</h2>
+        <div id="pwrNow" class="pwrline">Connect the radio to see its settings.</div>
+        <p class="small muted" id="pwrWhy" style="margin:4px 0 10px"></p>
+        <div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(250px,1fr))">
+          <div><label class="small muted">Transmit power (Standard mode)</label><div class="seg" role="group" aria-label="Power"><button id="pwFull" aria-pressed="true">FULL</button><button id="pwSaver" aria-pressed="false">SAVER</button></div></div>
+          <div><label class="small muted" for="antIn">Antenna gain, dBi (printed on the antenna; the stock one is about 2)</label><div class="kb"><input id="antIn" type="number" min="0" max="20" step="0.5" value="2"><button id="btnAnt">Set</button></div></div>
+          <div><label class="small muted" for="autoSel">Automatic I'M OK</label><select id="autoSel"><option value="0">Off</option><option value="15">Every 15 minutes</option><option value="30">Every 30 minutes</option><option value="60">Every hour</option><option value="120">Every 2 hours</option><option value="240">Every 4 hours</option></select></div>
+          <div><label class="small muted" for="bcnSel">Help call repeats every</label><select id="bcnSel"><option value="1">1 minute</option><option value="2">2 minutes</option><option value="5">5 minutes</option><option value="10">10 minutes</option><option value="15">15 minutes</option><option value="30">30 minutes</option></select></div>
+          <div><label class="small muted">Battery saving (below 25% on battery)</label><div class="seg" role="group" aria-label="Battery saving"><button id="ecoOn" aria-pressed="true">ON</button><button id="ecoOff" aria-pressed="false">OFF</button></div></div>
+          <div><label class="small muted">Send LOW BATTERY message at 15%</label><div class="seg" role="group" aria-label="Low battery message"><button id="lbOn" aria-pressed="true">ON</button><button id="lbOff" aria-pressed="false">OFF</button></div></div>
+        </div>
+        <p class="small muted" style="margin:10px 0 0">About the power limit: US rules for radios used without a licence (FCC Part 15, section 15.247) allow up to 1 watt at the antenna with an antenna up to 6 dBi, and less with a bigger antenna. There is no higher limit for emergencies for unlicensed radios, so <b>Standard</b> and <b>Disaster</b> both use the most the rules allow. The CAIRN radio works out the setting from the antenna gain you enter. Using it outside the US, or on another frequency, follow your own country's rules.</p>
+      </div>
       <div class="card"><h2>This radio</h2><div id="radioBatt"></div></div>
       <div class="card"><h2>This tablet</h2><div id="tabBatt" class="muted">Checking...</div></div>
+      <div class="card span2 calc" id="calcCard">
+        <h2>How long will my power last?</h2>
+        <p class="small muted" style="margin:0 0 6px">Fill in what you have. The answer is an estimate, not a promise: real use varies with the cold, the tablet's screen, and how often you send.</p>
+        <div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(220px,1fr))">
+          <div><label for="cBank">Power bank size (Wh; mAh x 3.7 / 1000)</label><input id="cBank" type="number" min="0" step="1" value="74"></div>
+          <div><label for="cBanks">How many</label><input id="cBanks" type="number" min="1" max="10" step="1" value="2"></div>
+          <div><label for="cTab">Tablet draw (watts; screen on about 4 to 6)</label><input id="cTab" type="number" min="0" step="0.5" value="5"></div>
+          <div><label for="cTabH">Tablet hours in use per day</label><input id="cTabH" type="number" min="0" max="24" step="1" value="6"></div>
+          <div><label for="cSol">Solar panel (watts, as printed)</label><input id="cSol" type="number" min="0" step="1" value="20"></div>
+          <div><label for="cSun">Good sun hours per day (winter 2 to 3, summer 5 to 6)</label><input id="cSun" type="number" min="0" max="12" step="0.5" value="4"></div>
+          <div><label for="cMsgs">Messages sent per hour</label><input id="cMsgs" type="number" min="0" max="600" step="1" value="12"></div>
+        </div>
+        <div id="calcOut" class="calcout"></div>
+        <p class="small muted" style="margin:8px 0 0">How this is worked out: the two radios and the hub are counted at their listening draw (about 1.2 W together) plus a little extra for each message sent; a power bank gives about 80% of its printed size; solar gives about 70% of panel watts times sun hours. Datasheet figures for the Heltec V4: listening about 75 mA, sending about 400 mA at 22 dBm and 750 mA at 27 dBm (battery side); a radio sending at full power needs a hub that can supply short 750 mA peaks.</p>
+      </div>
       <div class="card span2">
         <h2>Power banks and other supplies (a timer you set)</h2>
         <p class="small muted">The radios cannot see how full a power bank is, so this is a reminder, not a gauge. Enter how long you expect each one to last, and press the button when you start (or recharge) it.</p>
@@ -397,56 +569,7 @@ th { font-family: var(--mono); color: var(--accent); }
 
   <!-- ===================================================== GUIDE -->
   <section class="tab guide" id="tab-guide">
-    <div class="card">
-      <div class="row"><h2 style="margin:0">Field guide (works with no internet)</h2><span class="grow"></span><button id="btnPrint">Print this guide</button></div>
-      <h3>1. Start up</h3>
-      <ol>
-        <li>Antennas on before power. Both radios plugged into the USB hub; the hub into the tablet.</li>
-        <li>Open the MeshCore app on the tablet and connect to the CAIRN companion by Bluetooth (this is for chatting).</li>
-        <li>Open this page and press <b>Connect radio</b>, choose the radio's USB port (this is for the station view and the log).</li>
-        <li>The page sets the radio's clock from the tablet, loads the journal from the radio, and shows <b>REACHABLE</b> once a repeater is heard.</li>
-      </ol>
-      <h3>2. Check in</h3>
-      <ul>
-        <li>Press <b>SEND CHECK-IN</b>. The radio sends <code>LC-xxxxxxxx Reporting at: latitude,longitude</code>. With no GPS fix it says <code>no GPS fix</code>.</li>
-        <li>Every CAIRN station that hears it lists you on its <b>Check-ins</b> page.</li>
-      </ul>
-      <h3>2b. Send and read messages</h3>
-      <ul>
-        <li>Open <b>Chat</b>. Pick a channel (left) or start a direct message, type in the box, press <b>Send</b> or Enter. Messages are 140 characters at most.</li>
-        <li>Replies appear in the same conversation. A red number shows messages you have not read.</li>
-        <li>You can also chat in the MeshCore app over Bluetooth; both views show the same traffic.</li>
-      </ul>
-      <h3>3. Reading the Station page</h3>
-      <ul>
-        <li><b>REACHABLE</b> (green): a repeater is heard now. <b>NO REPEATER HEARD</b> (red): move higher or toward the last usable repeater shown.</li>
-        <li><b>Nearby</b> lists repeaters, room servers and companions with signal strength and how recently they were heard.</li>
-        <li><b>Log</b> holds everything the radio heard. It is saved on the radio and on this tablet. Download it after the event.</li>
-      </ul>
-      <h3>4. Disaster mode</h3>
-      <p>Press <b>DISASTER</b> on the Station page. Screens turn off sooner, quiet hours are off, and silent repeaters are marked stale sooner.</p>
-      <h3>5. If something fails</h3>
-      <ul>
-        <li><b>Page will not connect:</b> use Chrome (version 148 or newer on Android). Unplug and replug the radio. Close other apps using USB.</li>
-        <li><b>No repeater heard:</b> check the antenna; go higher, outside, away from metal. Wait 10 minutes for adverts.</li>
-        <li><b>Keyboard broke:</b> use the <b>&#9000;</b> button for the on-screen keyboard.</li>
-        <li><b>Hub noise:</b> keep the antenna away from the USB hub and cables.</li>
-      </ul>
-      <h3>6. Commands (typed in the MeshCore app or a serial console)</h3>
-      <ul>
-        <li><code>cairn</code> station ID and journal size &nbsp; <code>cairn id</code> &nbsp; <code>cairn ok [channel]</code> send a check-in</li>
-        <li><code>cairn say &lt;channel&gt; &lt;text&gt;</code> send a channel message &nbsp; <code>cairn dm &lt;key&gt; &lt;text&gt;</code> direct message &nbsp; <code>cairn chans</code> list channels</li>
-        <li><code>cairn mode disaster</code> / <code>cairn mode normal</code> &nbsp; <code>cairn dump</code> send the journal &nbsp; <code>cairn clear yes</code> erase it</li>
-        <li><code>cairn time &lt;seconds since 1970&gt;</code> set the radio's clock &nbsp; <code>nova</code> NOVA status</li>
-      </ul>
-      <h3>7. Kit checklist</h3>
-      <ul class="chk">
-        <li>&#9744; Tablet, keyboard, stylus &nbsp; &#9744; USB hub &nbsp; &#9744; CAIRN companion radio + antenna</li>
-        <li>&#9744; Repeater + antenna &nbsp; &#9744; 2 power banks (charged) &nbsp; &#9744; Solar panel + cable</li>
-        <li>&#9744; Spare cables &nbsp; &#9744; Paper copy of this guide &nbsp; &#9744; Offline map loaded for your area</li>
-      </ul>
-      <p class="small muted">A radio mesh is a backup. It is not a replacement for 911, a phone or a satellite messenger, and it only works if other radios or repeaters are in range. This is ALPHA software.</p>
-    </div>
+<!--GUIDE-->
   </section>
 </div>
 <footer class="credit" id="credit"><div><b>Engineered by: Aries Thorne &amp; Todd Steinhauer for Wolf Reactive Systems (WRS)</b></div><div>Special thanks to the NTXMESH community, Meshcore Community, and Pat Steinhauer-Scates for their guidance and support.</div></footer>
@@ -481,7 +604,8 @@ const S = {
   jset: new Set(),        // raw lines already held
   checkins: new Map(),    // station id -> latest check-in
   lastUsable: jget("cairn-lastUsable", null),
-  tab: store.get("cairn-tab") || "station",
+  tab: store.get("cairn-tab") || "home",
+  easy: store.get("cairn-view") !== "full", sound: store.get("cairn-sound") !== "0", ack: jget("cairn-ack", {}), marks: [], mkset: new Set(), con: [], mi: false, mc: 0, chmax: 40, beeped: new Set(), rmAsk: -1, keyShow: null, tabBat: null,
   win: 900000, sort: "snr", kind: "all", search: "",
   port: null, reader: null, writer: null, keep: null, demo: null,
   roster: jget("cairn-roster", {}), supplies: jget("cairn-supplies", [{ name: "Power bank 1", hours: 24, start: 0 }, { name: "Power bank 2", hours: 24, start: 0 }]),
@@ -489,7 +613,13 @@ const S = {
   off: new Map(), map: null, kbOn: store.get("cairn-kb") === "1",
 };
 const TYPE = { 1: ["comp", "companion"], 2: ["rep", "repeater"], 3: ["room", "room server"], 4: ["sens", "sensor"] };
-const CHECKIN_RE = /\b(LC-(?:[A-HJ-NP-Z2-9]{8}|[A-HJ-NP-Z2-9]{5})) Reporting at: (?:(-?\d{1,3}\.\d+),(-?\d{1,3}\.\d+)|no GPS fix)/;
+// Every position-carrying CAIRN message: "<ID> <what> at: <lat>,<lon>" or "... at: no GPS fix".
+// what is Reporting (I'm OK), NEEDS HELP, STATUS <label>, MARK <label> or LOW BATTERY <n>%.   Groups: 1 id, 2 what, 3 lat, 4 lon.
+const CHECKIN_RE = /\b(LC-(?:[A-HJ-NP-Z2-9]{8}|[A-HJ-NP-Z2-9]{5})) (Reporting|NEEDS HELP|STATUS [A-Z ]+?|MARK [A-Z ]+?|LOW BATTERY \d+%) at: (?:(-?\d{1,3}\.\d+),(-?\d{1,3}\.\d+)|no GPS fix)/;
+const STATUS_LABEL = ["", "NEED MEDICAL", "NEED WATER", "NEED FOOD", "NEED SHELTER", "NEED TRANSPORT", "EVACUATING", "STAYING PUT", "CAN HELP"];
+const MARK_LABEL = ["", "WATER", "SHELTER", "MEDICAL AID", "HAZARD", "MEETING POINT", "ROAD BLOCKED", "SUPPLIES"];
+const DASH_VER = "1.1.0";
+const nice = (l) => l.charAt(0) + l.slice(1).toLowerCase();
 const PLAUSIBLE = (sec) => sec > 1700000000 && sec < 4102444800;
 
 /* ---------------------------------------------------------------- helpers: distance, bearing */
@@ -505,7 +635,7 @@ function bearing(a, b) {
 }
 const COMP = ["N", "NE", "E", "SE", "S", "SW", "W", "NW"];
 const compass = (d) => COMP[Math.round(d / 45) % 8];
-const fmtDist = (m) => (m < 1000 ? Math.round(m) + " m" : (m / 1000).toFixed(m < 10000 ? 1 : 0) + " km");
+const fmtDist = (m) => (S.mi ? (m < 305 ? Math.round(m * 3.28084) + " ft" : (m / 1609.344).toFixed(m < 16093 ? 1 : 0) + " mi") : (m < 1000 ? Math.round(m) + " m" : (m / 1000).toFixed(m < 10000 ? 1 : 0) + " km"));
 function here() { const g = S.frame && S.frame.gps; return g && g.fix ? [+g.lat, +g.lon] : null; }
 function relPos(p) { const h = here(); if (!h || !p) return ""; return fmtDist(distM(h, p)) + " " + compass(bearing(h, p)); }
 
@@ -547,15 +677,22 @@ function addRecord(line, rt, persist) {
   rec._l = line; rec._ms = recTime(rec, rt);
   S.journal.push(rec);
   if (persist !== false) DB.run("journal", "readwrite", (st) => st.put({ l: line, rt: rt || 0 })).catch(() => {});
-  if (rec.r === "m") { const m = CHECKIN_RE.exec(rec.x || ""); if (m) noteCheckin(m, rec); }
+  if (rec.r === "m" || rec.r === "o") { const m = CHECKIN_RE.exec(rec.x || ""); if (m) noteCheckin(m, rec); }
   if (rec.r === "a") noteAdvert(rec);
   return true;
 }
 function noteCheckin(m, rec) {
-  const id = m[1], ms = rec._ms || now();
-  const old = S.checkins.get(id);
-  if (old && old.ms > ms) return;
-  S.checkins.set(id, { id, ms, lat: m[2] != null ? +m[2] : null, lon: m[3] != null ? +m[3] : null, from: rec.f || "", chan: rec.c || "", text: rec.x, hops: rec.h });
+  const id = m[1], what = m[2], ms = rec._ms || now();
+  const lat = m[3] != null ? +m[3] : null, lon = m[4] != null ? +m[4] : null;
+  let c = S.checkins.get(id);
+  if (!c) { c = { id, ms: 0, lat: null, lon: null, from: "", chan: "", okMs: 0, helpMs: 0, helpLat: null, helpLon: null, status: null, lowbat: null }; S.checkins.set(id, c); }
+  if (ms >= c.ms) { c.ms = ms; if (rec.f) c.from = rec.f; if (rec.c) c.chan = rec.c; c.hops = rec.h; c.text = rec.x; }
+  if (lat != null && ms >= (c.posMs || 0)) { c.lat = lat; c.lon = lon; c.posMs = ms; }
+  if (what === "Reporting") { if (ms > c.okMs) c.okMs = ms; }
+  else if (what === "NEEDS HELP") { if (ms > c.helpMs) { c.helpMs = ms; c.helpLat = lat; c.helpLon = lon; } }
+  else if (what.indexOf("STATUS ") === 0) { if (!c.status || ms >= c.status.ms) c.status = { label: what.slice(7), ms }; }
+  else if (what.indexOf("MARK ") === 0) { const key = id + "|" + what + "|" + ms; if (!S.mkset.has(key)) { S.mkset.add(key); S.marks.push({ id, label: what.slice(5), lat, lon, ms, from: rec.f || "" }); } }
+  else if (what.indexOf("LOW BATTERY") === 0) { if (!c.lowbat || ms >= c.lowbat.ms) c.lowbat = { pct: parseInt(what.slice(12), 10), ms }; }
 }
 function noteAdvert(r) {
   if (!r.k) return;
@@ -590,6 +727,7 @@ function nameFor(id) {
 }
 function onFrame(f) {
   S.frame = f; S.frameAt = now();
+  if (typeof f.v === "string") S.mi = f.v.indexOf("mph") >= 0;
   const best = (f.links || []).find((l) => l.best === 1);
   if (best) {
     S.lastUsable = { id: best.id, name: best.name || nameFor(best.id), sc: best.sc, snr: best.snr, rssi: best.rssi, at: now() };
@@ -603,12 +741,14 @@ function onLine(line) {
     else if (line.indexOf('"cairn"') > 0 && line.indexOf('"cairn"') < 4) {
       try {
         const o = JSON.parse(line);
-        if (o.chans) { S.chans = o.chans; }
+        if (o.chans) { S.chans = o.chans; if (o.mc != null) S.mc = o.mc; if (o.max) S.chmax = o.max; }
+        if (o.chanres) onChanRes(o.chanres);
+        if (o.chankey) { S.keyShow = o.chankey; renderKeyBox(); }
         if (o.id) { S.cairn = o; S.cairnAt = now(); maybeSetClock(o); }
         if (o.dump === "end") { S.dumping = false; toast("Journal loaded from the radio (" + o.lines + " lines)."); }
       } catch (e) {}
     } else if (line.indexOf('{"r"') === 0) { addRecord(line, now(), true); }
-  } else if (line[0] === "#") { toast(line.slice(1).trim()); }
+  } else if (line[0] === "#") { toast(line.slice(1).trim()); conPush(line); }
 }
 let clockAsked = 0;
 function maybeSetClock(o) {
@@ -619,6 +759,7 @@ function maybeSetClock(o) {
 
 /* ---------------------------------------------------------------- serial */
 async function send(line) {
+  conPush("> " + line);
   if (S.mode === "demo") { demoCommand(line); return; }
   if (!S.writer) { toast("Not connected. Connect the radio first."); return; }
   try { await S.writer.write(line + "\n"); } catch (e) { toast("Could not send: " + e.message); }
@@ -666,6 +807,7 @@ function showTab(t) {
   document.querySelectorAll("section.tab").forEach((s) => s.classList.toggle("on", s.id === "tab-" + t));
   document.querySelectorAll("#tabs button").forEach((b) => b.setAttribute("aria-pressed", b.dataset.tab === t ? "true" : "false"));
   if (t === "map") initMap();
+  if (t === "chat") renderChanMgr();
   if (t === "chat") { S.chatSeen = now(); store.set("cairn-chatseen", String(S.chatSeen)); if (S.mode === "serial") send("cairn chans"); }
   render();
 }
@@ -729,59 +871,69 @@ function renderBanner() {
       s += " Move higher or outdoors, check the antenna, and wait a few minutes for adverts.";
     }
   }
-  b.className = "banner " + cls; b.innerHTML = '<div class="t">' + t + '</div><div class="s">' + s + "</div>";
+  [b, $("homeBanner")].forEach((e) => { if (e) { e.className = "banner " + cls; e.innerHTML = '<div class="t">' + t + '</div><div class="s">' + s + "</div>"; } });
 }
 function renderStation() {
   renderBanner();
   const c = S.cairn, id = c && c.id;
-  const okp = (id || "LC-????????") + " Reporting at: " + (here() ? here()[0].toFixed(5) + "," + here()[1].toFixed(5) : "no GPS fix");
-  $("okPreview").textContent = okp;
-  $("btnOk").disabled = S.mode === "off" || !id;
-  $("okLast").textContent = c && c.okago ? "Last check-in sent " + fmtAge(c.okago * 1000) + " ago." : (id ? "No check-in sent yet this session." : "");
-  const dis = c && c.mode === "disaster";
-  $("modeNormal").setAttribute("aria-pressed", dis ? "false" : "true"); $("modeDisaster").setAttribute("aria-pressed", dis ? "true" : "false");
-  $("modeNow").textContent = c ? "Radio is in " + (dis ? "DISASTER" : "normal") + " mode." : "";
   const g = S.frame && S.frame.gps, tab = new Date();
   let w = row("Tablet time", esc(tab.toLocaleString()));
   if (c && c.now) { const off = Math.round(Date.now() / 1000 - c.now); w += row("Radio clock", esc(new Date(c.now * 1000).toLocaleTimeString()) + (Math.abs(off) > 30 ? ' <span class="pill-late">(' + N(off) + " s off)</span>" : ' <span class="pill-ok">in step</span>')); }
   w += row("GPS", g ? (g.fix ? '<span class="pill-ok">fix</span>, ' + N(g.sats) + " satellites" : '<span class="pill-late">no fix</span>' + (g.sats != null ? ", " + N(g.sats) + " satellites" : "")) : '<span class="muted">not reported</span>');
   if (g && g.fix) w += row("Position", '<span class="mono">' + (+g.lat).toFixed(5) + ", " + (+g.lon).toFixed(5) + "</span>");
   $("whereBox").innerHTML = w;
-  const t = now(), rec = (ty) => Array.from(S.nodes.values()).filter((n) => (ty === 3 ? n.type >= 3 : n.type === ty) && n.ms && t - n.ms <= 900000);
-  $("heardCounts").innerHTML = '<span class="chip"><b>' + rec(2).length + '</b> repeaters</span><span class="chip"><b>' + rec(1).length + '</b> companions</span><span class="chip"><b>' + rec(3).length + "</b> room servers</span>";
-  const top = rec(2).sort((a, b) => b.snr - a.snr).slice(0, 3);
-  $("topReps").innerHTML = top.length ? top.map((n) => "<div><b>" + esc(n.name || n.k.slice(0, 6)) + '</b> <span class="muted">SNR ' + (+n.snr).toFixed(1) + " &middot; " + (n.hops === 0 ? "direct" : N(n.hops) + " hops") + " &middot; " + fmtAge(t - n.ms) + " ago</span></div>").join("") : '<span class="muted">No repeater in the last 15 minutes.</span>';
   const msgs = S.journal.filter((r) => r.r === "m").slice(-6).reverse();
-  $("latestMsgs").innerHTML = msgs.length ? msgs.map((r) => "<div style=\"padding:4px 0;border-bottom:1px solid var(--line)\"><span class=\"muted\">" + esc(fmtTime(r._ms)) + "</span> <b>" + esc(r.f || r.c || "?") + "</b> " + (r.c && r.f ? '<span class="muted">in ' + esc(r.c) + "</span> " : "") + '<span class="txt">' + esc(r.x) + "</span></div>").join("") : '<span class="muted">No messages in the journal yet.</span>';
+  const lm = msgs.length ? msgs.map((r) => "<div style=\"padding:4px 0;border-bottom:1px solid var(--line)\"><span class=\"muted\">" + esc(fmtTime(r._ms)) + "</span> <b>" + esc(r.f || r.c || "?") + "</b> " + (r.c && r.f ? '<span class="muted">in ' + esc(r.c) + "</span> " : "") + '<span class="txt">' + esc(r.x) + "</span></div>").join("") : '<span class="muted">No messages in the journal yet.</span>';
+  $("latestMsgs").innerHTML = lm;
   const f = S.frame;
   $("radioBox").innerHTML = f ? row("Packets heard / sent", (f.diag ? N(f.diag.rx) + " / " + N(f.diag.tx) : "?")) + row("Last heard", f.diag ? N(f.diag.last_rx_s) + " s ago" : "?") + row("Average SNR", f.diag && f.diag.snr != null ? (+f.diag.snr).toFixed(1) + " dB" : "?") +
     row("Messages sent / delivered", f.dl ? N(f.dl.sent) + " / " + N(f.dl.ok) : "?") + row("Firmware", esc(f.v || "")) : '<dd class="muted">No reading yet.</dd>';
   $("journalBox").innerHTML = row("On this tablet", S.journal.length + " records") + row("On the radio", c ? N(c.kb) + " KB" : "?") + row("Station started", c && c.lines != null ? N(c.lines) + " lines this session" : "?") + row("Dropped", c && c.lost ? '<span class="pill-late">' + N(c.lost) + "</span>" : "0");
 }
+function renderHeard() {
+  const t = now(), rec = (ty) => Array.from(S.nodes.values()).filter((n) => (ty === 3 ? n.type >= 3 : n.type === ty) && n.ms && t - n.ms <= 900000);
+  $("heardCounts").innerHTML = '<span class="chip"><b>' + rec(2).length + '</b> repeaters</span><span class="chip"><b>' + rec(1).length + '</b> companions</span><span class="chip"><b>' + rec(3).length + "</b> room servers</span>";
+  const top = rec(2).sort((a, b) => b.snr - a.snr).slice(0, 3);
+  $("topReps").innerHTML = top.length ? top.map((n) => "<div><b>" + esc(n.name || n.k.slice(0, 6)) + '</b> <span class="muted">SNR ' + (+n.snr).toFixed(1) + " &middot; " + (n.hops === 0 ? "direct" : N(n.hops) + " hops") + " &middot; " + fmtAge(t - n.ms) + " ago</span></div>").join("") : '<span class="muted">No repeater in the last 15 minutes.</span>';
+}
 function renderNearby() {
   $("nbRep").innerHTML = nodeTable(nodeList(2)); $("nbRoom").innerHTML = nodeTable(nodeList(3)); $("nbComp").innerHTML = nodeTable(nodeList(1));
 }
-function rosterStatus(id) { return S.roster[id] || "ok"; }
+function effHelp(c) { return !!(c.helpMs && c.helpMs > c.okMs && (S.ack[c.id] || 0) < c.helpMs); }
+const mapsLink = (p) => '<a href="geo:' + N(p[0]) + "," + N(p[1]) + '">open in maps app</a>';
 function renderRoster() {
-  const late = (+$("lateMin").value || 30) * 60000, t = now();
-  const a = Array.from(S.checkins.values()).sort((x, y) => y.ms - x.ms);
+  const late = (+$("lateMin").value || 30) * 60000, t = now(), own = S.cairn && S.cairn.id;
+  const a = Array.from(S.checkins.values()).sort((x, y) => (effHelp(y) - effHelp(x)) || (y.ms - x.ms));
   let overdue = 0;
-  let s = '<table><thead><tr><th>Station</th><th>Heard from</th><th>Last report</th><th>Position</th><th>Status</th></tr></thead><tbody>';
+  let s = '<table><thead><tr><th>Station</th><th>Name</th><th>Last heard</th><th>Status</th><th>Position</th></tr></thead><tbody>';
   a.forEach((c) => {
-    const isLate = t - c.ms > late, st = rosterStatus(c.id);
-    if (isLate && st !== "help") overdue++;
+    const isLate = t - c.ms > late, help = effHelp(c), me = own === c.id;
+    if (isLate && !help && !me) overdue++;
     const p = c.lat != null ? [c.lat, c.lon] : null;
-    s += "<tr><td class=\"mono\"><b>" + esc(c.id) + "</b>" + (S.cairn && S.cairn.id === c.id ? ' <span class="tag comp">this station</span>' : "") + "</td><td>" + esc(c.from || c.chan || "") + "</td><td>" + esc(fmtAge(t - c.ms)) + " ago" +
-      (isLate ? ' <span class="pill-late">overdue</span>' : "") + "</td><td>" + (p ? '<span class="mono">' + p[0].toFixed(5) + ", " + p[1].toFixed(5) + "</span> " + esc(relPos(p)) + ' <a href="geo:' + N(p[0]) + "," + N(p[1]) + '">open in maps app</a>' : '<span class="muted">no GPS fix</span>') + "</td>" +
-      '<td><button data-roster="' + esc(c.id) + '">' + (st === "help" ? '<span class="pill-help">NEEDS HELP</span>' : st === "ok" ? '<span class="pill-ok">OK</span>' : "Unknown") + "</button></td></tr>";
+    let st = "";
+    if (help) st += '<span class="pill-help">NEEDS HELP</span> <span class="small muted">' + esc(fmtAge(t - c.helpMs)) + ' ago</span> <button data-ack="' + esc(c.id) + '">Got it</button>';
+    else if (c.helpMs && c.helpMs > c.okMs) st += '<span class="pill-late">help call handled</span>';
+    else st += '<span class="pill-ok">OK</span>';
+    if (c.status && t - c.status.ms < 12 * 3600000) st += '<div><b>' + esc(nice(c.status.label)) + '</b> <span class="small muted">' + esc(fmtAge(t - c.status.ms)) + " ago</span></div>";
+    if (c.lowbat && t - c.lowbat.ms < 3 * 3600000) st += '<div class="pill-late small">battery low (' + N(c.lowbat.pct) + "%) " + esc(fmtAge(t - c.lowbat.ms)) + " ago</div>";
+    s += '<tr><td class="mono"><b>' + esc(c.id) + "</b>" + (me ? ' <span class="tag comp">this station</span>' : "") + "</td><td>" + esc(c.from || c.chan || "") + "</td><td>" + esc(fmtAge(t - c.ms)) + " ago" +
+      (isLate && !me ? ' <span class="pill-late">overdue</span>' : "") + "</td><td>" + st + "</td><td>" + (p ? '<span class="mono">' + p[0].toFixed(5) + ", " + p[1].toFixed(5) + "</span> " + esc(me ? "" : relPos(p)) + " " + mapsLink(p) : '<span class="muted">no GPS fix</span>') + "</td></tr>";
   });
-  if (!a.length) s += '<tr><td colspan="5" class="muted">No check-ins heard yet. When another CAIRN station presses its check-in button, it appears here.</td></tr>';
+  if (!a.length) s += '<tr><td colspan="5" class="muted">Nobody has reported yet. When another CAIRN station sends I\'M OK, a status or a help call, it appears here.</td></tr>';
   $("rosterBox").innerHTML = s + "</tbody></table>";
-  $("rosterBox").querySelectorAll("[data-roster]").forEach((b) => b.addEventListener("click", () => {
-    const id = b.dataset.roster, cur = rosterStatus(id), nx = cur === "ok" ? "help" : cur === "help" ? "unk" : "ok";
-    S.roster[id] = nx; jset("cairn-roster", S.roster); renderRoster();
-  }));
+  $("rosterBox").querySelectorAll("[data-ack]").forEach((b) => b.addEventListener("click", () => { const c = S.checkins.get(b.dataset.ack); if (c) { S.ack[c.id] = c.helpMs; jset("cairn-ack", S.ack); render(); } }));
   const bd = $("lateBadge"); bd.textContent = overdue; bd.hidden = overdue === 0;
+  renderNeeds();
+}
+function renderNeeds() {
+  const t = now(), cnt = {};
+  S.checkins.forEach((c) => { if (c.status && t - c.status.ms < 12 * 3600000) cnt[c.status.label] = (cnt[c.status.label] || 0) + 1; });
+  let h = Object.keys(cnt).length ? '<div class="row">' + Object.keys(cnt).sort().map((k) => '<span class="chip"><b>' + cnt[k] + "</b> " + esc(nice(k)) + "</span>").join("") + "</div>" : '<p class="muted" style="margin:0">No statuses sent yet.</p>';
+  const mk = S.marks.slice().sort((a, b) => b.ms - a.ms).slice(0, 30);
+  h += '<h3 style="margin:14px 0 6px;font-size:17px">Marked places</h3>';
+  h += mk.length ? '<table><thead><tr><th>What</th><th>Marked by</th><th>When</th><th>Where</th></tr></thead><tbody>' + mk.map((m) => { const p = m.lat != null ? [m.lat, m.lon] : null; return "<tr><td><b>" + esc(nice(m.label)) + "</b></td><td>" + esc(m.from || m.id) + "</td><td>" + esc(fmtAge(t - m.ms)) + " ago</td><td>" + (p ? '<span class="mono">' + p[0].toFixed(5) + ", " + p[1].toFixed(5) + "</span> " + esc(relPos(p)) + " " + mapsLink(p) + ' <button data-showmap="' + p[0] + "," + p[1] + '">Show on map</button>' : '<span class="muted">no position</span>') + "</td></tr>"; }).join("") + "</tbody></table>" : '<p class="muted" style="margin:0">Nothing marked yet. Use <b>Mark this place</b> on the Home screen.</p>';
+  $("needsBox").innerHTML = h;
+  $("needsBox").querySelectorAll("[data-showmap]").forEach((b) => b.addEventListener("click", () => { const q = b.dataset.showmap.split(",").map(Number); S.focus = q; showTab("map"); }));
 }
 function logRows() {
   const q = S.search.trim().toLowerCase();
@@ -796,7 +948,7 @@ function logRows() {
 function describe(r) {
   if (r.r === "m") return ["Message" + (r.k === "r" ? " (room)" : r.k === "d" ? " (direct)" : r.k === "x" ? " (reply)" : r.k === "s" ? " (sent)" : r.k === "p" ? " (direct, sent)" : ""), r.f || r.c || "", (r.c && r.f ? "[" + r.c + "] " : "") + (r.x || "")];
   if (r.r === "a") { const tt = TYPE[r.ty] || ["", "node"]; return ["Advert: " + tt[1], r.n || r.k, "hops " + r.h + ", SNR " + r.s + ", RSSI " + r.rs + (r.la != null ? ", at " + r.la + "," + r.lo : "")]; }
-  if (r.r === "o") return ["Check-in sent", r.id, r.x];
+  if (r.r === "o") return [/ Reporting at:/.test(r.x || "") ? "Check-in sent" : "Sent", r.id, r.x];
   if (r.r === "b") return ["Station started", r.id, "firmware " + r.v];
   return ["?", "", ""];
 }
@@ -828,7 +980,7 @@ function renderPower() {
 }
 $("btnAddSupply").addEventListener("click", () => { S.supplies.push({ name: "Supply " + (S.supplies.length + 1), hours: 24, start: 0 }); jset("cairn-supplies", S.supplies); renderPower(); });
 if (navigator.getBattery) navigator.getBattery().then((bt) => {
-  const draw = () => { $("tabBatt").innerHTML = '<div class="big">' + Math.round(bt.level * 100) + '%</div><div class="muted">' + (bt.charging ? "charging" : "on battery") + (!bt.charging && isFinite(bt.dischargingTime) ? " &middot; about " + fmtAge(bt.dischargingTime * 1000) + " left" : "") + "</div>"; };
+  const draw = () => { S.tabBat = { level: bt.level, charging: bt.charging }; $("tabBatt").innerHTML = '<div class="big">' + Math.round(bt.level * 100) + '%</div><div class="muted">' + (bt.charging ? "charging" : "on battery") + (!bt.charging && isFinite(bt.dischargingTime) ? " &middot; about " + fmtAge(bt.dischargingTime * 1000) + " left" : "") + "</div>"; };
   draw(); bt.addEventListener("levelchange", draw); bt.addEventListener("chargingchange", draw);
 }).catch(() => { $("tabBatt").textContent = "This browser does not report the tablet's battery. Look at the tablet's own battery icon."; });
 else $("tabBatt").textContent = "This browser does not report the tablet's battery. Look at the tablet's own battery icon.";
@@ -839,23 +991,26 @@ function render() {
   if (S.mode === "serial") setStatus(S.frame ? "live" : "wait", S.frame ? "Live" : "Connected, waiting for data");
   const id = S.cairn && S.cairn.id;
   $("sid").textContent = id || "LC-????????"; $("sid").classList.toggle("none", !id);
-  if (S.tab === "station") renderStation();
+  if (S.tab === "home") renderHome();
+  else if (S.tab === "station") renderStation();
   else if (S.tab === "chat") renderChat();
   else if (S.tab === "nearby") renderNearby();
   else if (S.tab === "checkins") renderRoster();
   else if (S.tab === "log") renderLog();
   else if (S.tab === "map") renderMap();
-  else if (S.tab === "power") { if (!document.activeElement || document.activeElement.tagName !== "INPUT") renderPower(); }
+  else if (S.tab === "power") { renderPowerCtl(); if (!document.activeElement || document.activeElement.tagName !== "INPUT") renderPower(); }
   if (S.tab !== "checkins") renderRosterBadge();
   renderChatBadge();
+  renderAlerts();
   if (S.tab === "station") applyKb();
 }
 function renderRosterBadge() {
   const late = (+$("lateMin").value || 30) * 60000, t = now(); let n = 0;
-  S.checkins.forEach((c) => { if (t - c.ms > late && rosterStatus(c.id) !== "help") n++; });
+  const own = S.cairn && S.cairn.id;
+  S.checkins.forEach((c) => { if (t - c.ms > late && !effHelp(c) && c.id !== own) n++; });
   const bd = $("lateBadge"); bd.textContent = n; bd.hidden = n === 0;
 }
-setInterval(() => { if (document.hidden) return; if (S.tab === "log" || (document.activeElement && document.activeElement.tagName === "INPUT" && S.tab !== "station" && S.tab !== "chat")) return; render(); }, 1000);
+setInterval(() => { if (document.hidden) return; if (S.tab === "log" || (document.activeElement && document.activeElement.tagName === "INPUT" && S.tab !== "station" && S.tab !== "chat" && S.tab !== "home" && S.tab !== "power")) return; render(); }, 1000);
 
 /* ---------------------------------------------------------------- chat: send and read messages */
 const MAXMSG = 140;
@@ -923,6 +1078,7 @@ function renderChat() {
   }).join("") || '<p class="muted">No messages here yet.</p>';
   if (atEnd) box.scrollTop = box.scrollHeight;
   updateSendState(th);
+  renderChanMgr();
   applyKb();
 }
 function updateSendState(th) {
@@ -957,9 +1113,7 @@ $("dmPick").addEventListener("change", (e) => { const n = e.target.value; if (!n
 
 /* ---------------------------------------------------------------- controls */
 $("btnConnect").addEventListener("click", connect);
-$("btnOk").addEventListener("click", () => { const ch = Math.max(0, Math.min(39, +$("okChan").value || 0)); send("cairn ok " + ch); toast("Sending check-in..."); });
-$("modeNormal").addEventListener("click", () => { send("cairn mode normal"); });
-$("modeDisaster").addEventListener("click", () => { send("cairn mode disaster"); });
+
 $("btnSetClock").addEventListener("click", () => { send("cairn time " + Math.round(Date.now() / 1000)); });
 document.querySelectorAll("[data-win]").forEach((b) => b.addEventListener("click", () => { S.win = +b.dataset.win; document.querySelectorAll("[data-win]").forEach((x) => x.setAttribute("aria-pressed", x === b ? "true" : "false")); render(); }));
 document.querySelectorAll("[data-sort]").forEach((b) => b.addEventListener("click", () => { S.sort = b.dataset.sort; document.querySelectorAll("[data-sort]").forEach((x) => x.setAttribute("aria-pressed", x === b ? "true" : "false")); render(); }));
@@ -1126,7 +1280,12 @@ function renderMap() {
     L.marker(p, { icon: mk(tt[0]), title: n.name }).bindPopup("<b>" + esc(n.name || n.k.slice(0, 6)) + "</b><br>" + esc(tt[1]) + "<br>SNR " + (+n.snr).toFixed(1) + ", " + (n.hops === 0 ? "direct" : N(n.hops) + " hops") + "<br>" + (n.ms ? fmtAge(now() - n.ms) + " ago" : "") + (n.apos ? "" : "<br><i>(position where I heard it)</i>")).addTo(S.gNodes);
     pts.push(p);
   });
-  S.checkins.forEach((c) => { if (c.lat == null) return; L.marker([c.lat, c.lon], { icon: mk("chk"), title: c.id }).bindPopup("<b>" + esc(c.id) + "</b><br>" + fmtAge(now() - c.ms) + " ago").addTo(S.gChk); pts.push([c.lat, c.lon]); });
+  S.checkins.forEach((c) => {
+    if (c.lat == null) return; const hp = effHelp(c);
+    L.marker([c.lat, c.lon], { icon: mk(hp ? "hlp" : "chk"), title: c.id, zIndexOffset: hp ? 1000 : 0 }).bindPopup("<b>" + esc(c.id) + "</b>" + (c.from ? " " + esc(c.from) : "") + (hp ? '<br><b style="color:#c4302b">NEEDS HELP</b>' : "") + (c.status ? "<br>" + esc(nice(c.status.label)) : "") + "<br>" + fmtAge(now() - c.ms) + " ago").addTo(S.gChk); pts.push([c.lat, c.lon]);
+  });
+  S.marks.forEach((m) => { if (m.lat == null) return; L.marker([m.lat, m.lon], { icon: mk("mkr"), title: m.label }).bindPopup("<b>" + esc(nice(m.label)) + "</b><br>marked by " + esc(m.from || m.id) + "<br>" + fmtAge(now() - m.ms) + " ago").addTo(S.gChk); pts.push([m.lat, m.lon]); });
+  if (S.focus) { S.follow = false; $("btnFollow").setAttribute("aria-pressed", "false"); S.map.setView(S.focus, 16); S.focus = null; return; }
   const h = here();
   if (h) { S.you.setLatLng(h).addTo(S.map); pts.push(h); } else S.map.removeLayer(S.you);
   const cov = S.frame && S.frame.trip && S.frame.trip.cov;
@@ -1140,58 +1299,394 @@ $("btnFollow").addEventListener("click", () => { S.follow = !S.follow; $("btnFol
 loadRegionList();
 
 /* ---------------------------------------------------------------- practice mode (no radio needed) */
-function stopDemo() { if (S.demo) { clearInterval(S.demo); S.demo = null; } if (S.mode === "demo") { S.mode = "off"; S.frame = null; S.cairn = null; setStatus("off", "Not connected"); $("btnDemo").textContent = "Practice"; } }
+function stopDemo() { if (S.demo) { clearInterval(S.demo); S.demo = null; } if (S.mode === "demo") { S.mode = "off"; S.frame = null; S.cairn = null; S.chans = []; S.checkins = new Map(); S.marks = []; S.mkset = new Set(); setStatus("off", "Not connected"); $("btnDemo").textContent = "Practice"; } }
 let demoState = null;
+function demoPos(d, jitter) { return d.gps[0].toFixed(5) + "," + d.gps[1].toFixed(5); }
+function demoOwn(d, what, ch) {
+  const txt = d.id + " " + what + " at: " + demoPos(d);
+  addRecord(JSON.stringify({ r: "o", t: Math.round(now() / 1000), u: d.up, id: d.id, ch: ch == null ? d.cfg.mc : ch, x: txt }), now(), false);
+}
+function demoChans() { S.chans = d0().chans.map((c) => ({ i: c.i, n: c.n, t: c.t })); S.mc = d0().cfg.mc; S.chmax = 40; }
+function d0() { return demoState; }
+function demoReply(o) { onLine(JSON.stringify(o)); }
 function demoCommand(line) {
   const d = demoState; if (!d) return;
-  if (line.indexOf("cairn mode disaster") === 0) d.mode = "disaster";
-  else if (line.indexOf("cairn mode normal") === 0) d.mode = "normal";
-  else if (line.indexOf("cairn time") === 0) d.skew = 0;
-  else if (line.indexOf("cairn chans") === 0) { S.chans = [{ i: 0, n: "Public" }, { i: 1, n: "Neighborhood" }]; }
-  else if (line.indexOf("cairn say ") === 0 || line.indexOf("cairn dm ") === 0) {
-    const m = /^cairn (say|dm) (\S+) (.*)$/.exec(line); if (!m) return;
+  const m = /^cairn\s+(\S+)\s*(.*)$/.exec(line.trim()); if (!m) { conPush("# practice mode only understands cairn commands"); return; }
+  const w = m[1], rest = m[2].trim(), c = d.cfg, say = (t) => { conPush("# " + t); toast(t); };
+  if (w === "mode") { c.mode = rest === "disaster" ? "disaster" : "standard"; say("OK - " + c.mode.toUpperCase() + " mode"); }
+  else if (w === "time") d.skew = 0;
+  else if (w === "chans") demoChans();
+  else if (w === "ok") { demoOwn(d, "Reporting"); d.okAt = now(); say("OK - sending check-in"); }
+  else if (w === "ustatus") { const k = parseInt(rest, 10); if (k >= 1 && k <= 8) { demoOwn(d, "STATUS " + STATUS_LABEL[k]); say("OK - sending STATUS " + STATUS_LABEL[k]); } }
+  else if (w === "mark") { const k = parseInt(rest, 10); if (k >= 1 && k <= 7) { demoOwn(d, "MARK " + MARK_LABEL[k]); say("OK - marking " + MARK_LABEL[k] + " here"); } }
+  else if (w === "help") {
+    if (rest === "off") { if (c.help) { c.help = 0; demoOwn(d, "Reporting"); say("OK - help beacon stopped; sending I'M OK"); } }
+    else { c.help = 1; d.hnext = 0; say("OK - HELP beacon ON"); }
+  }
+  else if (w === "power") { if (rest === "full" || rest === "saver") c.pw = rest; say("OK - power " + c.pw); }
+  else if (w === "antenna") { const g = parseFloat(rest); if (g >= 0 && g <= 20) { c.ant = Math.round(g * 10) / 10; say("OK - antenna " + c.ant + " dBi"); } }
+  else if (w === "auto") { c.auto = rest === "off" ? 0 : parseInt(rest, 10) || 0; say("OK - automatic check-in " + (c.auto ? "every " + c.auto + " min" : "off")); }
+  else if (w === "beacon") { c.beacon = Math.max(1, Math.min(60, parseInt(rest, 10) || 5)); say("OK - help call repeats every " + c.beacon + " min"); }
+  else if (w === "eco") { c.ecoon = rest === "off" ? 0 : 1; say("OK - battery saving " + (c.ecoon ? "on" : "off")); }
+  else if (w === "lowbat") { c.lowbat = rest === "off" ? 0 : 1; say("OK - low-battery message " + (c.lowbat ? "on" : "off")); }
+  else if (w === "main") { const k = parseInt(rest, 10); if (d.chans.some((x) => x.i === k)) { c.mc = k; S.mc = k; say("OK - check-ins go to channel " + k); } }
+  else if (w === "chan") {
+    const cm = /^(\S+)\s*(.*)$/.exec(rest) || [0, "", ""], op = cm[1], arg = cm[2];
+    if (op === "add" || op === "new") {
+      let name = arg, tag = false;
+      if (name.charAt(0) === "#") { tag = true; name = name.toLowerCase(); }
+      else if (op === "add") name = name.replace(/\s+[0-9a-fA-F]{32}$/, "");
+      const ex = d.chans.find((x) => x.n === name);
+      if (ex) demoReply({ cairn: 1, chanres: { op, ok: 1, i: ex.i, why: "already", n: name } });
+      else {
+        let i = 1; while (d.chans.some((x) => x.i === i)) i++;
+        if (i >= 40) demoReply({ cairn: 1, chanres: { op, ok: 0, i: -1, why: "full", n: "" } });
+        else { d.chans.push({ i, n: name, t: tag ? "tag" : "key", k: tag ? "9cd8fcf22a47333b591d96a2b848b73f" : Array.from({ length: 32 }, () => "0123456789abcdef"[Math.floor(Math.random() * 16)]).join("") }); demoReply({ cairn: 1, chanres: { op, ok: 1, i, why: "", n: name } }); }
+      }
+    } else if (op === "remove") {
+      const i = parseInt(arg, 10), ex = d.chans.find((x) => x.i === i);
+      if (i > 0 && ex) { d.chans = d.chans.filter((x) => x.i !== i); if (c.mc === i) c.mc = 0; demoReply({ cairn: 1, chanres: { op: "remove", ok: 1, i, why: "", n: "" } }); }
+      else demoReply({ cairn: 1, chanres: { op: "remove", ok: 0, i, why: "none", n: "" } });
+    } else if (op === "key") {
+      const ex = d.chans.find((x) => x.i === parseInt(arg, 10)); if (ex) demoReply({ cairn: 1, chankey: { i: ex.i, n: ex.n, k: ex.k || "8b3387e9c5cdea6ac9e5edbaa115cd72" } });
+    }
+    demoChans();
+  }
+  else if (w === "say" || w === "dm") {
+    const mm = /^(\S+) (.*)$/.exec(rest); if (!mm) return;
     let chan = "";
-    if (m[1] === "say") { const c = S.chans.find((x) => String(x.i) === m[2]); chan = c ? c.n : "Public"; }
-    else { for (const n of S.nodes.values()) if (n.k.indexOf(m[2].toUpperCase()) === 0) chan = n.name; }
-    addRecord(JSON.stringify({ r: "m", t: Math.round(now() / 1000), u: d.up, k: m[1] === "say" ? "s" : "p", f: "Me", c: chan, s: 0, h: -1, x: m[3] }), now(), false);
+    if (w === "say") { const ch = d.chans.find((x) => String(x.i) === mm[1]); chan = ch ? ch.n : "Public"; }
+    else { for (const n of S.nodes.values()) if (n.k.indexOf(mm[1].toUpperCase()) === 0) chan = n.name; }
+    addRecord(JSON.stringify({ r: "m", t: Math.round(now() / 1000), u: d.up, k: w === "say" ? "s" : "p", f: "Me", c: chan, s: 0, h: -1, x: mm[2] }), now(), false);
     toast("Message sent (practice).");
-    setTimeout(() => addRecord(JSON.stringify({ r: "m", t: Math.round(now() / 1000), u: d.up, k: m[1] === "say" ? "c" : "d", f: m[1] === "say" ? "Alex" : chan, c: m[1] === "say" ? chan : "", s: -3, h: 1, x: "Copy that, got your message." }), now(), false), 2500);
+    setTimeout(() => addRecord(JSON.stringify({ r: "m", t: Math.round(now() / 1000), u: d.up, k: w === "say" ? "c" : "d", f: w === "say" ? "Alex" : chan, c: w === "say" ? chan : "", s: -3, h: 1, x: "Copy that, got your message." }), now(), false), 2500);
   }
-  else if (line.indexOf("cairn ok") === 0) {
-    const g = d.gps, txt = d.id + " Reporting at: " + g[0].toFixed(5) + "," + g[1].toFixed(5);
-    d.okAt = now();
-    addRecord(JSON.stringify({ r: "o", t: Math.round(now() / 1000), u: d.up, id: d.id, ch: 0, x: txt }), now(), false);
-    toast("Check-in sent (practice).");
-  }
+  else if (w === "dump" || w === "id" || w === "config" || w === "status" || w === "clear") conPush("# (practice) " + w);
+  else conPush("# (practice) this command is not simulated");
+}
+function demoIncoming(d) {
+  const t = Math.round(now() / 1000), g = d.gps;
+  const msg = (f, id, what, dlat, dlon) => addRecord(JSON.stringify({ r: "m", t, u: d.up, k: "c", f, c: "Public", s: -3, h: 1, x: id + " " + what + " at: " + (g[0] + dlat).toFixed(5) + "," + (g[1] + dlon).toFixed(5) }), now(), false);
+  if (d.tick === 25) msg("Alex", "LC-W4PQ8RTN", "NEEDS HELP", 0.0042, 0.0031);
+  if (d.tick === 50) msg("Dana", "LC-9TMX3KDH", "STATUS NEED WATER", -0.006, 0.002);
+  if (d.tick === 70) msg("Sam", "LC-C7HJ2VQP", "MARK ROAD BLOCKED", 0.002, -0.004);
+  if (d.tick === 90) msg("Dana", "LC-9TMX3KDH", "LOW BATTERY 14%", -0.006, 0.002);
 }
 function startDemo() {
   if (S.mode === "serial") { toast("Disconnect the radio first."); return; }
   if (S.mode === "demo") { stopDemo(); return; }
   S.mode = "demo"; setStatus("demo", "Practice data"); $("btnDemo").textContent = "Stop practice";
   S.nodes = new Map(); S.journal = []; S.jset = new Set(); S.checkins = new Map();
-  const d = demoState = { id: "LC-K7M2P4X", mode: "normal", gps: [29.7604, -95.3698], up: 600, skew: 90, okAt: 0, tick: 0 };
-  S.chans = [{ i: 0, n: "Public" }, { i: 1, n: "Neighborhood" }];
+  const d = demoState = { id: "LC-K7M2P4XQ", gps: [29.7604, -95.3698], up: 600, skew: 90, okAt: 0, tick: 0, hnext: 0, bat: 76, cfg: { mode: "standard", pw: "full", ant: 2, auto: 0, beacon: 5, ecoon: 1, lowbat: 1, mc: 0, help: 0 }, chans: [{ i: 0, n: "Public", t: "pub", k: "8b3387e9c5cdea6ac9e5edbaa115cd72" }, { i: 1, n: "Neighborhood", t: "key", k: "00112233445566778899aabbccddeeff" }] };
+  S.marks = []; S.mkset = new Set(); demoChans();
   const rt = Math.round(now() / 1000);
   const reps = [["Hilltop-1", 1, -4.5, -96, 2, 29.8211, -95.4202], ["Downtown RPT", 2, -9.0, -108, 1, 29.7498, -95.3601], ["School Roof", 0, 6.2, -78, 0, 29.7701, -95.3512]];
   reps.forEach((r, i) => { const k = ["A1B2C3D4E5F0","7F3E9A11B2C3","D40C55E8A901"][i]; addRecord(JSON.stringify({ r: "a", t: rt - 60 * (i + 1), u: 100 + i, ty: 2, n: r[0], k, h: r[1], s: r[2], rs: r[3], la: r[5], lo: r[6] }), now(), false); });
   addRecord(JSON.stringify({ r: "a", t: rt - 300, u: 80, ty: 1, n: "Alex's radio", k: "BEEFCAFE0001", h: 1, s: -2.0, rs: -99 }), now(), false);
   addRecord(JSON.stringify({ r: "a", t: rt - 240, u: 90, ty: 3, n: "Neighborhood Board", k: "ABCD00112233", h: 2, s: -7.5, rs: -104, la: 29.77, lo: -95.38 }), now(), false);
-  addRecord(JSON.stringify({ r: "m", t: rt - 200, u: 120, k: "c", f: "Alex", c: "Public", s: -2.5, h: 1, x: "LC-W4PQ8RT Reporting at: 29.76810,-95.37400" }), now(), false);
-  addRecord(JSON.stringify({ r: "m", t: rt - 90 * 60, u: 130, k: "c", f: "Dana", c: "Public", s: -5.0, h: 2, x: "LC-9TMX3KD Reporting at: 29.80100,-95.41000" }), now(), false);
+  addRecord(JSON.stringify({ r: "m", t: rt - 200, u: 120, k: "c", f: "Alex", c: "Public", s: -2.5, h: 1, x: "LC-W4PQ8RTN Reporting at: 29.76810,-95.37400" }), now(), false);
+  addRecord(JSON.stringify({ r: "m", t: rt - 90 * 60, u: 130, k: "c", f: "Dana", c: "Public", s: -5.0, h: 2, x: "LC-9TMX3KDH Reporting at: 29.80100,-95.41000" }), now(), false);
   addRecord(JSON.stringify({ r: "m", t: rt - 120, u: 140, k: "c", f: "Sam", c: "Public", s: -1.0, h: 0, x: "Water is rising on Elm St. Need a boat at the school." }), now(), false);
   const tickDemo = () => {
     d.tick++; d.up += 1; d.gps = [29.7604 + 0.0002 * Math.sin(d.tick / 30), -95.3698 + 0.0002 * Math.cos(d.tick / 30)];
     const gone = d.tick % 120 > 90;   // every two minutes the best repeater drops out, to show the red banner
     const links = gone ? [] : [{ id: "D40C55", name: "School Roof", best: 1, sc: 78, rel: 80, lq: 91, snr: 6.2, rssi: -78, age: 4, hit: 5, n: 6 }, { id: "A1B2C3", name: "Hilltop-1", best: 0, sc: 40, rel: 50, lq: 60, snr: -4.5, rssi: -96, age: 30, hit: 2, n: 4 }];
-    onFrame({ nova: 1, ed: "cairn", v: "1.0.4-mph", unit: "mph", t: d.tick * 1000, prof: d.mode === "disaster" ? "hike" : "desk", bat: { mv: 0, pct: 0 }, gps: { fix: 1, lat: d.gps[0], lon: d.gps[1], sats: 9, spd: 0 },
+    onFrame({ nova: 1, ed: "cairn", v: "1.1.0-mph", unit: "mph", t: d.tick * 1000, prof: d.cfg.mode === "disaster" ? "hike" : "desk", bat: { mv: 0, pct: 0 }, gps: { fix: 1, lat: d.gps[0], lon: d.gps[1], sats: 9, spd: 0 },
       links, dl: { sent: 3, rep: 1, ok: 2, fail: 0, list: [] }, trip: { km: 0, cov: { lat: 29.8211, lon: -95.4202, m: 7400, brg: 315, age: 60 } }, diag: { rx: 120 + d.tick, tx: 12, snr: 4.2, last_rx_s: 3, up_s: d.up } });
-    S.cairn = { cairn: 1, id: d.id, ver: "1.0.4", kb: 12, lines: S.journal.length, lost: 0, mode: d.mode, okago: d.okAt ? Math.round((now() - d.okAt) / 1000) : 0, now: Math.round(now() / 1000) - d.skew };
+    const cf = d.cfg, dis = cf.mode === "disaster", sv = !dis && !cf.help && (cf.pw === "saver"), tx = sv ? 22 : 28;
+    if (cf.help && now() >= (d.hnext || 0)) { demoOwn(d, "NEEDS HELP"); d.hnext = now() + cf.beacon * 60000; }
+    demoIncoming(d);
+    S.cairn = { cairn: 1, id: d.id, ver: "1.1.0", kb: 12, lines: S.journal.length, lost: 0, mode: cf.mode, okago: d.okAt ? Math.round((now() - d.okAt) / 1000) : 0, now: Math.round(now() / 1000) - d.skew,
+      txs: sv ? 10 : 22, tx, mw: sv ? 158 : 631, pw: cf.pw, band: 1, ant: cf.ant, legal: 22, help: cf.help, hnext: cf.help ? Math.max(0, Math.round((d.hnext - now()) / 1000)) : 0, beacon: cf.beacon,
+      auto: cf.auto, eco: 0, ecoon: cf.ecoon, lowbat: cf.lowbat, mc: cf.mc, bat: d.bat, ext: 0, chmax: 40 };
     reps.forEach((r, i) => { const k = ["A1B2C3D4E5F0","7F3E9A11B2C3","D40C55E8A901"][i]; if (i === 2 && gone) return; onFound({ k, t: 2, n: r[0], hop: r[1], rs: r[3], sn: r[2], c: 5 + d.tick, ago: i === 2 ? 4 : 30 * (i + 1), first: 3000, alat: r[5], alon: r[6] }); });
     render();
   };
   tickDemo(); S.demo = setInterval(tickDemo, 1000);
 }
 $("btnDemo").addEventListener("click", startDemo);
+
+/* ---------------------------------------------------------------- CAIRN 1.1: home, help, alerts, channels, power, report */
+const cfgNow = () => S.cairn || {};
+const ready = () => S.mode !== "off" && !!(S.cairn && S.cairn.id);
+function conPush(t) { S.con.push(t); if (S.con.length > 80) S.con.shift(); const e = $("conLog"); if (e) { e.textContent = S.con.join("\n"); e.scrollTop = e.scrollHeight; } }
+function setIf(el, prop, val) { if (el[prop] !== val) el[prop] = val; }
+
+function applyView() {
+  document.body.classList.toggle("easy", S.easy);
+  $("btnView").textContent = S.easy ? "Full view" : "Easy view";
+  if (S.easy && ["station", "nearby", "log"].includes(S.tab)) showTab("home");
+}
+$("btnView").addEventListener("click", () => { S.easy = !S.easy; store.set("cairn-view", S.easy ? "easy" : "full"); applyView(); });
+
+/* --- buttons on Home --- */
+(function buildPickers() {
+  $("stGrid").innerHTML = STATUS_LABEL.slice(1).map((l, i) => '<button data-st="' + (i + 1) + '" disabled>' + esc(nice(l)) + "</button>").join("");
+  $("mkGrid").innerHTML = MARK_LABEL.slice(1).map((l, i) => '<button data-mk="' + (i + 1) + '" disabled>' + esc(nice(l)) + "</button>").join("");
+  $("stGrid").querySelectorAll("button").forEach((b) => b.addEventListener("click", () => { send("cairn ustatus " + b.dataset.st); toast("Sending: " + nice(STATUS_LABEL[+b.dataset.st]) + "..."); }));
+  $("mkGrid").querySelectorAll("button").forEach((b) => b.addEventListener("click", () => { send("cairn mark " + b.dataset.mk); toast("Marking: " + nice(MARK_LABEL[+b.dataset.mk]) + " at your position..."); }));
+})();
+$("hmOk").addEventListener("click", () => { send("cairn ok"); toast("Sending I'M OK with your position..."); });
+$("hmHelp").addEventListener("click", askHelp);
+$("modeStandard").addEventListener("click", () => send("cairn mode standard"));
+$("modeDisaster").addEventListener("click", () => send("cairn mode disaster"));
+$("hmChan").addEventListener("change", (e) => send("cairn main " + (+e.target.value || 0)));
+
+function askHelp() {
+  if (!ready()) return;
+  if (cfgNow().help) { send("cairn help off"); toast("Cancelling the help call..."); return; }
+  const o = document.createElement("div"); o.className = "overlay"; o.id = "helpDlg";
+  o.innerHTML = '<div class="dlg" role="alertdialog" aria-modal="true" aria-labelledby="dlgT"><h3 id="dlgT">Send a call for help?</h3>' +
+    "<p>Everyone in radio range will see <b>NEEDS HELP</b> and your position. It repeats every <b>" + N(cfgNow().beacon || 5) + " minutes</b> until you cancel it.</p>" +
+    "<p><b>If you can reach 911 by phone, call 911 first.</b> This radio only reaches other radios, not emergency services.</p>" +
+    '<div class="row"><button id="dlgNo">NO, GO BACK</button><button id="dlgYes" class="danger">YES, SEND HELP</button></div></div>';
+  document.body.appendChild(o);
+  const close = () => { o.remove(); document.removeEventListener("keydown", esc2); };
+  const esc2 = (e) => { if (e.key === "Escape") close(); };
+  document.addEventListener("keydown", esc2);
+  $("dlgNo").addEventListener("click", close); $("dlgNo").focus();
+  $("dlgYes").addEventListener("click", () => { close(); send("cairn help"); toast("HELP call sent. It repeats until you cancel it.", 6000); });
+}
+
+/* --- Home screen --- */
+const latestHtml = (n) => {
+  const msgs = S.journal.filter((r) => r.r === "m").slice(-n).reverse();
+  return msgs.length ? msgs.map((r) => '<div style="padding:4px 0;border-bottom:1px solid var(--line)"><span class="muted">' + esc(fmtTime(r._ms)) + "</span> <b>" + esc(r.f || r.c || "?") + "</b> " + (r.c && r.f ? '<span class="muted">in ' + esc(r.c) + "</span> " : "") + '<span class="txt">' + esc(r.x) + "</span></div>").join("") : '<span class="muted">No messages yet.</span>';
+};
+function readyItems() {
+  const c = cfgNow(), f = S.frame, g = f && f.gps, out = [];
+  const add = (lvl, txt) => out.push([lvl, txt]);
+  add(S.mode === "off" ? "bad" : "ok", S.mode === "off" ? "Radio not connected. Plug it in, then press Connect radio." : "Radio connected" + (S.mode === "demo" ? " (practice)" : ""));
+  if (!ready()) return out;
+  add("ok", "This station is " + c.id);
+  add(g && g.fix ? "ok" : "warn", g && g.fix ? "Position found (" + N(g.sats) + " satellites)" : "No position yet. Go outside or to a window and wait a few minutes. Messages still work without it.");
+  const best = f && (f.links || []).find((l) => l.best === 1);
+  add(best ? "ok" : "warn", best ? "A repeater is heard: you can reach other people" : "No repeater heard. Other radios close by can still hear you directly; move higher or outdoors to reach further.");
+  if (c.now) { const off = Math.abs(Math.round(Date.now() / 1000 - c.now)); add(off > 30 ? "warn" : "ok", off > 30 ? "Radio clock is off by " + off + " s (the page will fix it)" : "Radio clock is correct"); }
+  if (c.bat != null && c.bat >= 0) add(c.ext ? "ok" : c.bat <= 15 ? "bad" : c.bat <= 25 ? "warn" : "ok", "Radio battery " + c.bat + "%" + (c.ext ? ", on outside power" : ""));
+  else add("ok", c.ext ? "Radio is on outside power" : "No radio battery fitted: it runs from the hub's power");
+  if (S.tabBat) { const pc = Math.round(S.tabBat.level * 100); add(S.tabBat.charging || pc > 30 ? "ok" : pc > 15 ? "warn" : "bad", "Tablet battery " + pc + "%" + (S.tabBat.charging ? ", charging" : "")); }
+  if (c.band === 0) add("warn", "Radio is not on the US 902-928 MHz band; its power is left as it was set");
+  else add("ok", "Radio power " + N(c.mw) + " mW (" + (c.ecoon && c.eco ? "saving battery" : c.pw === "saver" && c.mode !== "disaster" ? "saver" : "full") + ")");
+  add(S.chans.some((x) => x.i === 0) || S.mode === "demo" ? "ok" : "warn", S.chans.length ? "Public channel is present" : "Waiting for the channel list");
+  add(c.help ? "bad" : "ok", c.help ? "HELP CALL IS ON. Press the red button to cancel it." : "No help call running");
+  return out;
+}
+function renderHome() {
+  renderBanner();
+  const c = cfgNow(), ok = ready(), help = !!c.help, dis = c.mode === "disaster";
+  const hb = $("hmHelp"), html = help ? "CANCEL HELP CALL<small>Help call is ON. Next one in " + esc(fmtAge((c.hnext || 0) * 1000)) + "</small>" : "I NEED HELP<small>Calls for help every few minutes until you cancel</small>";
+  if (hb.dataset.h !== html) { hb.dataset.h = html; hb.innerHTML = html; }
+  hb.classList.toggle("on", help); hb.disabled = !ok; $("hmOk").disabled = !ok;
+  document.querySelectorAll("#stGrid button, #mkGrid button").forEach((b) => { b.disabled = !ok; });
+  $("hmLast").textContent = !ok ? "Connect the radio to use these buttons." : (c.okago ? "Last I'M OK sent " + fmtAge(c.okago * 1000) + " ago." : "No I'M OK sent yet this session.") + (c.auto ? " Automatic I'M OK every " + c.auto + " min." : "");
+  $("modeStandard").setAttribute("aria-pressed", dis ? "false" : "true"); $("modeDisaster").setAttribute("aria-pressed", dis ? "true" : "false");
+  $("modeStandard").disabled = $("modeDisaster").disabled = !ok;
+  $("modeNow").textContent = ok ? "The radio is in " + (dis ? "DISASTER" : "STANDARD") + " mode." : "";
+  const sel = $("hmChan"), chans = S.chans.length ? S.chans : [{ i: 0, n: "Public" }], sig = chans.map((x) => x.i + ":" + x.n).join("|") + "#" + S.mc;
+  if (sel.dataset.sig !== sig && document.activeElement !== sel) { sel.dataset.sig = sig; sel.innerHTML = chans.map((x) => '<option value="' + x.i + '">' + x.i + " - " + esc(x.n) + "</option>").join(""); sel.value = String(S.mc); }
+  sel.disabled = !ok;
+  const items = readyItems(), bad = items.some((x) => x[0] === "bad"), warn = items.some((x) => x[0] === "warn");
+  $("readyList").innerHTML = items.map((x) => '<li><span class="i ' + x[0] + '">' + (x[0] === "ok" ? "&#10003;" : x[0] === "warn" ? "!" : "&#10007;") + "</span><span>" + esc(x[1]) + "</span></li>").join("");
+  const rs = $("readySum"); rs.textContent = bad ? "NOT READY: fix the red items" : warn ? "READY, with notes" : "READY"; rs.style.color = bad ? "var(--bad)" : warn ? "var(--warn)" : "var(--good)";
+  renderHeard();
+  $("homeLatest").innerHTML = "<b>Latest messages</b>" + latestHtml(4);
+}
+
+/* --- alerts shown on every screen --- */
+let AC = null;
+function beep() {
+  if (!S.sound) return;
+  try { if (navigator.vibrate) navigator.vibrate([300, 150, 300]); } catch (e) {}
+  try {
+    AC = AC || new (window.AudioContext || window.webkitAudioContext)();
+    for (let i = 0; i < 3; i++) { const o = AC.createOscillator(), g = AC.createGain(); o.frequency.value = i % 2 ? 660 : 880; o.connect(g); g.connect(AC.destination); const t0 = AC.currentTime + i * 0.28; g.gain.setValueAtTime(0.0001, t0); g.gain.exponentialRampToValueAtTime(0.25, t0 + 0.02); g.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.24); o.start(t0); o.stop(t0 + 0.26); }
+  } catch (e) {}
+}
+function renderAlerts() {
+  const c = cfgNow(), own = c.id, t = now(), box = $("alerts"), items = [];
+  if (c.help) items.push('<div class="al"><div class="t">YOUR HELP CALL IS ON</div><div>Next call in ' + esc(fmtAge((c.hnext || 0) * 1000)) + '. Others who hear it see your position.</div><div class="row"><button data-al="cancel" class="danger">Cancel my help call</button></div></div>');
+  if (ready() && c.bat != null && c.bat >= 0 && c.bat <= 15 && !c.ext) items.push('<div class="al warn"><div class="t">Radio battery is low (' + N(c.bat) + '%)</div><div>Plug the radio into a power bank or the solar input.</div></div>');
+  const helps = Array.from(S.checkins.values()).filter((x) => x.id !== own && effHelp(x) && t - x.helpMs < 6 * 3600000).sort((a, b) => b.helpMs - a.helpMs);
+  let fresh = false;
+  helps.slice(0, 3).forEach((x) => {
+    const p = x.helpLat != null ? [x.helpLat, x.helpLon] : (x.lat != null ? [x.lat, x.lon] : null), key = x.id + "|" + x.helpMs;
+    if (!S.beeped.has(key)) { S.beeped.add(key); if (t - x.helpMs < 120000) fresh = true; }
+    items.push('<div class="al"><div class="t">HELP CALL from ' + esc(x.from || x.id) + '</div><div class="mono">' + esc(x.id) + "</div><div>" + esc(fmtAge(t - x.helpMs)) + " ago" + (p ? " &middot; " + esc(relPos(p) || (p[0].toFixed(5) + ", " + p[1].toFixed(5))) + " &middot; " + mapsLink(p) : " &middot; no position sent") + '</div><div class="row">' + (p ? '<button data-al="map" data-p="' + p[0] + "," + p[1] + '">Show on map</button>' : "") + '<button data-al="ack" data-id="' + esc(x.id) + '" class="pri">Got it</button></div></div>');
+  });
+  if (helps.length > 3) items.push('<div class="al"><div class="t">' + (helps.length - 3) + " more help calls</div><div class=\"row\"><button data-al=\"people\">See everyone</button></div></div>");
+  if (fresh) beep();
+  const html = items.join("");
+  if (box.dataset.h !== html) {
+    box.dataset.h = html; box.innerHTML = html;
+    box.querySelectorAll("[data-al]").forEach((b) => b.addEventListener("click", () => {
+      const k = b.dataset.al;
+      if (k === "cancel") send("cairn help off");
+      else if (k === "ack") { const x = S.checkins.get(b.dataset.id); if (x) { S.ack[x.id] = x.helpMs; jset("cairn-ack", S.ack); render(); } }
+      else if (k === "map") { S.focus = b.dataset.p.split(",").map(Number); showTab("map"); }
+      else if (k === "people") showTab("checkins");
+    }));
+  }
+}
+
+/* --- channels: add, make, join, remove --- */
+const KINDNAME = { pub: "Public", tag: "Open", key: "Private" };
+function onChanRes(r) {
+  const nm = r.n ? '"' + r.n + '"' : "that channel";
+  let msg;
+  if (r.ok) msg = r.op === "remove" ? "Channel removed." : r.why === "already" ? "You already have " + nm + " (channel " + r.i + ")." : "Added " + nm + " as channel " + r.i + ".";
+  else msg = r.why === "full" ? "All channel slots are used. Remove one first." : r.why === "none" ? "There is no such channel." : "The radio could not do that. Try again.";
+  toast(msg, 5000); $("chMsg").textContent = msg;
+  if (r.ok && r.op === "new" && r.i >= 0) send("cairn chan key " + r.i);
+  if (S.rmAsk >= 0) S.rmAsk = -1;
+  if (S.mode === "serial") send("cairn chans");
+}
+function renderKeyBox() {
+  const k = S.keyShow, b = $("keyBox"); if (!k) { b.hidden = true; return; }
+  b.hidden = false;
+  b.innerHTML = '<b>Key for "' + esc(k.n) + '"</b><div class="mono" style="margin:6px 0;font-size:18px">' + esc(k.k) + '</div><div class="small">To let someone join: give them the name <b>' + esc(k.n) + '</b> and this key. On their CAIRN they use <i>Join a private channel</i>. Anyone who has the key can read this channel, so only share it with people you trust.</div><div class="row" style="margin-top:8px"><button id="btnKeyCopy">Copy name and key</button><button id="btnKeyHide">Hide</button></div>';
+  $("btnKeyCopy").addEventListener("click", () => { const txt = k.n + " " + k.k; (navigator.clipboard ? navigator.clipboard.writeText(txt) : Promise.reject()).then(() => toast("Copied."), () => toast("Could not copy. Read it out or write it down.")); });
+  $("btnKeyHide").addEventListener("click", () => { S.keyShow = null; renderKeyBox(); });
+}
+function renderChanMgr() {
+  const chans = S.chans.length ? S.chans : [], sig = JSON.stringify(chans) + S.mc + "|" + S.rmAsk + "|" + ready();
+  $("chUsed").textContent = chans.length || "?"; $("chMax").textContent = S.chmax;
+  const lst = $("chanList");
+  if (lst.dataset.sig !== sig) {
+    lst.dataset.sig = sig;
+    lst.innerHTML = chans.map((c) => {
+      const kind = c.t || (c.i === 0 ? "pub" : "key"), ask = S.rmAsk === c.i;
+      return '<div class="chrow"><span class="nm">' + (kind === "tag" ? "" : "") + esc(c.n) + ' <span class="tag ' + (kind === "pub" ? "rep" : kind === "tag" ? "comp" : "room") + '">' + KINDNAME[kind] + "</span>" + (c.i === S.mc ? ' <span class="tag sens">check-ins go here</span>' : "") + "</span>" +
+        (c.i !== S.mc ? '<button data-chuse="' + c.i + '"' + (ready() ? "" : " disabled") + ">Use for check-ins</button>" : "") +
+        (kind === "key" ? '<button data-chkey="' + c.i + '"' + (ready() ? "" : " disabled") + ">Show key</button>" : "") +
+        (c.i > 0 ? (ask ? 'Remove it? <button data-chrm="' + c.i + '" class="danger">Yes, remove</button><button data-chno="1">No</button>' : '<button data-chask="' + c.i + '"' + (ready() ? "" : " disabled") + ">Remove</button>") : "") + "</div>";
+    }).join("") || '<p class="muted small">Connect the radio to see its channels.</p>';
+    lst.querySelectorAll("[data-chuse]").forEach((b) => b.addEventListener("click", () => { send("cairn main " + b.dataset.chuse); S.mc = +b.dataset.chuse; lst.dataset.sig = ""; renderChanMgr(); }));
+    lst.querySelectorAll("[data-chkey]").forEach((b) => b.addEventListener("click", () => send("cairn chan key " + b.dataset.chkey)));
+    lst.querySelectorAll("[data-chask]").forEach((b) => b.addEventListener("click", () => { S.rmAsk = +b.dataset.chask; renderChanMgr(); }));
+    lst.querySelectorAll("[data-chno]").forEach((b) => b.addEventListener("click", () => { S.rmAsk = -1; renderChanMgr(); }));
+    lst.querySelectorAll("[data-chrm]").forEach((b) => b.addEventListener("click", () => { send("cairn chan remove " + b.dataset.chrm); S.rmAsk = -1; }));
+  }
+  const okName = (v) => v.length > 0 && byteLen(v) <= 31 && !/["\\\x00-\x1f]/.test(v) && v === v.trim();
+  $("btnChTag").disabled = !(ready() && /^[A-Za-z0-9-]{1,30}$/.test($("chTag").value.trim()));
+  $("btnChNew").disabled = !(ready() && okName($("chNew").value) && $("chNew").value.charAt(0) !== "#");
+  $("btnChPriv").disabled = !(ready() && okName($("chPN").value) && $("chPN").value.charAt(0) !== "#" && /^[0-9a-fA-F]{32}$/.test($("chPK").value.trim()));
+}
+["chTag", "chNew", "chPN", "chPK"].forEach((id) => $(id).addEventListener("input", renderChanMgr));
+$("btnChTag").addEventListener("click", () => { send("cairn chan add #" + $("chTag").value.trim().toLowerCase()); $("chTag").value = ""; renderChanMgr(); });
+$("btnChNew").addEventListener("click", () => { send("cairn chan new " + $("chNew").value); $("chNew").value = ""; renderChanMgr(); });
+$("btnChPriv").addEventListener("click", () => { send("cairn chan add " + $("chPN").value + " " + $("chPK").value.trim().toLowerCase()); $("chPN").value = ""; $("chPK").value = ""; renderChanMgr(); });
+
+
+/* --- power controls and calculator --- */
+function renderPowerCtl() {
+  const c = cfgNow(), ok = ready();
+  const dbm = N(c.tx), mw = N(c.mw);
+  let now_ = !ok ? "Connect the radio to see its settings." : c.band === 0 ? "Not on the US band: power left as set in the radio." : "Radio power now: " + mw + " mW (about " + dbm + " dBm)";
+  $("pwrNow").textContent = now_;
+  let why = "";
+  if (ok && c.band !== 0) {
+    if (c.mode === "disaster") why = "DISASTER mode: always the highest power the rules allow with your antenna.";
+    else if (c.help) why = "Help call running: using the highest power the rules allow.";
+    else if (c.eco) why = "Battery saving is on because the radio battery is low: power is reduced to make the battery last.";
+    else if (c.pw === "saver") why = "SAVER is selected: lower power, shorter range, much less battery use.";
+    else why = "STANDARD mode: the highest power the rules allow with your antenna (" + c.ant + " dBi).";
+  }
+  $("pwrWhy").textContent = why;
+  const act = document.activeElement && document.activeElement.id;
+  $("pwFull").setAttribute("aria-pressed", c.pw === "saver" ? "false" : "true"); $("pwSaver").setAttribute("aria-pressed", c.pw === "saver" ? "true" : "false");
+  $("ecoOn").setAttribute("aria-pressed", c.ecoon === 0 ? "false" : "true"); $("ecoOff").setAttribute("aria-pressed", c.ecoon === 0 ? "true" : "false");
+  $("lbOn").setAttribute("aria-pressed", c.lowbat === 0 ? "false" : "true"); $("lbOff").setAttribute("aria-pressed", c.lowbat === 0 ? "true" : "false");
+  if (act !== "antIn" && c.ant != null) setIf($("antIn"), "value", String(c.ant));
+  if (act !== "autoSel" && c.auto != null) { const v = String(c.auto); if (![...$("autoSel").options].some((o) => o.value === v)) { const o = document.createElement("option"); o.value = v; o.textContent = "Every " + v + " minutes"; $("autoSel").appendChild(o); } setIf($("autoSel"), "value", v); }
+  if (act !== "bcnSel" && c.beacon != null) { const v = String(c.beacon); if (![...$("bcnSel").options].some((o) => o.value === v)) { const o = document.createElement("option"); o.value = v; o.textContent = v + " minutes"; $("bcnSel").appendChild(o); } setIf($("bcnSel"), "value", v); }
+  document.querySelectorAll("#pwrCard button, #pwrCard select, #pwrCard input").forEach((e) => { e.disabled = !ok; });
+}
+$("pwFull").addEventListener("click", () => send("cairn power full"));
+$("pwSaver").addEventListener("click", () => send("cairn power saver"));
+$("ecoOn").addEventListener("click", () => send("cairn eco on")); $("ecoOff").addEventListener("click", () => send("cairn eco off"));
+$("lbOn").addEventListener("click", () => send("cairn lowbat on")); $("lbOff").addEventListener("click", () => send("cairn lowbat off"));
+$("btnAnt").addEventListener("click", () => { const v = parseFloat($("antIn").value); if (!(v >= 0 && v <= 20)) { toast("Antenna gain must be between 0 and 20 dBi."); return; } send("cairn antenna " + v); });
+$("autoSel").addEventListener("change", (e) => send("cairn auto " + (+e.target.value ? e.target.value : "off")));
+$("bcnSel").addEventListener("change", (e) => send("cairn beacon " + e.target.value));
+
+const CALC_IDS = ["cBank", "cBanks", "cTab", "cTabH", "cSol", "cSun", "cMsgs"];
+const hrsText = (h) => (h < 48 ? h.toFixed(h < 10 ? 1 : 0) + " hours" : (h / 24).toFixed(1) + " days");
+function calc() {
+  const v = {}; CALC_IDS.forEach((i) => { v[i] = Math.max(0, parseFloat($(i).value) || 0); });
+  jset("cairn-calc", v);
+  const radiosW = 1.2, perMsgWh = 0.0008;
+  const dayUse = radiosW * 24 + v.cTab * v.cTabH + v.cMsgs * 24 * perMsgWh;
+  const stored = v.cBank * v.cBanks * 0.8, solar = v.cSol * v.cSun * 0.7;
+  const net = solar - dayUse;
+  let h = "<div>You use about <b>" + dayUse.toFixed(0) + " Wh a day</b> (radios and hub " + (radiosW * 24).toFixed(0) + " Wh, tablet " + (v.cTab * v.cTabH).toFixed(0) + " Wh).</div>";
+  h += "<div>Power banks hold about <b>" + stored.toFixed(0) + " Wh</b> usable. Solar gives about <b>" + solar.toFixed(0) + " Wh</b> on a day like the one you entered.</div>";
+  if (dayUse <= 0) h += "<div>Enter the tablet draw to see a result.</div>";
+  else {
+    h += "<div style=\"margin-top:6px\">Without any sun: about <b>" + hrsText(stored / dayUse * 24) + "</b>.</div>";
+    h += net >= 0 ? '<div class="pill-ok" style="font-weight:800">With this much sun, solar covers what you use, and the power banks stay topped up.</div>' : '<div class="pill-late" style="font-weight:800">With this much sun, you run short by ' + (-net).toFixed(0) + " Wh a day, so the power banks last about " + hrsText(stored / -net * 24) + ".</div>";
+    h += '<div class="small muted" style="margin-top:6px">To make power last: lower the tablet screen brightness, close apps, send fewer messages, and keep the radios in Standard mode with battery saving ON. The tablet is almost always the biggest user.</div>';
+  }
+  $("calcOut").innerHTML = h;
+}
+(function () { const sv = jget("cairn-calc", null); CALC_IDS.forEach((i) => { if (sv && sv[i] != null) $(i).value = sv[i]; $(i).addEventListener("input", calc); }); calc(); })();
+
+/* --- situation report --- */
+let lastSit = "", lastShort = "";
+function buildSitrep() {
+  const c = cfgNow(), t = now(), own = c.id, L = [], h = here();
+  L.push("SITUATION REPORT   " + new Date().toLocaleString());
+  L.push("From station " + (own || "(unknown)") + (h ? " at " + h[0].toFixed(5) + "," + h[1].toFixed(5) : " (no position)"));
+  const best = S.frame && (S.frame.links || []).find((l) => l.best === 1);
+  L.push("Radio link: " + (S.mode === "off" ? "radio not connected" : best ? "repeater heard (" + (best.name || nameFor(best.id) || best.id) + ")" : "no repeater heard"));
+  const all = Array.from(S.checkins.values()).filter((x) => x.id !== own), late = (+$("lateMin").value || 30) * 60000;
+  const helps = all.filter(effHelp), overdue = all.filter((x) => t - x.ms > late && !effHelp(x));
+  L.push("People reporting: " + all.length + (overdue.length ? " (" + overdue.length + " overdue)" : ""));
+  if (c.help) L.push("THIS STATION IS CALLING FOR HELP");
+  helps.forEach((x) => { const p = x.helpLat != null ? [x.helpLat, x.helpLon] : (x.lat != null ? [x.lat, x.lon] : null); L.push("  HELP: " + x.id + (x.from ? " " + x.from : "") + ", " + fmtAge(t - x.helpMs) + " ago" + (p ? ", " + p[0].toFixed(5) + "," + p[1].toFixed(5) + (h ? " (" + relPos(p) + ")" : "") : ", no position")); });
+  const cnt = {}; all.forEach((x) => { if (x.status && t - x.status.ms < 12 * 3600000) cnt[x.status.label] = (cnt[x.status.label] || 0) + 1; });
+  const cs = Object.keys(cnt).sort().map((k) => cnt[k] + " " + nice(k).toLowerCase());
+  L.push("Statuses: " + (cs.length ? cs.join(", ") : "none"));
+  const mk = S.marks.slice().sort((a, b) => b.ms - a.ms).slice(0, 12);
+  L.push("Marked places: " + (mk.length ? "" : "none")); mk.forEach((m) => L.push("  " + nice(m.label) + (m.lat != null ? " at " + m.lat.toFixed(5) + "," + m.lon.toFixed(5) + (h ? " (" + relPos([m.lat, m.lon]) + ")" : "") : " (no position)") + ", " + fmtAge(t - m.ms) + " ago"));
+  const bat = [];
+  if (c.bat != null && c.bat >= 0) bat.push("radio " + c.bat + "%"); if (S.tabBat) bat.push("tablet " + Math.round(S.tabBat.level * 100) + "%");
+  L.push("Batteries: " + (bat.length ? bat.join(", ") : "not known") + ".  Mode: " + (c.mode === "disaster" ? "DISASTER" : "STANDARD"));
+  const short = "SITREP: " + all.length + " reporting" + (helps.length ? ", " + helps.length + " NEED HELP" : "") + (cs.length ? ", " + cs.join(", ") : "") + (best ? ". Link OK." : ". No repeater.");
+  return [L.join("\n"), short];
+}
+$("btnSitrep").addEventListener("click", () => {
+  [lastSit, lastShort] = buildSitrep(); const b = $("sitrepBox"); b.hidden = false; b.textContent = lastSit + "\n\nOne-line version (" + byteLen(lastShort) + " characters):\n" + lastShort;
+  $("btnSitrepCopy").disabled = $("btnSitrepSave").disabled = false; $("btnSitrepSend").disabled = !ready() || byteLen(lastShort) > MAXMSG;
+});
+$("btnSitrepCopy").addEventListener("click", () => { (navigator.clipboard ? navigator.clipboard.writeText(lastSit) : Promise.reject()).then(() => toast("Copied."), () => toast("Could not copy. Use Save as a file.")); });
+$("btnSitrepSave").addEventListener("click", () => saveFile("cairn-report-" + stamp() + ".txt", "text/plain", lastSit + "\n"));
+$("btnSitrepSend").addEventListener("click", () => { send("cairn say " + S.mc + " " + lastShort); toast("Sending the one-line report..."); });
+
+/* --- sound --- */
+function applySound() { $("btnSound").setAttribute("aria-pressed", S.sound ? "true" : "false"); $("btnSound").textContent = "Sound for help calls: " + (S.sound ? "ON" : "OFF"); }
+$("btnSound").addEventListener("click", () => { S.sound = !S.sound; store.set("cairn-sound", S.sound ? "1" : "0"); applySound(); if (S.sound) beep(); });
+applySound();
+/* --- guide download: the guide on its own, as one web page file that opens with no internet --- */
+$("btnGuideSave").addEventListener("click", () => {
+  const doc = $("guideDoc").cloneNode(true);
+  doc.querySelectorAll(".g-btns").forEach((e) => e.remove());
+  const html = '<!doctype html>\n<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>CAIRN Field Guide</title>' +
+    '<style>:root{--ink:#111;--muted:#555;--accent:#0a6f8a;--line:#bbb;--good:#0b7a4f;--bad:#c4302b;--warn:#a15f00;--panel:#fff;--panel2:#f1f4f2}body{margin:0;padding:18px;background:#fff;color:#111;font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}</style></head><body>' + doc.outerHTML + "</body></html>";
+  saveFile("CAIRN-Field-Guide.html", "text/html", html);
+});
+/* --- console --- */
+$("conForm").addEventListener("submit", (e) => { e.preventDefault(); const v = $("conIn").value.trim(); if (!v) return; send(v); $("conIn").value = ""; });
+
+/* --- splash --- */
+(function () {
+  const sp = $("splash"); if (!sp) return;
+  $("splVer").textContent = DASH_VER;
+  let gone = false;
+  const go = () => { if (gone) return; gone = true; sp.classList.add("out"); setTimeout(() => sp.remove(), 700); };
+  sp.addEventListener("click", go); sp.addEventListener("keydown", go); document.addEventListener("keydown", go, { once: true });
+  setTimeout(go, /[?&]nosplash/.test(location.search) ? 0 : 4200);
+})();
 
 /* ---------------------------------------------------------------- start-up */
 (async function boot() {
@@ -1202,7 +1697,8 @@ $("btnDemo").addEventListener("click", startDemo);
     rows.forEach((r) => addRecord(r.l, r.rt, false));
     S.journal.sort((a, b) => (a._ms || 0) - (b._ms || 0));
   } catch (e) { /* no stored copy: the radio's journal arrives on connect */ }
-  showTab(["station", "chat", "nearby", "checkins", "log", "map", "power", "guide"].includes(S.tab) ? S.tab : "station");
+  applyView();
+  showTab(["home", "station", "chat", "nearby", "checkins", "log", "map", "power", "guide"].includes(S.tab) ? S.tab : "home");
   if (!("serial" in navigator)) notice("This browser cannot connect to a radio over USB. Use Chrome (version 148 or newer on Android). You can still read the log kept on this tablet, and use Practice to try the page.");
   if ("serviceWorker" in navigator && location.protocol.indexOf("http") === 0) navigator.serviceWorker.register("sw.js").catch(() => {});
 })();
@@ -1292,7 +1788,7 @@ $("btnDemo").addEventListener("click", startDemo);
   function hud() {
     const d = new Date(), p = (v) => String(v).padStart(2, "0"), c = S.cairn, h = here();
     $("hudZ").textContent = p(d.getUTCHours()) + ":" + p(d.getUTCMinutes()) + ":" + p(d.getUTCSeconds()) + "Z"; $("hudL").textContent = p(d.getHours()) + ":" + p(d.getMinutes()) + ":" + p(d.getSeconds());
-    const dis = c && c.mode === "disaster"; $("hudM").textContent = S.mode === "off" ? "OFFLINE" : dis ? "DISASTER" : "NORMAL"; $("hudMw").dataset.m = dis ? "disaster" : "normal";
+    const dis = c && c.mode === "disaster"; $("hudM").textContent = S.mode === "off" ? "OFFLINE" : dis ? "DISASTER" : "STANDARD"; $("hudMw").dataset.m = dis ? "disaster" : "normal";
     const t = now(), cnt = (ty) => Array.from(S.nodes.values()).filter((n) => (ty === 3 ? n.type >= 3 : n.type === ty) && n.ms && t - n.ms <= 900000).length;
     $("hudC").textContent = cnt(2) + "/" + cnt(1) + "/" + cnt(3); $("hudG").textContent = h ? "FIX" : S.frame && S.frame.gps ? "NO FIX" : "N/A";
   }

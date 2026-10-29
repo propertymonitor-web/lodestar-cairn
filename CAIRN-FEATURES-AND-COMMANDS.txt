@@ -1,59 +1,102 @@
-LODESTAR CAIRN - FEATURES AND COMMANDS (Ver. 1.0.4, ALPHA)
-By Wolf Reactive Systems (WRS). For the Heltec WiFi LoRa 32 V4 R2 (not the R8).
-ALPHA: tested on a PC and in a browser with practice data, not yet on real hardware.
+LODESTAR CAIRN - FEATURES AND COMMANDS (Ver. 1.1.0, ALPHA)
+By Wolf Reactive Systems (WRS). For the Heltec WiFi LoRa 32 V4 R2 (not the R8). CAIRN Tactical Unit (CTU) firmware.
+ALPHA: tested on a PC, in a browser with practice data and by compiling the firmware; not yet run on real hardware by the authors.
 
 WHAT CAIRN IS
-A MeshCore companion radio (NOVA, plus extras) for a crisis field kit. It keeps a journal of everything it hears,
-has a station ID, sends a one-button check-in, and feeds a tablet dashboard that works with no internet.
+A MeshCore companion radio (NOVA, plus extras) for an emergency and everyday field kit. It has only the tactical
+dashboard (no pet, no shark tank). It keeps a journal of everything it hears, has a station ID, sends check-ins,
+status, marks and help calls, and feeds a tablet dashboard that works with no internet. Aimed at ordinary people:
+an Easy view with big buttons and a plain-language field guide.
 
 FEATURES
-- Station ID: LC- plus 8 letters/digits from the last 5 bytes of the radio's public key. Random at first boot
-  (MeshCore makes the key), never changes, survives reboot. Not checked against any list (offline). Duplicate odds:
-  about 1 in 2.2 million for 1,000 stations in range.
-- Check-in: "LC-xxxxxxxx Reporting at: <lat>,<lon>" or "... Reporting at: no GPS fix". Sent to a channel (default 0).
-- Journal: every message (channel, direct, room, reply), every advert (repeater, companion, room server, sensor)
-  with signal and hops, every check-in sent, every boot. Saved on the radio (/cairn.log, rotated at 192 KB to
-  /cairn.1) and copied to the tablet. Export CSV or JSON lines.
-- Disaster mode: screen off sooner, quiet hours off, stale repeaters marked sooner. Back to normal with one press.
-- Station page: REACHABLE / NO REPEATER HEARD, best repeater, last usable repeater, last place with coverage.
-- Nearby: repeaters, room servers, companions: SNR, hops, age, distance and compass direction.
-- Chat: send and read messages from the dashboard (the Chat tab). Pick a channel or a person, type up to 140
-  characters, press Send. Replies show in the same conversation. Direct messages need the person to be in the radio's
-  contact list. You can still chat in the MeshCore app over Bluetooth at the same time.
-- Check-ins roster: who reported, when, where, overdue flag, tap to mark NEEDS HELP.
-- Map: offline vector maps, your position, nodes, check-ins, last coverage point.
-- Power: radio battery (if a LiPo is fitted), tablet battery, manual power-bank timers.
-- Guide: offline field guide, printable.
-- No on-screen keyboard unless you tap the keyboard icon.
-- OLED screen: boot splash with the CAIRN emblem (a guiding star over a cairn of stones), and a CAIRN STATION screen
-  (the first page after Home) showing the ID, journal size and time since the last check-in. Press Enter (or hold
-  the button on a one-button board) on that screen to send a check-in.
+- Station ID: LC- plus 8 letters/digits from the last 5 bytes of the radio's public key. Random at first boot, never
+  changes, survives reboot. Not checked against any list (offline).
+- I'M OK: "LC-xxxxxxxx Reporting at: <lat>,<lon>" (or "no GPS fix") to the check-in channel (default 0, Public).
+- HELP: "LC-xxxxxxxx NEEDS HELP at: <lat>,<lon>", repeating every 1-60 minutes (default 5) until cancelled; always at
+  full power; kept over a restart; cancelling sends an I'M OK. Dashboard asks "Send a call for help?" first and says to
+  call 911 first. On the radio's OLED it needs two presses (arm, then send) so a pocket press cannot send it.
+- STATUS (one tap): Need medical / water / food / shelter / transport, Evacuating, Staying put, Can help.
+  Text: "LC-xxxxxxxx STATUS NEED WATER at: <lat>,<lon>".
+- MARK this place: Water, Shelter, Medical aid, Hazard, Meeting point, Road blocked, Supplies.
+  Text: "LC-xxxxxxxx MARK HAZARD at: <lat>,<lon>". Shown on every CAIRN dashboard map and in the report.
+- LOW BATTERY: sent once at 15% on battery ("LC-xxxxxxxx LOW BATTERY 15% at: ..."); re-arms above 30% or on charge.
+- Automatic I'M OK every 10-1440 minutes (not while a help call runs; twice as slow on a low battery).
+- Channels: add/remove from the dashboard Chat tab or by command. Open "#name" channels (key made from the name, like
+  the MeshCore app), private channels (new random key, or name + 32-hex key), show key, remove, choose which channel
+  carries check-ins. Up to 40 channels; channel 0 (Public) cannot be removed.
+- Standard mode: the highest transmit power the US unlicensed rule allows with your antenna (see POWER); battery
+  saving lowers it below 25% battery. Disaster mode: the same legal maximum, always (even on a low battery), quiet hours
+  off, screen off sooner, stale repeaters marked sooner. Both are remembered over a restart.
+- Journal: every message, advert, check-in/help/status/mark sent, every boot. Saved on the radio (/cairn.log, rotated
+  at 192 KB to /cairn.1) and copied to the tablet. Export CSV or JSON lines.
+- Settings kept on the radio in /cairn.cfg (mode, power choice, antenna gain, automatic I'M OK, help interval, battery
+  saving, low-battery message, check-in channel, help call on/off).
+- OLED: CAIRN splash, CAIRN STATION page (hold = check-in), HELP page (hold to arm, hold again to send / cancel), and
+  POWER page (mode, radio power, battery; hold = switch Standard/Disaster).
 - Everything NOVA does still works.
 
-DASHBOARD (browser page, Chrome 148+ on Android, or recent Chrome/Edge on a computer)
-Tabs: Station, Nearby, Check-ins, Log, Map, Power, Guide. "Practice" fills it with made-up data.
-Needs the BLUETOOTH firmware build: the USB port is used by the dashboard.
+DASHBOARD (Chrome 148+ on Android, or a recent Chrome/Edge on a computer; BLUETOOTH firmware build)
+- Opening screen (splash) that scales to any screen (designed for 1280x800); tap to skip.
+- Easy view (default): Home, People, Chat, Map, Power, Guide. Full view adds Station (radar, console), Nearby, Log.
+- Home: I'M OK, I NEED HELP, status, mark, Standard/Disaster, Ready check, Who is around, Situation report.
+- Alerts on every screen when another station calls for help (sound + vibration, can be switched off), with distance
+  and direction, "Show on map" and "Got it". Warning when the radio battery is low.
+- People: everyone who reported, help calls first, statuses, low battery, overdue, and a "needs and places" summary.
+- Map: offline vector maps; red pulsing dots for help calls; orange diamonds for marked places.
+- Power: radio power and settings, "How long will my power last?" calculator (power banks, tablet, solar), supply timers.
+- Situation report: text summary, copy / save, and a one-line version (<=140 characters) to send to everyone.
+- Guide: plain-language field guide, a one-page quick-start card, print / save as PDF, download as a web page.
+- Practice mode: pretend data, including incoming help calls, so every button can be tried safely.
 
-COMMANDS (type in the MeshCore app's command box for your radio, or in a serial console)
-  cairn                      status: version, ID, journal size
-  cairn id                   print the station ID
-  cairn ok [channel]         send a check-in now (channel 0-39, default 0)
-  cairn say <ch> <text>      send a message to channel <ch> (0-39), 140 characters at most
-  cairn dm <key12> <text>    send a direct message to the contact whose key starts with these 12 hex characters
-  cairn chans                list the radio's channels (the dashboard asks for this)
-  cairn mode disaster        disaster mode on
-  cairn mode normal          back to normal
-  cairn dump                 send the whole journal to the serial port (the dashboard uses this)
-  cairn clear yes            erase the journal ON THE RADIO (the tablet's copy stays)
-  cairn time <seconds>       set the radio's clock (seconds since 1970); the dashboard does this automatically
-  nova ...                   all NOVA commands
+POWER AND THE LAW (honest summary)
+- Radio: Heltec V4 (SX1262 + external amplifier). MeshCore "tx power" setting 10 gives about 22 dBm (158 mW); setting 22
+  gives about 28 dBm (about 630 mW; Heltec rates the board 28 +/- 1 dBm). CAIRN uses 22 for "full" when the antenna
+  allows and 10 for "saver".
+- US unlicensed rule used (47 CFR 15.247(b)): up to 1 watt (30 dBm) into the antenna in the 902-928 MHz band with an antenna
+  of up to 6 dBi; above 6 dBi the power must come down dB for dB. CAIRN works out the setting from the antenna gain you
+  enter (default 2 dBi) with a 1 dB margin for the board's tolerance.
+- There is NO higher legal power for emergencies for unlicensed radios (47 CFR 2.405 applies to licensed stations), so
+  Disaster mode keeps the radio at full legal power instead of exceeding it.
+- Outside the 902-928 MHz band CAIRN leaves the power alone: check your local rules.
+- Not yet verified for a product you sell: the narrow channel widths used by MeshCore in the US (62.5 kHz) versus the
+  500 kHz minimum 6 dB bandwidth in 15.247 for digitally modulated systems, and equipment authorization and labelling.
+  Have a test lab confirm this before selling radios as licence-free.
+- Battery figures from the Heltec V4.3.1 datasheet: receive about 75 mA, send about 400 mA at 22 dBm and 750 mA at 27 dBm;
+  solar input 4.7-6 V; battery 3.3-4.2 V; USB charge 500 mA. The hub must supply short 750 mA bursts.
+
+COMMANDS (type in the MeshCore app's command box for your radio, in the dashboard Console, or in a serial console)
+  cairn                          status: version, ID, mode, journal size
+  cairn id                       print the station ID
+  cairn ok [channel]             send I'M OK now (default: the check-in channel)
+  cairn help [channel]           start the repeating help call;   cairn help off   cancel it (sends I'M OK)
+  cairn beacon <1-60>            minutes between help calls
+  cairn ustatus <1-8> [channel]  status: 1 Need medical, 2 Need water, 3 Need food, 4 Need shelter, 5 Need transport,
+                                 6 Evacuating, 7 Staying put, 8 Can help
+  cairn mark <1-7> [channel]     mark this place: 1 Water, 2 Shelter, 3 Medical aid, 4 Hazard, 5 Meeting point,
+                                 6 Road blocked, 7 Supplies
+  cairn mode standard|disaster   change mode ("normal" also works for standard)
+  cairn power full|saver|status  power choice, or show power now and the legal limit
+  cairn antenna <dBi>            antenna gain, 0-20 (default 2)
+  cairn auto <10-1440>|off       automatic I'M OK
+  cairn eco on|off               battery saving     cairn lowbat on|off   low-battery message
+  cairn main <0-39>              channel for check-ins, help, status, marks
+  cairn chans                    list channels (JSON for the dashboard)
+  cairn chan add #name           join an open channel          cairn chan add <name> <32-hex key>   join a private one
+  cairn chan new <name>          make a private channel with a new random key
+  cairn chan key <n>             show channel n's key          cairn chan remove <n>   remove channel n (not 0)
+  cairn say <ch> <text>          message to channel <ch>, 140 characters at most
+  cairn dm <key12> <text>        direct message to the contact whose key starts with these 12 hex characters
+  cairn config                   show all CAIRN settings
+  cairn dump                     send the whole journal to the serial port
+  cairn clear yes                erase the journal ON THE RADIO (the tablet's copy stays)
+  cairn time <seconds>           set the radio's clock (the dashboard does this automatically)
+  nova ...                       all NOVA commands
 
 REPEATER AND COMMUNICATIONS HUB
 The CAIRN radio is a companion: it sends and receives your messages, but it does not repeat other people's. The
-repeating is done by the second radio in the kit (XIAO ESP32S3 running PULSAR), powered from the hub. Together they
-are the hub: the companion carries your chat, check-ins and journal, and the repeater extends the range for everyone.
+repeating is done by the second radio in the kit (XIAO ESP32S3 running PULSAR), powered from the hub.
 
 LIMITS
-- The radio cannot see power-bank or tablet charge; the Power tab timers are reminders.
-- Keep antennas apart and away from the USB hub. Check "stats-radio" noise floor with the repeater on and off.
-- A mesh radio is a backup, not a replacement for 911, a phone or a satellite messenger.
+- The radio cannot see power-bank or tablet charge; the Power tab timers and calculator are estimates.
+- Keep antennas apart and away from the USB hub. A mesh radio is a backup, not a replacement for 911.
+- A help call can only be heard by radios in range. It does not contact emergency services.

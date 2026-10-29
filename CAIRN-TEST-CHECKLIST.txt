@@ -1,4 +1,4 @@
-LODESTAR CAIRN - HARDWARE TEST CHECKLIST (Ver. 1.0.4, alpha)
+LODESTAR CAIRN - HARDWARE TEST CHECKLIST (Ver. 1.1.0, alpha)
 By Wolf Reactive Systems (WRS). Nothing in CAIRN has run on real hardware yet. Work through this at home, then once in the open.
 Write down anything that does not match. Heltec V4 R2 only.
 
@@ -8,13 +8,13 @@ A. FLASH THE COMPANION (Heltec V4 R2)
  3. Pass: the radio boots and the screen shows CAIRN.
 
 B0. SCREEN
-    Pass: the boot splash shows the emblem on the left and LODESTAR / CAIRN / WRS / Ver. 1.0.4 on the right, and stays up for 5 seconds.
+    Pass: the boot splash shows the emblem on the left and LODESTAR / CAIRN / WRS / Ver. 1.1.0 on the right, and stays up for 5 seconds.
     Pass: the first page after Home is CAIRN STATION with your ID. Pressing Enter (or holding the button) shows
     "Check-in sending" and the check-in appears in the log.
 
 B. STATION ID
  4. In the MeshCore app (or a serial console) type:  cairn
-    Pass: it prints LODESTAR CAIRN 1.0.4  ID LC-xxxxxxxx (8 characters).
+    Pass: it prints LODESTAR CAIRN 1.1.0  ID LC-xxxxxxxx (8 characters).
  5. Write the ID down. Reboot the radio (cairn is not needed: use the button or unplug/replug). Type  cairn  again.
     Pass: the SAME ID.
  6. Pass: the ID uses no I, O, 0 or 1.
@@ -35,7 +35,7 @@ D. THE KIT TOGETHER
 
 E. CHECK-IN
 13. Go outside with sky view, wait for a GPS fix (Station page shows fix and satellites).
-14. Press SEND CHECK-IN. Pass: the Check-ins list shows your own ID and position; the Log shows a "Check-in sent" line.
+14. Home -> I'M OK. Pass: the Check-ins list shows your own ID and position; the Log shows a "Check-in sent" line.
 15. With a second radio on the same channel, check it receives:  LC-xxxxxxxx Reporting at: lat,lon
     With no fix the text must read:  ... Reporting at: no GPS fix
 
@@ -54,7 +54,7 @@ F. JOURNAL (store everything)
 
 G. REACHABLE BANNER AND DISASTER MODE
 19. Near a repeater: banner REACHABLE. Take the repeater away or go out of range: banner turns red NO REPEATER HEARD and shows the last usable repeater.
-20. Press DISASTER. Pass: modeNow reads DISASTER; screen goes off sooner; quiet hours off. Press Normal to go back.
+20. Home -> DISASTER. Pass: "The radio is in DISASTER mode"; screen goes off sooner; quiet hours off. Press STANDARD to go back. Reboot the radio: the mode is the same afterwards.
 
 H. OFFLINE MAP
 21. At home on Wi-Fi: Map tab -> choose a region -> Download -> Load a map file.
@@ -65,6 +65,36 @@ I. KEYBOARD
 
 J. POWER
 24. Power tab: set each power bank's hours, press Fully charged / started now. Pass: countdown runs. Tablet battery shows.
+
+L. NEW IN 1.1.0 (do these outdoors with a second radio listening on Public)
+26. Splash: reload the dashboard on the tablet. Pass: the CAIRN splash fills the screen with nothing cut off; a tap skips it.
+27. HELP: Home -> I NEED HELP -> NO. Pass: nothing sent. Again -> YES. Pass: the second radio receives
+    "LC-xxxxxxxx NEEDS HELP at: lat,lon", then again after the help interval (Power -> Help call repeats every).
+    Cancel: Pass: the second radio gets "Reporting at:", and the Home button returns to I NEED HELP.
+28. HELP on the radio's screen: go to the HELP page. Hold once: "SEND HELP CALL?". Wait 6 seconds: back to normal (no call).
+    Hold twice within 5 seconds: the call starts. Hold again: cancelled.
+29. A second radio sends HELP: Pass: the dashboard shows the red alert with sound, distance and direction; Show on map
+    centers the map on the red dot; Got it clears the alert.
+30. STATUS and MARK: tap Need water, then Mark -> Hazard. Pass: the second radio receives
+    "STATUS NEED WATER at:" and "MARK HAZARD at:"; the other dashboard lists them on People and on the map.
+31. Channels: Chat -> Channels. Add "#test" (open). Pass: it appears; a MeshCore app channel "#test" can read and write
+    to it. Make a private channel; Show key; add it on a second CAIRN with name + key; messages pass. Remove it: Pass: it is
+    gone, and Public has no Remove button. Reboot the radio: the channels are still as left.
+32. POWER, Standard: Power tab. Pass: about 630 mW (setting 22) with a 2 dBi antenna. Enter antenna 9 -> Pass: lower setting
+    (14, about 26 dBm for 9 dBi). Measure with a power meter if you have one: write the real figure down. Heltec rates the
+    board 28 +/- 1 dBm; if the measured power is above 30 dBm into the antenna the limit is NOT met: stop and report.
+33. POWER, Disaster: switch to DISASTER with the battery below 25%. Pass: power stays at full. Switch back to STANDARD:
+    Pass: power drops to the saver setting while the battery is below 25% and returns above 35%.
+34. Low battery: run the radio on its battery until 15%. Pass: one "LOW BATTERY 15%" message; no repeats.
+35. Automatic I'M OK: Power -> Automatic I'M OK every 15 minutes. Pass: check-ins arrive about every 15 minutes, and stop
+    while a help call is running.
+36. Power calculator: enter your power bank, tablet and solar figures. Pass: the answer is plausible against a real
+    run (note the real hours for the first power bank).
+37. Sending at full power with the real hub and power bank: send 10 messages in a row. Pass: the radio does not reboot. If
+    it does, the hub or cable cannot supply the burst: change it.
+38. Field guide: Guide tab on the tablet. Pass: it is readable at arm's length; Print or save as PDF works; the quick-start
+    card (CAIRN-Quick-Start-Card.pdf) fits one page. Give the kit and the quick-start card to someone who has never used it:
+    Pass: they send I'M OK and a help call (to a test channel) without help.
 
 K. 100% OFFLINE RUN
 25. Turn Wi-Fi and mobile data OFF. Repeat steps 8, 14, 16, 19. Pass: everything works with no internet.

@@ -1,4 +1,4 @@
-# LODESTAR CAIRN (ALPHA) - Ver. 1.0.4 (release cairn-alpha5)
+# LODESTAR CAIRN (ALPHA) - Ver. 1.1.0 (release cairn-alpha6)
 
 ![CAIRN emblem](docs/cairn-logo.png)
 
@@ -7,6 +7,17 @@ Crisis-use field kit firmware and dashboard for MeshCore, by Wolf Reactive Syste
 CAIRN turns a Heltec V4 R2 companion into a **station**: it gets a permanent ID (`LC-xxxxxxxx`), keeps a journal of **everything it hears**, sends a one-button check-in with GPS, and feeds a tablet dashboard that works with **no internet**.
 
 **Status: ALPHA. The firmware compiles and passes its tests, and the dashboard is tested with practice data, but neither has run on real hardware or on the tablet yet.**
+
+## What changed in cairn-alpha6 (Ver. 1.1.0)
+- **Easy view for non-technical people:** a new Home screen with big buttons: **I'M OK**, **I NEED HELP** (asks first, repeats until cancelled), one-tap **status** (need water/medical/food/shelter/transport, evacuating, staying put, can help) and **mark this place** (water, shelter, medical aid, hazard, meeting point, road blocked, supplies). Full view still has the radar, nearby list, log and console.
+- **Add / remove channels from the dashboard** (and by command): open `#name` channels, private channels with a made key, join with a key, show key, remove, pick the check-in channel. Up to 40.
+- **Standard and Disaster modes with a real power plan:** both use the highest transmit power the US unlicensed rule (47 CFR 15.247) allows for your antenna; Standard saves battery when it runs low, Disaster never does. Settings are remembered (`/cairn.cfg`). There is no higher legal power for unlicensed radios in an emergency (see FEATURES file).
+- **Power and solar:** battery saving, low-battery message, automatic I'M OK, a "how long will my power last?" calculator for power banks, tablet and solar, radio power shown in mW.
+- **Alerts:** a red alert with sound on every screen when another station calls for help, with distance, direction and "Show on map"; People and Map show help calls, statuses and marked places; one-tap **situation report**.
+- **Radio screen:** new HELP page (two presses to send) and POWER page (switch mode).
+- **Splash screen** for the tablet that scales to any screen (designed for 1280x800).
+- **New field guide:** plain language, large type, a one-page quick-start card; on screen, printable, downloadable (`docs/CAIRN-Field-Guide.html` / `.pdf`, `docs/CAIRN-Quick-Start-Card.pdf`).
+- New tests: firmware logic (including SHA-256 and `#channel` keys), screens, and the dashboard in a real browser at tablet, portrait and phone sizes.
 
 ## What changed in cairn-alpha5 (Ver. 1.0.4)
 - **Chat from the dashboard:** a new Chat tab to send and read messages (channels and direct messages, 140 characters). New commands `cairn say`, `cairn dm`, `cairn chans`.
@@ -43,7 +54,7 @@ CAIRN turns a Heltec V4 R2 companion into a **station**: it gets a permanent ID 
 - If two people ever do report the same ID, the check-in position and the sender name in the Check-ins list will still tell them apart.
 
 ## The kit
-Android tablet (keyboard, mouse, stylus) + USB hub + two power banks + solar panel + Heltec V4 R2 running CAIRN (companion) + XIAO ESP32S3 running plain PULSAR (repeater, powered from the hub only).
+Android tablet (keyboard, mouse, stylus; designed for a 1280x800 10-inch screen, scales to others) + USB hub + two power banks + solar panel + Heltec V4 R2 running CAIRN (companion) + XIAO ESP32S3 running plain PULSAR (repeater, powered from the hub only).
 The companion connects to the tablet two ways: **Bluetooth** to the MeshCore app (chat) and **USB** to the dashboard (status and log).
 
 ## What it does
@@ -75,15 +86,16 @@ Actions → "Build LODESTAR CAIRN" → Run workflow (env `heltec_v4_companion_ra
 Use the **BLE** build: the USB port carries the dashboard. (The USB build uses the port for the companion protocol and has no dashboard.)
 
 ## Commands (serial or MeshCore CLI)
-`cairn` status (shows ID and version) · `cairn id` · `cairn ok [channel]` · `cairn say <ch> <text>` · `cairn dm <key12> <text>` · `cairn chans` · `cairn mode disaster|normal` · `cairn dump` · `cairn clear yes` · `cairn time <epoch>`; all NOVA commands also work.
+`cairn` · `id` · `ok` · `help [off]` · `beacon` · `ustatus` · `mark` · `mode standard|disaster` · `power full|saver|status` · `antenna <dBi>` · `auto` · `eco` · `lowbat` · `main` · `chans` · `chan add|new|key|remove` · `say` · `dm` · `config` · `dump` · `clear yes` · `time`. Full list in `CAIRN-FEATURES-AND-COMMANDS.txt`; all NOVA commands also work.
 
 ## Layout
-`cairn/` firmware logic, OLED screens (`cairn/ui`) and tests · `tools/make_logo.py` draws the emblem · `nova/` vendored NOVA · `tools/apply_cairn.py` patches MeshCore · `dashboard/cairn.html` source · `tools/build_dashboard.py` builds `docs/index.html` (commit the result; CI checks it).
+`cairn/` firmware logic, OLED screens (`cairn/ui`) and tests · `tools/make_logo.py` draws the emblem · `nova/` vendored NOVA · `tools/apply_cairn.py` patches MeshCore · `dashboard/cairn.html` source · `tools/build_dashboard.py` builds `docs/index.html` and `tools/build_guide.py` builds the stand-alone guide (commit the results; CI checks them); `dashboard/guide.html` is the field guide source.
 
 ## Dashboard hosting
 Enable GitHub Pages (Settings → Pages → `main` / `/docs`) then open the page once on the tablet and "Add to Home screen".
 
 Changelog:
+- 1.1.0 (cairn-alpha6): Easy view, help/status/mark messages, channel add/remove, Standard/Disaster power plan, power calculator, alerts, splash, new field guide.
 - 1.0.4 (cairn-alpha5): Chat tab and cairn say / dm / chans commands.
 - 1.0.3 (cairn-alpha4): splash stays 5 seconds, MeshCore line removed from the splash.
 - 1.0.2 (cairn-alpha3): OLED emblem splash and CAIRN STATION screen with check-in button.

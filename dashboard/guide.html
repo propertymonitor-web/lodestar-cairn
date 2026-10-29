@@ -1,0 +1,277 @@
+<div id="guideDoc">
+<style>
+#guideDoc { --g-ink: var(--ink, #111); --g-mut: var(--muted, #555); --g-acc: var(--accent, #0a6f8a); --g-line: var(--line, #bbb); --g-ok: var(--good, #0b7a4f); --g-bad: var(--bad, #c4302b); --g-warn: var(--warn, #a15f00); --g-panel: var(--panel, #fff); --g-panel2: var(--panel2, #f1f4f2); font-size: 20px; line-height: 1.55; color: var(--g-ink); max-width: 980px; margin: 0 auto; }
+#guideDoc * { box-sizing: border-box; }
+#guideDoc .g-top { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+#guideDoc .g-btns { display: flex; flex-wrap: wrap; gap: 8px; }
+#guideDoc h1 { font-size: 40px; line-height: 1.1; margin: 6px 0 4px; letter-spacing: .02em; }
+#guideDoc h2 { font-size: 30px; line-height: 1.2; margin: 38px 0 10px; padding-top: 14px; border-top: 3px solid var(--g-acc); text-transform: none; letter-spacing: 0; color: var(--g-ink); font-family: inherit; }
+#guideDoc h2::before { content: none !important; }
+#guideDoc h3 { font-size: 23px; margin: 22px 0 6px; }
+#guideDoc p, #guideDoc li { margin: 8px 0; }
+#guideDoc .g-lead { font-size: 23px; color: var(--g-ink); }
+#guideDoc .g-mut { color: var(--g-mut); font-size: 17px; }
+#guideDoc ol.g-steps { list-style: none; counter-reset: gs; padding: 0; margin: 14px 0; }
+#guideDoc ol.g-steps > li { counter-increment: gs; position: relative; padding: 12px 14px 12px 70px; margin: 12px 0; border: 2px solid var(--g-line); border-radius: 14px; background: var(--g-panel); min-height: 64px; }
+#guideDoc ol.g-steps > li::before { content: counter(gs); position: absolute; left: 14px; top: 10px; width: 44px; height: 44px; border-radius: 50%; background: var(--g-acc); color: #fff; font-weight: 800; font-size: 26px; text-align: center; line-height: 44px; }
+#guideDoc .g-box { border: 2px solid var(--g-line); border-radius: 14px; padding: 12px 16px; margin: 14px 0; background: var(--g-panel2); }
+#guideDoc .g-note { border-left: 8px solid var(--g-acc); }
+#guideDoc .g-warn { border-left: 8px solid var(--g-warn); }
+#guideDoc .g-stop { border-left: 8px solid var(--g-bad); }
+#guideDoc .g-good { border-left: 8px solid var(--g-ok); }
+#guideDoc .g-box b.t { display: block; font-size: 21px; margin-bottom: 2px; }
+#guideDoc .g-btn { display: inline-block; padding: 4px 14px; border-radius: 10px; border: 3px solid var(--g-line); font-weight: 800; background: var(--g-panel); white-space: nowrap; margin: 2px 0; }
+#guideDoc .g-btn.ok { border-color: var(--g-ok); color: var(--g-ok); } #guideDoc .g-btn.help { border-color: var(--g-bad); color: var(--g-bad); } #guideDoc .g-btn.mode { border-color: var(--g-acc); color: var(--g-acc); }
+#guideDoc .g-pill { display: inline-block; padding: 1px 12px; border-radius: 999px; font-weight: 800; font-size: 17px; color: #fff; }
+#guideDoc .g-green { background: #11875a; } #guideDoc .g-red { background: #c4302b; } #guideDoc .g-amber { background: #b06a00; } #guideDoc .g-grey { background: #5d6b78; }
+#guideDoc table.g-t { width: 100%; border-collapse: collapse; margin: 12px 0; font-size: 18px; }
+#guideDoc table.g-t th, #guideDoc table.g-t td { border: 1px solid var(--g-line); padding: 8px 10px; text-align: left; vertical-align: top; }
+#guideDoc table.g-t th { background: var(--g-panel2); color: var(--g-ink); font-size: 16px; letter-spacing: 0; text-transform: none; }
+#guideDoc code, #guideDoc .g-code { font-family: ui-monospace, Consolas, Menlo, monospace; background: var(--g-panel2); border: 1px solid var(--g-line); border-radius: 6px; padding: 1px 7px; font-size: 17px; word-break: break-word; }
+#guideDoc .g-grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+@media (max-width: 760px) { #guideDoc { font-size: 18px; } #guideDoc h1 { font-size: 32px; } #guideDoc h2 { font-size: 26px; } #guideDoc .g-grid2 { grid-template-columns: 1fr; } }
+#guideDoc svg.g-fig { width: 100%; height: auto; max-width: 880px; display: block; margin: 12px auto; }
+#guideDoc svg text { font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; fill: var(--g-ink); }
+#guideDoc .g-oled { display: inline-block; background: #0a0f12; color: #cfe; border: 4px solid #444; border-radius: 6px; padding: 8px 12px; font-family: ui-monospace, Consolas, monospace; font-size: 16px; line-height: 1.35; min-width: 250px; margin: 6px 10px 6px 0; vertical-align: top; }
+#guideDoc .g-oled b { color: #3fe0ff; }
+#guideDoc ol.g-toc { list-style: none; padding-left: 4px; }
+#guideDoc .g-toc a { color: var(--g-acc); font-weight: 700; text-decoration: none; } #guideDoc .g-toc li { margin: 4px 0; }
+#guideDoc .g-qs { page-break-after: always; break-after: page; border: 4px solid var(--g-acc); border-radius: 18px; padding: 18px 22px; margin: 16px 0 30px; background: var(--g-panel); }
+#guideDoc .g-qs h2 { border-top: 0; margin-top: 0; padding-top: 0; }
+#guideDoc .g-cred { margin-top: 36px; padding-top: 14px; border-top: 1px dashed var(--g-line); font-size: 16px; color: var(--g-mut); text-align: center; }
+@media print {
+  #guideDoc { font-size: 13.5pt; max-width: none; }
+  #guideDoc .g-top .g-btns { display: none; }
+  #guideDoc h2 { page-break-after: avoid; break-after: avoid; } #guideDoc .g-box, #guideDoc ol.g-steps > li, #guideDoc table.g-t tr, #guideDoc svg.g-fig { page-break-inside: avoid; break-inside: avoid; }
+  #guideDoc .g-pill, #guideDoc ol.g-steps > li::before { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+}
+</style>
+
+<div class="g-top">
+  <div>
+    <div class="g-mut">LODESTAR CAIRN &middot; Cairn Tactical Unit (CTU) &middot; Version 1.1.0 &middot; Wolf Reactive Systems (WRS)</div>
+    <h1>CAIRN Field Guide</h1>
+    <div class="g-lead">How to send &ldquo;I&rsquo;m OK&rdquo; and &ldquo;I need help&rdquo; when phones do not work.</div>
+  </div>
+  <div class="g-btns"><button id="btnPrint" class="pri" type="button">Print or save as PDF</button><button id="btnGuideSave" type="button">Download this guide (web page file)</button></div>
+</div>
+
+<!-- ============================================================ QUICK START -->
+<div class="g-qs" id="g-quick">
+  <h2>Quick start &mdash; read this first</h2>
+  <p class="g-lead"><b>CAIRN</b> sends short messages from radio to radio. It needs <b>no phone signal, no internet and no licence</b>. Other CAIRN or MeshCore radios (or a repeater) must be within range to hear you.</p>
+  <ol class="g-steps">
+    <li><b>Antennas on first.</b> Screw the antenna onto <b>each</b> radio before you give it power. A radio that sends with no antenna can be damaged.</li>
+    <li><b>Plug in.</b> Plug the tablet, the CAIRN radio (the one with the little screen) and the small repeater radio into the USB hub. Plug a charged power bank into the hub. Wait one minute.</li>
+    <li><b>Open the CAIRN page</b> on the tablet. Tap the screen to get past the opening picture. Press <span class="g-btn mode">Connect radio</span> and choose the radio.</li>
+    <li><b>Say you are OK.</b> On the <b>Home</b> screen press <span class="g-btn ok">I&rsquo;M OK</span>. Everyone in range sees your tag and where you are.</li>
+    <li><b>In trouble?</b> <b>Call 911 first if you can.</b> If you cannot, press <span class="g-btn help">I NEED HELP</span>, then <b>YES, SEND HELP</b>. It keeps calling every few minutes until you cancel.</li>
+  </ol>
+  <div class="g-box g-warn"><b class="t">Remember</b>Everything you send, including your position, can be read by anyone with a radio in range. Your tablet and radio need power: check the <b>Power</b> screen now and then.</div>
+  <p class="g-mut">No tablet? The CAIRN radio has its own small screen. Short press the button to change screens. On the <b>HELP</b> screen, hold the button, then hold it again within 5 seconds to send a help call.</p>
+</div>
+
+<h2 id="g-contents">What is in this guide</h2>
+<ol class="g-toc">
+  <li><a href="#g-what">1. What CAIRN is, and what it is not</a></li>
+  <li><a href="#g-kit">2. What is in the kit</a></li>
+  <li><a href="#g-first">3. First-time setup (do this at home)</a></li>
+  <li><a href="#g-use">4. Using it: the Home screen</a></li>
+  <li><a href="#g-people">5. Reading what others send</a></li>
+  <li><a href="#g-chat">6. Chat and channels</a></li>
+  <li><a href="#g-modes">7. Standard and Disaster mode</a></li>
+  <li><a href="#g-power">8. Power: batteries, solar, and radio strength</a></li>
+  <li><a href="#g-screen">9. The radio&rsquo;s own little screen</a></li>
+  <li><a href="#g-fix">10. If something is not working</a></li>
+  <li><a href="#g-safe">11. Safety, privacy and the rules</a></li>
+  <li><a href="#g-cmd">12. Commands (for helpers)</a></li>
+  <li><a href="#g-list">13. Kit checklist</a></li>
+  <li><a href="#g-words">14. Words used in this guide</a></li>
+</ol>
+
+<h2 id="g-what">1. What CAIRN is, and what it is not</h2>
+<p><b>CAIRN</b> is a pair of small radios and a tablet. It lets people near each other send short text messages, check in, and call for help when phones and the internet are down. It also works on a normal day for hikes, events and camping.</p>
+<div class="g-grid2">
+  <div class="g-box g-good"><b class="t">It can</b>
+    <ul><li>Send &ldquo;I&rsquo;m OK&rdquo; with your position</li><li>Call for help, again and again, until cancelled</li><li>Send short messages (up to 140 letters)</li><li>Show who has reported, who needs help, and what is marked on the map</li><li>Work with no internet at all (load maps ahead of time)</li></ul></div>
+  <div class="g-box g-stop"><b class="t">It cannot</b>
+    <ul><li><b>Call 911</b> or reach emergency services by itself</li><li>Reach people who have no radio in range</li><li>Promise a message arrived</li><li>Keep a secret on the Public channel</li></ul></div>
+</div>
+<p>How far it reaches changes a lot. In a city, a few blocks. In the open, or with a repeater on a roof or hill, much farther. Height helps more than anything else: go up, go outside.</p>
+
+<h2 id="g-kit">2. What is in the kit</h2>
+<svg class="g-fig" viewBox="0 0 880 330" role="img" aria-label="Kit layout: the power bank feeds the USB hub; the tablet, the CAIRN radio and the repeater radio plug into the hub; the solar panel charges the power bank.">
+  <g stroke="currentColor" stroke-width="3" fill="none" style="color:var(--g-ink)">
+    <rect x="30" y="20" width="200" height="90" rx="12" fill="var(--g-panel2)"/><rect x="340" y="120" width="200" height="90" rx="12" fill="var(--g-panel2)"/>
+    <rect x="650" y="20" width="200" height="90" rx="12" fill="var(--g-panel2)"/><rect x="650" y="125" width="200" height="80" rx="12" fill="var(--g-panel2)"/><rect x="650" y="225" width="200" height="80" rx="12" fill="var(--g-panel2)"/>
+    <rect x="30" y="200" width="200" height="90" rx="12" fill="var(--g-panel2)"/>
+    <path d="M130 110 V160 H340"/><path d="M130 200 V160"/><path d="M540 150 H600 V65 H650"/><path d="M540 165 H650"/><path d="M540 185 H600 V265 H650"/>
+  </g>
+  <g font-size="22" text-anchor="middle"><text x="130" y="58" font-weight="700">Solar panel</text><text x="130" y="86" font-size="17">charges a power bank</text>
+    <text x="130" y="238" font-weight="700">Power banks</text><text x="130" y="266" font-size="17">keep charged</text>
+    <text x="440" y="158" font-weight="700">USB hub</text><text x="440" y="186" font-size="17">the middle of the kit</text>
+    <text x="750" y="58" font-weight="700">Tablet</text><text x="750" y="86" font-size="17">the CAIRN page</text>
+    <text x="750" y="160" font-weight="700">CAIRN radio</text><text x="750" y="186" font-size="17">has a little screen</text>
+    <text x="750" y="260" font-weight="700">Repeater radio</text><text x="750" y="288" font-size="17">helps messages go farther</text></g>
+</svg>
+<p class="g-mut">Your kit card shows the exact cables. Keep the two radios&rsquo; antennas <b>apart from each other and away from the hub and cables</b>: that gives the best range.</p>
+
+<h2 id="g-first">3. First-time setup (do this at home, with internet)</h2>
+<ol class="g-steps">
+  <li><b>Charge everything</b> &mdash; tablet, power banks, and the radio&rsquo;s own battery if it has one.</li>
+  <li><b>Open the CAIRN page</b> in Chrome on the tablet. In the browser menu choose <b>Add to Home screen</b>. After that it opens with no internet.</li>
+  <li><b>Load a map for your area.</b> Go to <b>Map</b>, pick your region in the list, download it, then press <b>Load a map file</b>. Maps are big, so use Wi-Fi.</li>
+  <li><b>Try Practice.</b> At the top, press <span class="g-btn">Practice</span>. The page fills with pretend people so you can press every button safely. Press <b>Stop practice</b> when done.</li>
+  <li><b>Check the antenna number.</b> Go to <b>Power</b>. The radio assumes a normal antenna (2 dBi). If you fit a different antenna, type the number printed on it in <b>Antenna gain</b> and press <b>Set</b>. This keeps the radio inside the legal power limit.</li>
+  <li><b>Choose where &ldquo;I&rsquo;m OK&rdquo; goes.</b> On Home, <b>These go to channel</b> is normally <b>0 - Public</b>. Leave it unless your group agreed on another channel.</li>
+</ol>
+
+<h2 id="g-use">4. Using it: the Home screen</h2>
+<p>The <b>Home</b> screen is the only one you need in an emergency. Big buttons, plain words.</p>
+<div class="g-box"><b class="t">The colour bar at the top tells you if you can reach people</b>
+  <p><span class="g-pill g-green">REACHABLE</span> a repeater is heard. Your messages should get through.<br>
+  <span class="g-pill g-red">NO REPEATER HEARD</span> go higher or outside; radios right next to you can still hear you.<br>
+  <span class="g-pill g-amber">RADIO NOT CONNECTED</span> plug the radio into the hub and press <b>Connect radio</b>.</p></div>
+<h3>The two big buttons</h3>
+<p><span class="g-btn ok">I&rsquo;M OK</span> Sends your tag (like <code>LC-K7M2P4XQ</code>) and your position. Press it when you arrive somewhere, and every hour or so. Or let the radio do it for you: <b>Power</b> &rarr; <b>Automatic I&rsquo;M OK</b>.</p>
+<p><span class="g-btn help">I NEED HELP</span> Asks first (&ldquo;Send a call for help?&rdquo;). If you say yes, the radio sends <b>NEEDS HELP</b> with your position, and <b>repeats it</b> every few minutes. The button turns into <b>CANCEL HELP CALL</b>. Cancelling tells everyone you are OK.</p>
+<div class="g-box g-stop"><b class="t">Call 911 first when you can.</b>CAIRN only reaches other radios. It does not call emergency services.</div>
+<h3>Send a status</h3>
+<p>One tap tells everyone what you need or are doing, with your position:</p>
+<p><span class="g-btn">Need medical</span> <span class="g-btn">Need water</span> <span class="g-btn">Need food</span> <span class="g-btn">Need shelter</span> <span class="g-btn">Need transport</span> <span class="g-btn">Evacuating</span> <span class="g-btn">Staying put</span> <span class="g-btn">Can help</span></p>
+<h3>Mark this place</h3>
+<p>Stand where something is, then tap what it is. It shows on every CAIRN map and in the report:</p>
+<p><span class="g-btn">Water</span> <span class="g-btn">Shelter</span> <span class="g-btn">Medical aid</span> <span class="g-btn">Hazard</span> <span class="g-btn">Meeting point</span> <span class="g-btn">Road blocked</span> <span class="g-btn">Supplies</span></p>
+<h3>Ready check</h3>
+<p>A list of ticks <span class="g-pill g-green">&#10003;</span> notes <span class="g-pill g-amber">!</span> and problems <span class="g-pill g-red">&#10007;</span>. Look at it when you set up and fix the red ones. It ends with <b>READY</b> when all is well.</p>
+<h3>Situation report</h3>
+<p>Press <b>Make a report</b> for a short summary of who has reported, who needs help and what is marked. You can read it aloud to a rescuer, copy it, save it, or send a one-line version to everyone.</p>
+<h3>When someone else calls for help</h3>
+<p>A big red box appears on every screen with a sound. It shows who, how long ago, and which direction and how far. Press <b>Show on map</b> to see where, and <b>Got it</b> when someone is dealing with it. Turn the sound off with <b>Sound for help calls</b> on Home.</p>
+
+<h2 id="g-people">5. Reading what others send</h2>
+<p>The <b>People</b> screen lists everyone who has reported. It shows <b>NEEDS HELP</b> at the top, their last status, whether their battery is low, and where they are. Under <b>Needs and places</b> you see totals (for example &ldquo;2 Need water&rdquo;) and all marked places. <b>Overdue</b> means someone has not been heard from for a while (you can change how long).</p>
+<p>The <b>Map</b> shows you, the repeaters, the other people, <b>red pulsing dots for help calls</b>, and orange diamonds for marked places. With no internet, load a map ahead of time (section 3).</p>
+
+<h2 id="g-chat">6. Chat and channels</h2>
+<p>Open <b>Chat</b>. Pick a channel on the left, type your message, press <b>Send</b>. Messages are up to 140 letters. Remember that anyone in range may read the Public channel.</p>
+<h3>What is a channel?</h3>
+<p>A channel is a group. Everyone who has the same channel can read it, and everyone else cannot (except on Public and Open channels). There are three kinds:</p>
+<table class="g-t"><tr><th>Kind</th><th>What it is</th><th>Who can read it</th></tr>
+<tr><td><b>Public</b></td><td>Built in. Channel 0.</td><td>Everyone with a CAIRN or MeshCore radio nearby</td></tr>
+<tr><td><b>Open</b> (starts with #)</td><td>Anyone who types the same name joins, for example <code>#water-tank</code></td><td>Anyone who knows the name</td></tr>
+<tr><td><b>Private</b></td><td>Needs a name <b>and</b> a secret key</td><td>Only people you give the key to</td></tr></table>
+<h3>Add or remove a channel</h3>
+<p>In <b>Chat</b>, open <b>Channels: add or remove</b> (the grey bar under the people list).</p>
+<ol class="g-steps">
+  <li><b>Join an open channel:</b> type the name (letters, numbers and dashes) in the first box and press <b>Add</b>.</li>
+  <li><b>Make a private channel:</b> type a name and press <b>Make</b>. The radio makes the secret key and shows it. Give the <b>name and key</b> to your people (write it down or press <b>Copy</b>).</li>
+  <li><b>Join a private channel:</b> type the name, then the 32-letter key you were given, and press <b>Join</b>.</li>
+  <li><b>Remove a channel:</b> press <b>Remove</b> beside it, then <b>Yes, remove</b>. Public cannot be removed. The radio holds up to 40 channels.</li>
+</ol>
+<div class="g-box g-note"><b class="t">Check-ins go to one channel</b>I&rsquo;m OK, help calls, statuses and marks all go to the channel marked <b>check-ins go here</b>. It starts as Public so everyone nearby sees them. To use a private channel instead, press <b>Use for check-ins</b> beside it. Do this <b>only if everyone who might help you is on that channel</b>.</div>
+
+<h2 id="g-modes">7. Standard and Disaster mode</h2>
+<table class="g-t"><tr><th></th><th><span class="g-btn mode">STANDARD</span></th><th><span class="g-btn help">DISASTER</span></th></tr>
+<tr><td>Use it</td><td>Every day, hikes, practice</td><td>A real emergency</td></tr>
+<tr><td>Radio strength</td><td>The strongest the rules allow. Drops by itself when the battery is low (below 25%).</td><td>The strongest the rules allow, <b>always</b>, even on a low battery</td></tr>
+<tr><td>Radio screen</td><td>Normal</td><td>Turns off sooner to save power</td></tr>
+<tr><td>Quiet hours</td><td>Obeyed</td><td>Off, so nothing is silenced</td></tr>
+<tr><td>Silent repeaters</td><td>Marked stale after a while</td><td>Marked stale sooner</td></tr></table>
+<p>Change it with the two buttons on <b>Home</b>, or on the radio&rsquo;s own <b>POWER</b> screen. The mode is remembered when the radio restarts. A running help call always uses full strength.</p>
+<div class="g-box g-note"><b class="t">Why both modes have the same top power</b>In the United States, radios that need no licence have one legal limit (about 1 watt at the antenna, with an antenna up to 6 dBi) and there is no higher limit for emergencies. So Disaster mode does not make the signal stronger than Standard at full power. It makes sure the radio <i>stays</i> at full power and stops it saving battery.</div>
+
+<h2 id="g-power">8. Power: batteries, solar, and radio strength</h2>
+<h3>What uses the power</h3>
+<p>The <b>tablet</b> uses the most (it is like a small lamp). The two radios together use little while listening. Sending a message costs very little. So: <b>turn the tablet screen down, close other apps, and let the tablet sleep</b>. The radios keep working while the tablet sleeps, and the CAIRN radio keeps the log.</p>
+<h3>The Power screen</h3>
+<ul><li><b>Radio power and settings</b> &mdash; shows the strength now and why. <b>FULL</b> is the strongest allowed; <b>SAVER</b> uses less battery and reaches less far.</li>
+<li><b>Battery saving</b> (on by default) &mdash; below 25% on battery, Standard mode uses the saver strength and automatic check-ins slow down. It turns itself off at 35% or when you plug power in.</li>
+<li><b>Low-battery message</b> &mdash; at 15% the radio sends <b>LOW BATTERY</b> once so friends know you may go quiet.</li>
+<li><b>How long will my power last?</b> &mdash; type in your power bank size, tablet use and solar panel. It tells you roughly how many hours or days you have. It is an estimate, not a promise.</li>
+<li><b>Power banks timer</b> &mdash; a reminder. The radios cannot see how full a power bank is, so press the button when you start one.</li></ul>
+<h3>Power banks and solar &mdash; simple rules</h3>
+<ol class="g-steps">
+  <li><b>Charge the power banks before you need them</b>, and top them up whenever you can.</li>
+  <li><b>Put the solar panel in direct sun</b>, pointing at the sun, with nothing shading even a corner. Shade on part of a panel cuts its power a lot. Check it every hour or two and turn it toward the sun.</li>
+  <li><b>Charge a power bank with the panel; run the kit from a power bank.</b> Charging and running at the same moment works only if your bank allows it.</li>
+  <li><b>Keep batteries warm in the cold.</b> Cold makes them lose charge fast. Keep them inside a coat or bag.</li>
+  <li><b>Use a hub and cables that can give enough power.</b> The radio draws short bursts of up to about 0.75 amp when it sends at full strength. A weak hub makes the radio restart. If it restarts when sending, change the hub or cable.</li>
+</ol>
+<h3>Antenna gain and the legal limit</h3>
+<p>The radio works out its power from the antenna you tell it about. The stock antenna is about 2 dBi. A bigger antenna (higher dBi) sends more strongly in one direction, so the rules make the radio send with <i>less</i> power. If you change the antenna, enter its number on the <b>Power</b> screen.</p>
+
+<h2 id="g-screen">9. The radio&rsquo;s own little screen</h2>
+<p>The CAIRN radio shows a picture of a star over a stack of stones when it starts, then the home pages. <b>Short press</b> the button to go to the next page. <b>Hold</b> the button to do what the page says.</p>
+<div>
+<div class="g-oled"><b>CAIRN STATION</b><br>LC-K7M2P4XQ<br>log 20KB 41 lines<br>check-in 4m ago<br>hold: send check-in</div>
+<div class="g-oled"><b>HELP</b><br>I NEED HELP call<br>repeats until cancelled<br><br>hold: arm<br><span style="color:#889">(then:)</span> <b>SEND HELP CALL?</b><br>Press again to send</div>
+<div class="g-oled"><b>STANDARD MODE</b><br>radio 28 dBm (631 mW)<br>battery 88% +power<br>full range<br>hold: switch mode</div>
+</div>
+<p><b>HELP page:</b> hold once to arm (&ldquo;SEND HELP CALL?&rdquo;), then hold again within 5 seconds to send. This stops accidental calls in a pocket. While the call is running, hold once to cancel. <b>POWER page:</b> hold to switch between Standard and Disaster.</p>
+
+<h2 id="g-fix">10. If something is not working</h2>
+<table class="g-t"><tr><th>What you see</th><th>What to do</th></tr>
+<tr><td>Cannot press <b>Connect radio</b>, or the radio is not in the list</td><td>Use <b>Chrome</b> (version 148 or newer on Android). Unplug the radio and plug it in again. Close other apps that use USB. Use a cable that carries data, not a charge-only cable.</td></tr>
+<tr><td><span class="g-pill g-red">NO REPEATER HEARD</span></td><td>Go outside, up high, away from metal and walls. Check that the antenna is tight. Wait 10 minutes. Radios near you can still hear you.</td></tr>
+<tr><td>Buttons are grey</td><td>The radio is not connected yet. Press <b>Connect radio</b>.</td></tr>
+<tr><td>&ldquo;No position yet&rdquo; (no GPS)</td><td>Go outside or stand by a window and wait a few minutes. Messages still work; they just say <i>no GPS fix</i>.</td></tr>
+<tr><td>The radio keeps restarting when sending</td><td>The hub or cable cannot give enough power. Plug the radio into a stronger port or power bank, or use a shorter cable.</td></tr>
+<tr><td>Power seems low</td><td>See section 8. Check <b>Battery saving</b>, and that the antenna number is right.</td></tr>
+<tr><td>Chat says the person&rsquo;s key has not been heard</td><td>Wait for their radio to announce itself (it can take several minutes), then try again.</td></tr>
+<tr><td>Typing is hard</td><td>Use the little keyboard button beside a box to bring up the on-screen keyboard, or the <b>Keyboard</b> button at the top.</td></tr>
+<tr><td>Everything looks wrong</td><td>Use the radio&rsquo;s small <b>reset</b>: unplug it, wait 10 seconds, plug it in. Your channels, mode and settings are remembered.</td></tr></table>
+
+<h2 id="g-safe">11. Safety, privacy and the rules</h2>
+<div class="g-box g-stop"><b class="t">Emergency services</b>If you can use a phone, <b>call 911</b> (or your local number). CAIRN is a backup. It cannot reach 911.</div>
+<div class="g-box g-warn"><b class="t">Privacy</b>Your tag and <b>position</b> go out to everyone in range when you press I&rsquo;M OK, a status, a mark, or a help call. Messages on Public and Open channels can be read by anyone. Private channels are for people who have the key.</div>
+<ul><li><b>Antennas on first.</b> Never send with no antenna.</li>
+<li><b>Do not stand close to the antenna while sending.</b> Keep the antenna a little away from your body and from other people when you are sending a lot.</li>
+<li><b>No licence needed in the US.</b> CAIRN is designed to stay inside the limit for unlicensed (FCC Part 15) radios in the 902&ndash;928 MHz band. For that to be true, use only the antenna the radio expects (or enter the right number). You may not cause harmful interference, and you must accept interference from others.</li>
+<li><b>Outside the US,</b> follow your own country&rsquo;s rules for this kind of radio, and check the radio&rsquo;s frequency setting.</li>
+<li><b>This is ALPHA software.</b> It is still being tested. Practise with it before you rely on it. It is a help, not a guarantee.</li></ul>
+
+<h2 id="g-cmd">12. Commands (for helpers)</h2>
+<p class="g-mut">You never need these to use CAIRN. They can be typed into the <b>Console</b> (Full view &rarr; Station) or a serial terminal. Every button above sends one of them.</p>
+<table class="g-t"><tr><th>Type</th><th>What it does</th></tr>
+<tr><td><code>cairn</code></td><td>Station tag, mode, journal size</td></tr>
+<tr><td><code>cairn ok [channel]</code></td><td>Send I&rsquo;M OK (to the check-in channel unless a number is given)</td></tr>
+<tr><td><code>cairn help [channel]</code> / <code>cairn help off</code></td><td>Start or cancel the repeating help call</td></tr>
+<tr><td><code>cairn beacon 5</code></td><td>Help call repeats every 5 minutes (1&ndash;60)</td></tr>
+<tr><td><code>cairn ustatus 2</code></td><td>Send status number 2 (1 Need medical, 2 Need water, 3 Need food, 4 Need shelter, 5 Need transport, 6 Evacuating, 7 Staying put, 8 Can help)</td></tr>
+<tr><td><code>cairn mark 4</code></td><td>Mark this place: 1 Water, 2 Shelter, 3 Medical aid, 4 Hazard, 5 Meeting point, 6 Road blocked, 7 Supplies</td></tr>
+<tr><td><code>cairn mode standard</code> / <code>cairn mode disaster</code></td><td>Change mode</td></tr>
+<tr><td><code>cairn power full</code> / <code>saver</code> / <code>status</code></td><td>Power choice, or show the power now and the limit</td></tr>
+<tr><td><code>cairn antenna 2</code></td><td>Tell the radio the antenna gain in dBi (0&ndash;20)</td></tr>
+<tr><td><code>cairn auto 30</code> / <code>cairn auto off</code></td><td>Automatic I&rsquo;M OK every 30 minutes (10&ndash;1440), or off</td></tr>
+<tr><td><code>cairn eco on</code> / <code>off</code>, <code>cairn lowbat on</code> / <code>off</code></td><td>Battery saving; low-battery message</td></tr>
+<tr><td><code>cairn main 0</code></td><td>Channel used for check-ins, help, status and marks</td></tr>
+<tr><td><code>cairn chans</code></td><td>List channels</td></tr>
+<tr><td><code>cairn chan add #name</code></td><td>Join an open channel</td></tr>
+<tr><td><code>cairn chan new Name</code></td><td>Make a private channel with a new key</td></tr>
+<tr><td><code>cairn chan add Name &lt;32-character key&gt;</code></td><td>Join a private channel</td></tr>
+<tr><td><code>cairn chan key 3</code> / <code>cairn chan remove 3</code></td><td>Show channel 3&rsquo;s key / remove channel 3</td></tr>
+<tr><td><code>cairn say 0 hello</code></td><td>Send a message to channel 0</td></tr>
+<tr><td><code>cairn config</code></td><td>Show all settings</td></tr>
+<tr><td><code>cairn dump</code> / <code>cairn clear yes</code> / <code>cairn time &lt;seconds&gt;</code></td><td>Send the log / erase the radio&rsquo;s log / set the radio clock</td></tr></table>
+
+<h2 id="g-list">13. Kit checklist</h2>
+<p>Tick these off before you go. Print this page and keep it in the kit.</p>
+<table class="g-t"><tr><td>&#9744; Tablet, charged</td><td>&#9744; USB hub</td><td>&#9744; CAIRN radio + antenna</td></tr>
+<tr><td>&#9744; Repeater radio + antenna</td><td>&#9744; Power banks (charged)</td><td>&#9744; Solar panel + cable</td></tr>
+<tr><td>&#9744; Spare cables (data cables)</td><td>&#9744; Offline map loaded</td><td>&#9744; This guide on paper</td></tr>
+<tr><td>&#9744; Antenna gain number entered</td><td>&#9744; Ready check says READY</td><td>&#9744; Everyone knows the check-in channel</td></tr></table>
+
+<h2 id="g-words">14. Words used in this guide</h2>
+<table class="g-t">
+<tr><td><b>Station tag</b></td><td>Your radio&rsquo;s name tag, like <code>LC-K7M2P4XQ</code>. It is made once and never changes.</td></tr>
+<tr><td><b>Repeater</b></td><td>A radio whose job is to pass messages along so they go farther.</td></tr>
+<tr><td><b>Channel</b></td><td>A group chat. Everyone with the same channel reads it.</td></tr>
+<tr><td><b>Key</b></td><td>A secret code (32 letters and numbers) that opens a private channel.</td></tr>
+<tr><td><b>GPS fix</b></td><td>The radio knows where it is, from satellites. It needs a view of the sky.</td></tr>
+<tr><td><b>dBi</b></td><td>How strongly an antenna focuses the signal. The stock antenna is about 2.</td></tr>
+<tr><td><b>mW / W</b></td><td>Milliwatts and watts: how strongly the radio sends. 1000 mW is 1 W.</td></tr>
+<tr><td><b>Overdue</b></td><td>Someone has not been heard from for longer than you set.</td></tr></table>
+
+<div class="g-cred"><b>Engineered by: Aries Thorne &amp; Todd Steinhauer for Wolf Reactive Systems (WRS)</b><br>Special thanks to the NTXMESH community, Meshcore Community, and Pat Steinhauer-Scates for their guidance and support.<br>LODESTAR CAIRN is ALPHA software. Mesh radio is not a replacement for 911, a phone or a satellite messenger.</div>
+</div>

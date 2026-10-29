@@ -1,4 +1,4 @@
-LODESTAR CAIRN - FLASHING AND SETUP GUIDE (Ver. 1.0.4, ALPHA)
+LODESTAR CAIRN - FLASHING AND SETUP GUIDE (Ver. 1.1.0, ALPHA)
 By Wolf Reactive Systems (WRS). Written for a beginner. You need a Heltec WiFi LoRa 32 V4 R2 (check the back: R2, not R8).
 
 WHAT YOU NEED
@@ -15,7 +15,7 @@ STEP 1 - FLASH
 STEP 2 - FIRST SETTINGS (MeshCore app, Bluetooth)
 1. Pair the radio in the MeshCore app. Set your name and the radio settings for your region
    (USA example: 910.525 MHz, 62.5 kHz, SF 7, CR 5; check your local mesh).
-2. In the command box type:  cairn   You should see "LODESTAR CAIRN 1.0.4  ID LC-xxxxxxxx". Write the ID down.
+2. In the command box type:  cairn   You should see "LODESTAR CAIRN 1.1.0  ID LC-xxxxxxxx  STANDARD mode ...". Write the ID down.
 3. Reboot and type cairn again: the ID must be the same.
 
 STEP 3 - THE DASHBOARD
@@ -26,6 +26,14 @@ Online (before the field):
 In the field (no internet):
 1. Radio into the hub, hub into the tablet. Open the dashboard, press Connect radio, choose the radio.
 2. Status says Live and your ID shows at the top. The radio clock is set automatically.
+
+STEP 3b - POWER AND ANTENNA
+1. Dashboard -> Power. If your antenna is not the stock one (about 2 dBi), type its gain (printed on the antenna or its
+   packaging) and press Set. CAIRN works out the highest power the US unlicensed rule allows from that number.
+2. Check "Radio power and settings": Standard mode shows about 630 mW with the stock antenna.
+3. Settings are remembered over a restart (/cairn.cfg on the radio).
+4. Power: the radio needs short bursts of up to about 0.75 A when it sends at full power. Use a hub and cable that can
+   supply that. Solar input to the Heltec V4 is 4.7-6 V; use a power bank between the panel and the kit for a steady supply.
 
 STEP 4 - THE REPEATER
 Flash the XIAO ESP32S3 with LODESTAR PULSAR (see the PULSAR zip). Power it from the hub only. It does not connect to the tablet.
