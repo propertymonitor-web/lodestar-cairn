@@ -166,6 +166,18 @@ jobs:
         run: |
           cat gradle-test.log gradle-build.log 2>/dev/null | grep -E "^e: |error:|FAILED|What went wrong|Could not|Execution failed|> |not found|Unresolved|Duplicate" | head -40 | while IFS= read -r l; do echo "::error::${l:0:900}"; done
 
+      - name: Check the package (name, version, dashboard inside, signature)
+        run: |
+          BT=$(ls -d "$ANDROID_HOME"/build-tools/* | sort -V | tail -1)
+          APK=android/app/build/outputs/apk/release/app-release.apk
+          "$BT/aapt" dump badging "$APK" > badging.txt
+          grep -q "package: name='com.wolfreactive.cairn.station'" badging.txt || { echo "::error::wrong package name"; exit 1; }
+          grep -q "versionName='1.2.0'" badging.txt || { echo "::error::wrong version"; exit 1; }
+          grep -q "android.intent.category.HOME" <("$BT/aapt" dump xmltree "$APK" AndroidManifest.xml) || { echo "::error::the app is not offered as a Home app"; exit 1; }
+          unzip -l "$APK" | grep -q "assets/station.html" || { echo "::error::the dashboard is not inside the app"; exit 1; }
+          "$BT/apksigner" verify --print-certs "$APK" | head -3
+          grep -E "uses-permission" badging.txt | sed "s/^/::notice::/" | head -12
+
       - name: Name the package
         run: |
           VER=$(sed -n 's/.*versionName = "\(.*\)".*/\1/p' android/app/build.gradle.kts)
