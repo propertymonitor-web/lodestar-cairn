@@ -260,22 +260,22 @@ jobs:
           strings -n 5 "$BIN" | grep -q -F "no GPS fix" || { echo "::error::The no-GPS text is missing from the build."; exit 1; }
           strings -n 5 "$BIN" | grep -q -F "LODESTAR CAIRN" || { echo "::error::The CAIRN command text is missing from the build."; exit 1; }
 
+      - uses: actions/download-artifact@v4
+        with:
+          name: cairn-station-apk
+          path: out/
+
       - name: Collect files
         env:
           FW_ENV: ${{ inputs.env }}
         run: |
-          mkdir out
+          mkdir -p out
           cp "MeshCore/.pio/build/$FW_ENV/firmware-merged.bin" out/
           cp "MeshCore/.pio/build/$FW_ENV/firmware.bin" out/
           [ -f docs/index.html ] && cp docs/index.html out/dashboard.html
           ls out/*.apk >/dev/null 2>&1 || { echo "::error::The tablet app package is missing."; exit 1; }
           for f in CAIRN-Field-Guide.pdf CAIRN-Field-Guide.html CAIRN-Quick-Start-Card.pdf; do [ -f "docs/$f" ] && cp "docs/$f" out/; done
           git -C MeshCore rev-parse HEAD > out/meshcore_commit.txt
-
-      - uses: actions/download-artifact@v4
-        with:
-          name: cairn-station-apk
-          path: out/
 
       - uses: actions/upload-artifact@v4
         with:
