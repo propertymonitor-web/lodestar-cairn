@@ -258,6 +258,16 @@ int main(int argc, char** argv) {
     CHECK(c.statusJson(o, 50, 0, 0, 0) == 0);
     FILE* f = fopen("/tmp/status.json", "w"); if (f) { c.statusJson(o, sizeof(o), 125, 1770000000, 0); fputs(o, f); fclose(f); }
   }
+  { // byte ring for the Bluetooth text link
+    ByteRing<8> r; CHECK(r.room() == 8 && r.count() == 0 && r.pop() == -1);
+    for (int i = 0; i < 6; i++) CHECK(r.push('a' + i));
+    uint8_t b[8]; CHECK(r.peek(b, 4) == 4 && b[0] == 'a' && b[3] == 'd');
+    r.drop(4); CHECK(r.count() == 2 && r.pop() == 'e');
+    for (int i = 0; i < 6; i++) CHECK(r.push('0' + i));      // wraps around the end
+    CHECK(r.count() == 7 && r.push('x') && !r.push('y') && r.lost() == 1 && r.room() == 0);
+    CHECK(r.peek(b, 8) == 8 && b[0] == 'f' && b[1] == '0' && b[6] == '5' && b[7] == 'x');
+    r.drop(100); CHECK(r.count() == 0); r.push('q'); r.clear(); CHECK(r.count() == 0 && r.room() == 8);
+  }
   if (jl) fclose(jl);
   if (fails) { printf("%d FAILED\n", fails); return 1; }
   printf("all tests passed\n");

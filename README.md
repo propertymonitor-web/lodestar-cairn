@@ -1,4 +1,4 @@
-# LODESTAR CAIRN (ALPHA) - Ver. 1.1.0 (release cairn-alpha6)
+# LODESTAR CAIRN (ALPHA) - Ver. 1.2.0 (release cairn-alpha7)
 
 ![CAIRN emblem](docs/cairn-logo.png)
 
@@ -7,6 +7,14 @@ Crisis-use field kit firmware and dashboard for MeshCore, by Wolf Reactive Syste
 CAIRN turns a Heltec V4 R2 companion into a **station**: it gets a permanent ID (`LC-xxxxxxxx`), keeps a journal of **everything it hears**, sends a one-button check-in with GPS, and feeds a tablet dashboard that works with **no internet**.
 
 **Status: ALPHA. The firmware compiles and passes its tests, and the dashboard is tested with practice data, but neither has run on real hardware or on the tablet yet.**
+
+## What changed in cairn-alpha7 (Ver. 1.2.0): the CAIRN Station tablet app
+- **Android app "CAIRN Station"** (`android/`, built by GitHub Actions, attached to the release as `cairn-station-1.2.0.apk`): the dashboard inside an app that can be the tablet's Home screen. Start-up steps: splash, **Wi-Fi (the only skippable step)**, **repeater over the USB cable (required)**, **companion radio over Bluetooth (required)**, then the dashboard. If either link drops later, the steps return.
+- **Firmware: CAIRN text over Bluetooth.** The radio now answers `nova`/`cairn` commands and streams its journal and status over the Bluetooth companion link (one extra frame type, 0xC8), not only over USB. The USB path is unchanged. **The tablet app needs firmware 1.2.0.**
+- **Files screen:** the day's journal and repeater logs, saved reports, downloads; view, send by email, copy to Download/CAIRN, delete.
+- **Repeater card** on the Station screen: the repeater's own text, status requests every 30 s, send a command, set its clock.
+- **Online screen (Wi-Fi extras):** official US weather forecast and alerts (NWS), earthquakes (USGS), update check and download, offline-map download straight to the tablet, "Get ready now" button, and **Ask Gemini** (greyed out with no internet). Last answers stay on screen, marked with their age, when Wi-Fi is gone.
+- See `android/README.md` for install steps and the honest list of what is not tested or not included. The app has not run on real hardware yet.
 
 ## What changed in cairn-alpha6 (Ver. 1.1.0)
 - **Easy view for non-technical people:** a new Home screen with big buttons: **I'M OK**, **I NEED HELP** (asks first, repeats until cancelled), one-tap **status** (need water/medical/food/shelter/transport, evacuating, staying put, can help) and **mark this place** (water, shelter, medical aid, hazard, meeting point, road blocked, supplies). Full view still has the radar, nearby list, log and console.
@@ -55,7 +63,7 @@ CAIRN turns a Heltec V4 R2 companion into a **station**: it gets a permanent ID 
 
 ## The kit
 Android tablet (keyboard, mouse, stylus; designed for a 1280x800 10-inch screen, scales to others) + USB hub + two power banks + solar panel + Heltec V4 R2 running CAIRN (companion) + XIAO ESP32S3 running plain PULSAR (repeater, powered from the hub only).
-The companion connects to the tablet two ways: **Bluetooth** to the MeshCore app (chat) and **USB** to the dashboard (status and log).
+In a browser, the companion connects to the tablet two ways: **Bluetooth** to the MeshCore app (chat) and **USB** to the dashboard (status and log). In the **CAIRN Station** tablet app (firmware 1.2.0) the dashboard uses **Bluetooth** for the companion and the **USB cable goes to the repeater** instead; the radio talks to one Bluetooth app at a time.
 
 ## What it does
 - **Station ID** `LC-xxxxxxxx`: see "The station ID" below.
@@ -95,6 +103,7 @@ Use the **BLE** build: the USB port carries the dashboard. (The USB build uses t
 Enable GitHub Pages (Settings → Pages → `main` / `/docs`) then open the page once on the tablet and "Add to Home screen".
 
 Changelog:
+- 1.2.0 (cairn-alpha7): CAIRN Station Android tablet app, CAIRN text over Bluetooth, Files, repeater card, Online (weather, earthquakes, updates, map download, Gemini).
 - 1.1.0 (cairn-alpha6): Easy view, help/status/mark messages, channel add/remove, Standard/Disaster power plan, power calculator, alerts, splash, new field guide.
 - 1.0.4 (cairn-alpha5): Chat tab and cairn say / dm / chans commands.
 - 1.0.3 (cairn-alpha4): splash stays 5 seconds, MeshCore line removed from the splash.

@@ -21,6 +21,7 @@ ROOT = os.path.join(HERE, "..")
 CAIRN_H = os.path.join(ROOT, "cairn", "Cairn.h")
 CAIRN_PAGES = os.path.join(ROOT, "cairn", "ui", "CairnPages.h")
 CAIRN_LOGO = os.path.join(ROOT, "cairn", "ui", "CairnLogo.h")
+CAIRN_OUT_H = os.path.join(ROOT, "cairn", "CairnOut.h")
 
 
 def die(msg):
@@ -493,6 +494,42 @@ void MyMesh::cairnTick(uint32_t now) {
 '''
 
 
+
+# ---- Bluetooth text link (see cairn/CairnOut.h) ----------------------------------------------
+TUNNEL_DEFS = r'''
+// ---- LODESTAR CAIRN: text link over Bluetooth (frame type 0xC8, both ways) -----------------------
+CairnOut cairnOut;
+#define CMD_CAIRN_TEXT        0xC8
+#define PUSH_CODE_CAIRN_TEXT  0xC8
+
+void MyMesh::cairnTunnelIn(const uint8_t* p, size_t n) {
+  cairnOut.tunnelSeen(millis());
+  cairnOut.feed(p, n);
+}
+
+// Called every pass: send the next piece of the radio's text output to the tablet, if Bluetooth can take it.
+void MyMesh::cairnTunnelPump(uint32_t now) {
+  if (!cairnOut.tunnelOn()) return;
+  if (!_serial->isConnected() || cairnOut.quietFor(now) > CAIRN_TUN_QUIET) { cairnOut.tunnelOff(); return; }
+  if (_serial->isWriteBusy() || cairnOut.pending() == 0) return;
+  uint8_t f[1 + CAIRN_TUN_CHUNK];
+  f[0] = PUSH_CODE_CAIRN_TEXT;
+  size_t k = cairnOut.peek(&f[1], CAIRN_TUN_CHUNK);
+  if (_serial->writeFrame(f, 1 + k)) cairnOut.drop(k);
+}
+
+'''
+CAIRN_DEFS = CAIRN_DEFS.replace("Serial.", "cairnOut.")
+# slow down for the Bluetooth link: never queue more than it can carry
+for _old, _new in (
+    ("    if (dump_f) {\n      uint8_t buf[512];", "    if (dump_f && cairnOut.room() >= 600) {\n      uint8_t buf[512];"),
+    ("      if (!l) break;\n      cairnOut.write((const uint8_t*)l, strlen(l));", "      if (!l || cairnOut.room() < strlen(l) + 2) break;\n      cairnOut.write((const uint8_t*)l, strlen(l));"),
+):
+    if CAIRN_DEFS.count(_old) != 1:
+        raise SystemExit("apply_cairn.py: flow-control anchor missing: " + _old[:40])
+    CAIRN_DEFS = CAIRN_DEFS.replace(_old, _new)
+CAIRN_DEFS += TUNNEL_DEFS
+
 CREDIT_MARK = "LODESTAR-CREDIT"
 CREDIT_CPP = """// ===========================================================================  LODESTAR-CREDIT
 // Engineered by Aries Thorne & Todd Steinhauer for Wolf Reactive Systems (WRS),
@@ -532,9 +569,10 @@ def main():
     if "cairn_core" in h or "cairn_core" in c:
         die("This MeshCore checkout already has CAIRN in it. Use a fresh clone.")
     shutil.copyfile(CAIRN_H, os.path.join(root, "src", "helpers", "Cairn.h"))
+    shutil.copyfile(CAIRN_OUT_H, os.path.join(root, "src", "helpers", "CairnOut.h"))
 
     # ---- MyMesh.h -------------------------------------------------------------------------
-    h = once(h, "#include <helpers/Nova.h>\n", "#include <helpers/Nova.h>\n#include <helpers/Cairn.h>\n", "Nova include in MyMesh.h")
+    h = once(h, "#include <helpers/Nova.h>\n", "#include <helpers/Nova.h>\n#include <helpers/Cairn.h>\n#include <helpers/CairnOut.h>\n", "Nova include in MyMesh.h")
     h = once(h, "  void novaTick(uint32_t now);                                        // NOVA\n",
              "  void novaTick(uint32_t now);                                        // NOVA\n"
              "  void cairnInit();                                                   // CAIRN\n"
@@ -548,7 +586,9 @@ def main():
              "  bool cairnSendText(int ch, const char* text, size_t n);\n"
              "  bool cairnSendKind(int ch, int kind, int arg);\n"
              "  void cairnSaveCfg();\n"
-             "  void cairnChannelOp();\n",
+             "  void cairnChannelOp();\n"
+             "  void cairnTunnelIn(const uint8_t* p, size_t n);\n"
+             "  void cairnTunnelPump(uint32_t now);\n",
              "novaTick declaration")
     h = once(h, "extern nova::Nova nova_core;   // LODESTAR NOVA", "extern nova::Nova nova_core;   // LODESTAR NOVA\nextern cairn::Cairn cairn_core;   // LODESTAR CAIRN",
              "nova_core extern")
@@ -562,7 +602,7 @@ def main():
              "    cairnLogAdvert(pkt, (int)_radio->getLastRSSI());   // CAIRN journal\n", "found.onAdvert call")
     # the journal ticks with NOVA
     c = once(c, "  nova_core.loop(nv_now, nv_mv, board.isExternalPowered());\n",
-             "  nova_core.loop(nv_now, nv_mv, board.isExternalPowered());\n  cairnTick(nv_now);   // LODESTAR CAIRN\n", "nova_core.loop call")
+             "  nova_core.loop(nv_now, nv_mv, board.isExternalPowered());\n  cairnTick(nv_now);   // LODESTAR CAIRN\n  cairnTunnelPump(nv_now);   // CAIRN: text link to the tablet\n", "nova_core.loop call")
     # `cairn ...` lines on the USB serial port
     c = once(c, "    if (strncmp(nv_line, \"nova\", 4) != 0 || (nv_line[4] != 0 && nv_line[4] != ' ')) continue;\n",
              "    if (strncmp(nv_line, \"cairn\", 5) == 0 && (nv_line[5] == 0 || nv_line[5] == ' ')) { cairnCommand(nv_line + 5); continue; }   // CAIRN\n"
@@ -583,6 +623,27 @@ def main():
     c = once(c, "    out_frame[i++] = RESP_CODE_CHANNEL_MSG_RECV;\n  }\n\n  uint8_t channel_idx = findChannelIdx(channel);\n",
              "    out_frame[i++] = RESP_CODE_CHANNEL_MSG_RECV;\n  }\n\n  uint8_t channel_idx = findChannelIdx(channel);\n  cairnLogChannel(channel_idx, pkt, text);   // CAIRN journal\n",
              "channel message")
+
+    # the USB-dashboard text (NOVA reader and printers) also goes to the tablet over Bluetooth
+    a = c.index("  static char nv_line[200];")
+    b = c.index("\n#endif\n}\n", a)
+    seg = c[a:b]
+    for old, new in (("Serial.available()", "cairnOut.available()"), ("Serial.read()", "cairnOut.read()"), ("Serial.write(", "cairnOut.write("),
+                     ("Serial.print(", "cairnOut.print("), ("Serial.println(", "cairnOut.println(")):
+        if old not in seg:
+            die(f"NOVA serial block no longer uses {old}; update apply_cairn.py.")
+        seg = seg.replace(old, new)
+    if "Serial." in seg:
+        die("NOVA serial block has a Serial use apply_cairn.py does not know; update it.")
+    seg = seg.replace("    if (nv_n > 0) {\n      cairnOut.write((const uint8_t*)nv_json", "    if (nv_n > 0 && cairnOut.room() > nv_n + 2) {\n      cairnOut.write((const uint8_t*)nv_json")
+    seg = seg.replace("      size_t nv_m = nova_core.found.nextLine(", "      if (cairnOut.room() < 400) break;\n      size_t nv_m = nova_core.found.nextLine(")
+    for need in ("cairnOut.room() > nv_n + 2", "cairnOut.room() < 400"):
+        if need not in seg:
+            die("could not add Bluetooth flow control to the NOVA output: " + need)
+    c = c[:a] + seg + c[b:]
+    c = once(c, "  } else if (cmd_frame[0] == CMD_RUN_CLI_COMMAND && len >= 3) { // V14+\n",
+             "  } else if (cmd_frame[0] == CMD_CAIRN_TEXT && len >= 2) {   // CAIRN: a line of text from the tablet\n    cairnTunnelIn(&cmd_frame[1], len - 1);\n"
+             "  } else if (cmd_frame[0] == CMD_RUN_CLI_COMMAND && len >= 3) { // V14+\n", "CMD_RUN_CLI_COMMAND branch")
 
     open(h_path, "w").write(h)
     open(c_path, "w").write(c)

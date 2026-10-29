@@ -93,6 +93,9 @@ jobs:
           python3 -m playwright install --with-deps chromium
           python3 dashboard/test/test_dashboard.py
 
+      - name: Test the tablet-app screens with a pretend tablet (start-up steps, Files, Online)
+        run: python3 dashboard/test/test_station.py
+
   patch-check:
     name: Patch applies to current MeshCore, screens fit
     runs-on: ubuntu-latest
@@ -119,9 +122,54 @@ jobs:
           g++ -std=c++17 -Wall -Wextra -DNOVA_CAIRN=1 -Iinc -Inova/ui -Icairn/ui -isystem MeshCore/src cairn/test/test_cairn_ui.cpp -o cairn_ui_test
           ./cairn_ui_test
 
+  android:
+    name: Build the Android tablet app (CAIRN Station)
+    needs: [test]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - uses: android-actions/setup-android@v3
+
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: "8.9"
+
+      - name: The app carries the current dashboard
+        run: |
+          python3 tools/build_dashboard.py
+          git diff --exit-code docs/ || { echo "::error::docs/index.html is out of date"; exit 1; }
+          mkdir -p android/app/src/main/assets
+          cp docs/index.html android/app/src/main/assets/station.html
+
+      - name: Unit tests
+        working-directory: android
+        run: gradle --no-daemon testDebugUnitTest
+
+      - name: Build the app
+        working-directory: android
+        run: gradle --no-daemon assembleRelease
+
+      - name: Name the package
+        run: |
+          VER=$(sed -n 's/.*versionName = "\(.*\)".*/\1/p' android/app/build.gradle.kts)
+          mkdir -p apk
+          cp android/app/build/outputs/apk/release/app-release.apk "apk/cairn-station-$VER.apk"
+          ls -l apk
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: cairn-station-apk
+          path: apk/
+
   build:
     name: Build firmware
-    needs: [test, patch-check]
+    needs: [test, patch-check, android]
     if: github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     permissions:
@@ -183,7 +231,7 @@ jobs:
           BIN="MeshCore/.pio/build/$FW_ENV/firmware.elf"
           if [ "$UNITS" = "mph" ]; then WANT="1.0.4-mph"; else WANT="1.0.4"; fi   # the NOVA base version it is built on
           strings -n 5 "$BIN" | grep -q -x -F "$WANT" || { echo "::error::The version marker $WANT is missing from the build."; exit 1; }
-          strings -n 5 "$BIN" | grep -q -x -F "1.1.0" || { echo "::error::The CAIRN version marker 1.1.0 is missing from the build."; exit 1; }
+          strings -n 5 "$BIN" | grep -q -x -F "1.2.0" || { echo "::error::The CAIRN version marker 1.2.0 is missing from the build."; exit 1; }
           strings -n 5 "$BIN" | grep -q -F "NEEDS HELP" || { echo "::error::The help text is missing from the build."; exit 1; }
           strings -n 5 "$BIN" | grep -q -x -F "Reporting" || { echo "::error::The check-in text is missing from the build."; exit 1; }
           strings -n 5 "$BIN" | grep -q -F "no GPS fix" || { echo "::error::The no-GPS text is missing from the build."; exit 1; }
@@ -197,8 +245,14 @@ jobs:
           cp "MeshCore/.pio/build/$FW_ENV/firmware-merged.bin" out/
           cp "MeshCore/.pio/build/$FW_ENV/firmware.bin" out/
           [ -f docs/index.html ] && cp docs/index.html out/dashboard.html
+          ls out/*.apk >/dev/null 2>&1 || { echo "::error::The tablet app package is missing."; exit 1; }
           for f in CAIRN-Field-Guide.pdf CAIRN-Field-Guide.html CAIRN-Quick-Start-Card.pdf; do [ -f "docs/$f" ] && cp "docs/$f" out/; done
           git -C MeshCore rev-parse HEAD > out/meshcore_commit.txt
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: cairn-station-apk
+          path: out/
 
       - uses: actions/upload-artifact@v4
         with:
@@ -214,11 +268,11 @@ jobs:
           FW_ENV: ${{ inputs.env }}
         run: |
           MC=$(cut -c1-10 out/meshcore_commit.txt)
-          FILES="out/firmware-merged.bin out/firmware.bin"; [ -f out/dashboard.html ] && FILES="$FILES out/dashboard.html"
+          FILES="out/firmware-merged.bin out/firmware.bin $(ls out/*.apk)"; [ -f out/dashboard.html ] && FILES="$FILES out/dashboard.html"
           for f in CAIRN-Field-Guide.pdf CAIRN-Field-Guide.html CAIRN-Quick-Start-Card.pdf; do [ -f "out/$f" ] && FILES="$FILES out/$f"; done
           NOTES="LODESTAR CAIRN field-station companion firmware for the Heltec WiFi LoRa 32 V4 R2 (ESP32-S3R2, OLED), by Wolf Reactive Systems (WRS). Alpha test build ($FW_ENV) on MeshCore commit $MC. Not for the V4-R8.
 
-          CAIRN is LODESTAR NOVA plus: a station ID (LC-xxxxxxxx) that survives reboots, a journal of every message and advert the radio hears (kept on the radio and streamed to the dashboard), check-in, help (NEEDS HELP), status and place-mark messages that carry GPS position, add/remove chat channels, Standard and Disaster modes that use the highest transmit power the US unlicensed rule allows for your antenna, battery saving, and a tablet dashboard with an Easy view. The field guide (PDF and web page) and a one-page quick-start card are attached. Download firmware-merged.bin and flash it at https://flasher.meshcore.io (Custom Firmware). firmware.bin is the application-only image for updating an existing install without erasing. See the README for setup and the command list.
+          CAIRN is LODESTAR NOVA plus: a station ID (LC-xxxxxxxx) that survives reboots, a journal of every message and advert the radio hears (kept on the radio and streamed to the dashboard), check-in, help (NEEDS HELP), status and place-mark messages that carry GPS position, add/remove chat channels, Standard and Disaster modes that use the highest transmit power the US unlicensed rule allows for your antenna, battery saving, and a tablet dashboard with an Easy view. The field guide (PDF and web page) and a one-page quick-start card are attached, with the CAIRN Station Android tablet app (cairn-station-*.apk, alpha, see android/README.md; it needs this firmware). Download firmware-merged.bin and flash it at https://flasher.meshcore.io (Custom Firmware). firmware.bin is the application-only image for updating an existing install without erasing. See the README for setup and the command list.
 
           ALPHA software: not proven in the field. A radio mesh is a backup, not a replacement for 911."
           gh release create "$TAG" $FILES \

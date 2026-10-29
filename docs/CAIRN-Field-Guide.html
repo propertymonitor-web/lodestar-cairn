@@ -55,7 +55,7 @@ body{margin:0;padding:18px;background:#fff;color:#111;font-family:system-ui,-app
 
 <div class="g-top">
   <div>
-    <div class="g-mut">LODESTAR CAIRN &middot; Cairn Tactical Unit (CTU) &middot; Version 1.1.0 &middot; Wolf Reactive Systems (WRS)</div>
+    <div class="g-mut">LODESTAR CAIRN &middot; Cairn Tactical Unit (CTU) &middot; Version 1.2.0 &middot; Wolf Reactive Systems (WRS)</div>
     <h1>CAIRN Field Guide</h1>
     <div class="g-lead">How to send &ldquo;I&rsquo;m OK&rdquo; and &ldquo;I need help&rdquo; when phones do not work.</div>
   </div>
@@ -131,6 +131,14 @@ body{margin:0;padding:18px;background:#fff;color:#111;font-family:system-ui,-app
   <li><b>Check the antenna number.</b> Go to <b>Power</b>. The radio assumes a normal antenna (2 dBi). If you fit a different antenna, type the number printed on it in <b>Antenna gain</b> and press <b>Set</b>. This keeps the radio inside the legal power limit.</li>
   <li><b>Choose where &ldquo;I&rsquo;m OK&rdquo; goes.</b> On Home, <b>These go to channel</b> is normally <b>0 - Public</b>. Leave it unless your group agreed on another channel.</li>
 </ol>
+<h3>If your tablet has the CAIRN Station app</h3>
+<p>The Station app is the same dashboard, built into the tablet, so it starts by itself and does not need Chrome. When it starts it asks for three things, one after another:</p>
+<ol class="g-steps">
+  <li><b>Wi-Fi</b> &mdash; optional. If you are at home on Wi-Fi, connect it: the <b>Online</b> screen can then fetch weather alerts, earthquake reports, offline maps and updates, and <b>Ask Gemini</b> works. No Wi-Fi? Press <b>Skip</b>; everything else still works.</li>
+  <li><b>Repeater</b> &mdash; needed. Plug the repeater&rsquo;s USB cable into the tablet (or its hub), then press <b>Connect</b> beside it and tap <b>Allow</b> when Android asks.</li>
+  <li><b>Companion radio</b> &mdash; needed. Press <b>Connect</b> beside the radio&rsquo;s name. The first time, Android asks for a PIN: type the PIN shown on the radio&rsquo;s own screen. Only one device can hold the radio&rsquo;s Bluetooth, so close the MeshCore app on any phone first.</li>
+</ol>
+<p>If the repeater or the radio disconnects later, these steps come back by themselves until both are connected again. The <b>Files</b> screen holds everything CAIRN has recorded (the journal of what the radio heard, the repeater&rsquo;s log, saved reports) and can send any of it by email or save it to the tablet&rsquo;s Download folder. <b>Before a storm:</b> connect Wi-Fi and press <b>Get ready now</b> on the Online screen.</p>
 
 <h2 id="g-use">4. Using it: the Home screen</h2>
 <p>The <b>Home</b> screen is the only one you need in an emergency. Big buttons, plain words.</p>
@@ -220,6 +228,9 @@ body{margin:0;padding:18px;background:#fff;color:#111;font-family:system-ui,-app
 <table class="g-t"><tr><th>What you see</th><th>What to do</th></tr>
 <tr><td>Cannot press <b>Connect radio</b>, or the radio is not in the list</td><td>Use <b>Chrome</b> (version 148 or newer on Android). Unplug the radio and plug it in again. Close other apps that use USB. Use a cable that carries data, not a charge-only cable.</td></tr>
 <tr><td><span class="g-pill g-red">NO REPEATER HEARD</span></td><td>Go outside, up high, away from metal and walls. Check that the antenna is tight. Wait 10 minutes. Radios near you can still hear you.</td></tr>
+<tr><td>Station app: the radio is not in the list</td><td>Make sure the radio is on and near the tablet, and that no phone is connected to it. Press <b>Find radios</b>. If Android already has an old pairing with it, remove the radio in Android&rsquo;s Bluetooth settings and connect again.</td></tr>
+<tr><td>Station app: the repeater does not show</td><td>Use a cable that carries data. If two USB devices show, pick the repeater (unplug the radio&rsquo;s cable, press <b>Refresh</b>, then plug it back in).</td></tr>
+<tr><td>Ask Gemini is greyed out</td><td>Gemini needs the internet. Connect Wi-Fi from the first start-up step or <b>Connections</b> at the top.</td></tr>
 <tr><td>Buttons are grey</td><td>The radio is not connected yet. Press <b>Connect radio</b>.</td></tr>
 <tr><td>&ldquo;No position yet&rdquo; (no GPS)</td><td>Go outside or stand by a window and wait a few minutes. Messages still work; they just say <i>no GPS fix</i>.</td></tr>
 <tr><td>The radio keeps restarting when sending</td><td>The hub or cable cannot give enough power. Plug the radio into a stronger port or power bank, or use a shorter cable.</td></tr>

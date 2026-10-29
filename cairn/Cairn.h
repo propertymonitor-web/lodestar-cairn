@@ -21,7 +21,7 @@
 #include <string.h>
 #include <stdarg.h>
 
-#define CAIRN_VERSION  "1.1.0"
+#define CAIRN_VERSION  "1.2.0"
 #define CAIRN_LINE     640       // longest journal line, bytes (a 160-character message can need ~480)
 #define CAIRN_SAY_MAX  140       // longest message the dashboard can send (MeshCore text limits are about this)
 #define CAIRN_RING     24        // lines held in RAM between the radio and the flash / USB writers
@@ -728,6 +728,24 @@ private:
       snprintf(reply, cap, "cairn chan add #name | add <name> <key> | new <name> | remove <n> | key <n> | list");
     }
   }
+};
+
+
+// A small first-in first-out byte buffer, no heap. Used for the Bluetooth text link (see CairnOut.h).
+template <size_t N> class ByteRing {
+ public:
+  size_t count() const { return n_; }
+  size_t room() const { return N - n_; }
+  uint32_t lost() const { return lost_; }
+  void clear() { h_ = 0; n_ = 0; }
+  bool push(uint8_t c) { if (n_ >= N) { lost_++; return false; } b_[(h_ + n_) % N] = c; n_++; return true; }
+  int pop() { if (!n_) return -1; uint8_t c = b_[h_]; h_ = (h_ + 1) % N; n_--; return c; }
+  size_t peek(uint8_t* d, size_t max) const { size_t k = n_ < max ? n_ : max; for (size_t i = 0; i < k; i++) d[i] = b_[(h_ + i) % N]; return k; }
+  void drop(size_t k) { if (k > n_) k = n_; h_ = (h_ + k) % N; n_ -= k; }
+ private:
+  uint8_t b_[N];
+  size_t h_ = 0, n_ = 0;
+  uint32_t lost_ = 0;
 };
 
 }  // namespace cairn

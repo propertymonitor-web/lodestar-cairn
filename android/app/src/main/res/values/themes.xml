@@ -1,0 +1,9 @@
+<resources>
+    <color name="cairn_bg">#03100C</color>
+    <style name="Theme.Cairn" parent="@android:style/Theme.DeviceDefault.NoActionBar">
+        <item name="android:windowBackground">@color/cairn_bg</item>
+        <item name="android:statusBarColor">@color/cairn_bg</item>
+        <item name="android:navigationBarColor">@color/cairn_bg</item>
+        <item name="android:windowLayoutInDisplayCutoutMode">shortEdges</item>
+    </style>
+</resources>

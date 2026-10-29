@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- A cairn: stacked stones under a guiding star. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp" android:height="108dp" android:viewportWidth="108" android:viewportHeight="108">
+    <path android:fillColor="#03100C" android:pathData="M0,0h108v108h-108z" />
+    <path android:fillColor="#3FE0FF" android:pathData="M54,10 L58,24 L72,28 L58,32 L54,46 L50,32 L36,28 L50,24 Z" />
+    <path android:fillColor="#0F1F1A" android:strokeColor="#3DFFA8" android:strokeWidth="2.5"
+        android:pathData="M54,92 m-30,0 a30,10 0 1,0 60,0 a30,10 0 1,0 -60,0" />
+    <path android:fillColor="#0F1F1A" android:strokeColor="#3DFFA8" android:strokeWidth="2.5"
+        android:pathData="M54,76 m-22,0 a22,9 0 1,0 44,0 a22,9 0 1,0 -44,0" />
+    <path android:fillColor="#0F1F1A" android:strokeColor="#3DFFA8" android:strokeWidth="2.5"
+        android:pathData="M54,62 m-15,0 a15,8 0 1,0 30,0 a15,8 0 1,0 -30,0" />
+</vector>

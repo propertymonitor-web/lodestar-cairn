@@ -1,4 +1,4 @@
-LODESTAR CAIRN - HARDWARE TEST CHECKLIST (Ver. 1.1.0, alpha)
+LODESTAR CAIRN - HARDWARE TEST CHECKLIST (Ver. 1.2.0, alpha)
 By Wolf Reactive Systems (WRS). Nothing in CAIRN has run on real hardware yet. Work through this at home, then once in the open.
 Write down anything that does not match. Heltec V4 R2 only.
 
@@ -8,13 +8,13 @@ A. FLASH THE COMPANION (Heltec V4 R2)
  3. Pass: the radio boots and the screen shows CAIRN.
 
 B0. SCREEN
-    Pass: the boot splash shows the emblem on the left and LODESTAR / CAIRN / WRS / Ver. 1.1.0 on the right, and stays up for 5 seconds.
+    Pass: the boot splash shows the emblem on the left and LODESTAR / CAIRN / WRS / Ver. 1.2.0 on the right, and stays up for 5 seconds.
     Pass: the first page after Home is CAIRN STATION with your ID. Pressing Enter (or holding the button) shows
     "Check-in sending" and the check-in appears in the log.
 
 B. STATION ID
- 4. In the MeshCore app (or a serial console) type:  cairn
-    Pass: it prints LODESTAR CAIRN 1.1.0  ID LC-xxxxxxxx (8 characters).
+ 4. In the dashboard Console (or a serial console) type:  cairn
+    Pass: it prints LODESTAR CAIRN 1.2.0  ID LC-xxxxxxxx (8 characters).
  5. Write the ID down. Reboot the radio (cairn is not needed: use the button or unplug/replug). Type  cairn  again.
     Pass: the SAME ID.
  6. Pass: the ID uses no I, O, 0 or 1.
@@ -98,5 +98,19 @@ L. NEW IN 1.1.0 (do these outdoors with a second radio listening on Public)
 
 K. 100% OFFLINE RUN
 25. Turn Wi-Fi and mobile data OFF. Repeat steps 8, 14, 16, 19. Pass: everything works with no internet.
+
+M. NEW IN 1.2.0: THE CAIRN STATION TABLET APP (needs the 1.2.0 firmware on the companion; test with the real tablet, radio and repeater)
+39. Install cairn-station-1.2.0.apk. Pass: Android installs it after the "unknown apps" prompt; the app opens and shows the splash, then the Wi-Fi step.
+40. Wi-Fi step: press Skip. Pass: goes to the Repeater step. Repeat with Wi-Fi connected: Pass: shows Connected and moves on by itself after about 2 seconds.
+41. Repeater step with the repeater's USB cable plugged in: press Connect, tap Allow. Pass: shows Connected; Continue works. With nothing plugged in: Pass: Continue stays grey.
+42. Companion step: Find radios. Pass: the radio's name appears. Connect, type the PIN from the radio's screen. Pass: Connected, and "Open the dashboard" works. The step cannot be passed without it.
+43. Pass: the station ID (LC-xxxxxxxx) appears in the header within a few seconds, and the Station screen fills in (this proves the Bluetooth text link works).
+44. Press I'M OK. Pass: a second radio on Public hears the check-in.
+45. Unplug the repeater cable. Pass: after about 10 seconds the Repeater step returns. Plug it back: Pass: it reconnects and the steps close.
+46. Switch the companion radio off. Pass: the Companion step returns after about 10 seconds; switching it on lets Connect work again.
+47. Station screen, Repeater card: Ask for status. Pass: the repeater's text appears. Files screen: Pass: a journal-DATE.log and repeater-DATE.log are listed and can be viewed.
+48. With Wi-Fi: Online screen, Get ready now. Pass: weather, earthquakes and updates fill in; Ask Gemini is enabled and opens Gemini. Turn Wi-Fi off: Pass: Ask Gemini turns grey and the last weather stays, marked with its age.
+49. Map screen: choose a region, Download. Pass: it downloads to the tablet, appears in the list, and shows the map with Wi-Fi OFF.
+50. Press Home and then reopen CAIRN Station. Pass: the links are still connected. Set it as the Home app (Settings > Apps > Default apps): Pass: after a restart the tablet opens into CAIRN.
 
 Report back: which steps passed, which failed, and exact messages. Mesh radio is a backup, not a replacement for 911 or a phone.

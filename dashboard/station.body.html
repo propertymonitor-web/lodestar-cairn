@@ -1,0 +1,82 @@
+  <!-- ===================================================== FILES (tablet app only) -->
+  <section class="tab" id="tab-files">
+    <div class="card">
+      <h2>Logs and files made by CAIRN</h2>
+      <p class="small muted">Everything the station keeps lives here: the day's journal of what the radio heard, the repeater's log, reports, and files fetched over Wi-Fi. Nothing leaves the tablet unless you send it.</p>
+      <div class="row">
+        <label for="fKind" class="muted">Show</label>
+        <select id="fKind" style="max-width:240px"><option value="">Everything</option><option value="logs">Logs</option><option value="reports">Reports and saved pages</option><option value="downloads">Downloads (updates, firmware)</option></select>
+        <button id="fRefresh">Refresh</button>
+        <button id="fCsv">Save the journal as a spreadsheet (CSV)</button>
+      </div>
+      <p id="fNote" class="small muted"></p>
+      <table class="ftable" id="fTable"><thead><tr><th>File</th><th>Size</th><th>Saved</th><th></th></tr></thead><tbody id="fBody"></tbody></table>
+    </div>
+    <div class="card" style="margin-top:14px" id="fViewCard" hidden>
+      <h2 id="fViewTitle">File</h2>
+      <div class="repout" id="fView" style="max-height:420px"></div>
+      <button id="fViewClose">Close</button>
+    </div>
+  </section>
+
+  <!-- ===================================================== ONLINE (tablet app only) -->
+  <section class="tab" id="tab-online">
+    <div class="grid">
+      <div class="card span2">
+        <h2>Wi-Fi extras</h2>
+        <div id="onState" class="row"></div>
+        <p class="small muted">Wi-Fi is optional. With it, CAIRN can fetch weather and official alerts, recent earthquakes, offline maps and software updates, and Gemini works. Without it, everything else on the station keeps working, and the last answers below stay on screen marked with the time they were fetched.</p>
+        <div class="row">
+          <button id="onSync" class="pri">Get ready now (fetch everything)</button>
+          <button id="onWifi">Wi-Fi settings</button>
+          <button id="onGem">Ask Gemini</button>
+        </div>
+        <p id="onGemNote" class="small muted"></p>
+        <p id="onSyncNote" class="small"></p>
+      </div>
+      <div class="card span2">
+        <h2>Weather and official alerts (US National Weather Service)</h2>
+        <div class="row">
+          <label for="wxPos" class="muted">Place</label>
+          <input id="wxPos" type="text" style="max-width:300px" placeholder="latitude, longitude (blank = the radio's GPS)">
+          <button id="wxGo">Update</button>
+        </div>
+        <p id="wxWhere" class="small muted"></p>
+        <div id="wxAlerts"></div>
+        <div id="wxFc" class="fcgrid"></div>
+        <p id="wxNote" class="small"></p>
+      </div>
+      <div class="card">
+        <h2>Earthquakes near here (USGS, last 7 days)</h2>
+        <div id="eqList"></div>
+        <p id="eqNote" class="small"></p>
+        <button id="eqGo">Update</button>
+      </div>
+      <div class="card">
+        <h2>Updates</h2>
+        <p class="small muted">This tablet app is version <b id="upVer"></b>.</p>
+        <div id="upList"></div>
+        <p id="upNote" class="small"></p>
+        <button id="upGo">Check for updates</button>
+      </div>
+      <div class="card span2">
+        <h2>Offline maps</h2>
+        <p class="small">Download a region here on Wi-Fi, then use it with no internet from the <a href="#" data-goto="map">Map</a> screen. Big regions are hundreds of megabytes: use the tablet's own storage and a good connection.</p>
+        <div id="dlList"></div>
+        <button data-goto="map" class="pri">Open the Map screen to choose a region</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================================================== START-UP STEPS (tablet app only) -->
+  <div id="gate" hidden role="dialog" aria-modal="true" aria-labelledby="gTitle">
+    <div class="gbox">
+      <div class="gsteps" id="gSteps"></div>
+      <h2 id="gTitle"></h2>
+      <p class="lead" id="gLead"></p>
+      <div id="gBody"></div>
+      <div class="gbtns" id="gBtns"></div>
+      <p class="gfoot" id="gFoot"></p>
+    </div>
+  </div>
+

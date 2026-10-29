@@ -1,4 +1,4 @@
-LODESTAR CAIRN - FEATURES AND COMMANDS (Ver. 1.1.0, ALPHA)
+LODESTAR CAIRN - FEATURES AND COMMANDS (Ver. 1.2.0, ALPHA)
 By Wolf Reactive Systems (WRS). For the Heltec WiFi LoRa 32 V4 R2 (not the R8). CAIRN Tactical Unit (CTU) firmware.
 ALPHA: tested on a PC, in a browser with practice data and by compiling the firmware; not yet run on real hardware by the authors.
 
@@ -64,7 +64,7 @@ POWER AND THE LAW (honest summary)
 - Battery figures from the Heltec V4.3.1 datasheet: receive about 75 mA, send about 400 mA at 22 dBm and 750 mA at 27 dBm;
   solar input 4.7-6 V; battery 3.3-4.2 V; USB charge 500 mA. The hub must supply short 750 mA bursts.
 
-COMMANDS (type in the MeshCore app's command box for your radio, in the dashboard Console, or in a serial console)
+COMMANDS (type them in the dashboard Console - over USB in a browser, or over Bluetooth in the CAIRN Station tablet app - or in a serial console. Not confirmed: whether the MeshCore phone app can send them)
   cairn                          status: version, ID, mode, journal size
   cairn id                       print the station ID
   cairn ok [channel]             send I'M OK now (default: the check-in channel)
