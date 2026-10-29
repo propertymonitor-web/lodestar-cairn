@@ -104,9 +104,13 @@ with sync_playwright() as p:
         check("LC-K7M2P4XQ" in pg.inner_text("#sid"), tag + "station ID shown from the radio's reply")
         check(pg.evaluate("document.getElementById('lnkRadio').dataset.s") == "live" and pg.evaluate("document.getElementById('lnkRep').dataset.s") == "live", tag + "radio and repeater chips are green")
         # repeater text
+        try: pg.wait_for_function("window.__calls.some(c => c[0] === 'usb' && c[1] === 'ver')", timeout=8000)
+        except Exception: pass
         usb = [c[1] for c in pg.evaluate("window.__calls") if c[0] == "usb"]
         check("ver" in usb, tag + "repeater is asked for its version")
         pg.click("#btnView"); pg.click("#tabs button[data-tab=station]"); pg.wait_for_timeout(300)
+        try: pg.wait_for_function("document.getElementById('repOut').innerText.indexOf('MeshCore repeater test v1') >= 0", timeout=8000)
+        except Exception: pass
         check("MeshCore repeater test v1" in pg.inner_text("#repOut"), tag + "repeater text shows on the Station screen")
         pg.fill("#repIn", "neighbors"); pg.press("#repIn", "Enter"); pg.wait_for_timeout(200)
         check(["usb", "neighbors"] in pg.evaluate("window.__calls"), tag + "a command can be sent to the repeater")
