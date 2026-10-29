@@ -100,21 +100,36 @@
 <p>How far it reaches changes a lot. In a city, a few blocks. In the open, or with a repeater on a roof or hill, much farther. Height helps more than anything else: go up, go outside.</p>
 
 <h2 id="g-kit">2. What is in the kit</h2>
-<svg class="g-fig" viewBox="0 0 880 330" role="img" aria-label="Kit layout: the power bank feeds the USB hub; the tablet, the CAIRN radio and the repeater radio plug into the hub; the solar panel charges the power bank.">
+<svg class="g-fig" viewBox="0 0 1000 380" role="img" aria-label="Power chain: a wall charger, or power bank 1, feeds the USB hub. The hub powers the tablet and the repeater, and carries the repeater's data to the tablet. A solar panel charges power bank 2, which charges the CAIRN radio. The CAIRN radio talks to the tablet by Bluetooth, with no cable.">
+  <defs><marker id="gar" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" style="fill:var(--g-ink)"/></marker></defs>
   <g stroke="currentColor" stroke-width="3" fill="none" style="color:var(--g-ink)">
-    <rect x="30" y="20" width="200" height="90" rx="12" fill="var(--g-panel2)"/><rect x="340" y="120" width="200" height="90" rx="12" fill="var(--g-panel2)"/>
-    <rect x="650" y="20" width="200" height="90" rx="12" fill="var(--g-panel2)"/><rect x="650" y="125" width="200" height="80" rx="12" fill="var(--g-panel2)"/><rect x="650" y="225" width="200" height="80" rx="12" fill="var(--g-panel2)"/>
-    <rect x="30" y="200" width="200" height="90" rx="12" fill="var(--g-panel2)"/>
-    <path d="M130 110 V160 H340"/><path d="M130 200 V160"/><path d="M540 150 H600 V65 H650"/><path d="M540 165 H650"/><path d="M540 185 H600 V265 H650"/>
+    <rect x="20" y="20" width="250" height="100" rx="12" fill="var(--g-panel2)"/><rect x="350" y="20" width="220" height="100" rx="12" fill="var(--g-panel2)"/>
+    <rect x="670" y="20" width="250" height="100" rx="12" fill="var(--g-panel2)"/><rect x="670" y="145" width="250" height="90" rx="12" fill="var(--g-panel2)"/>
+    <rect x="20" y="260" width="200" height="100" rx="12" fill="var(--g-panel2)"/><rect x="290" y="260" width="200" height="100" rx="12" fill="var(--g-panel2)"/><rect x="670" y="260" width="250" height="100" rx="12" fill="var(--g-panel2)"/>
+    <path d="M270 70 H350" marker-end="url(#gar)"/><path d="M570 70 H670" marker-end="url(#gar)"/><path d="M570 100 H610 V190 H670" marker-end="url(#gar)"/>
+    <path d="M220 310 H290" marker-end="url(#gar)"/><path d="M490 310 H670" marker-end="url(#gar)"/>
+    <path d="M920 310 H950 V70 H920" stroke-dasharray="9 7" marker-end="url(#gar)"/>
   </g>
-  <g font-size="22" text-anchor="middle"><text x="130" y="58" font-weight="700">Solar panel</text><text x="130" y="86" font-size="17">charges a power bank</text>
-    <text x="130" y="238" font-weight="700">Power banks</text><text x="130" y="266" font-size="17">keep charged</text>
-    <text x="440" y="158" font-weight="700">USB hub</text><text x="440" y="186" font-size="17">the middle of the kit</text>
-    <text x="750" y="58" font-weight="700">Tablet</text><text x="750" y="86" font-size="17">the CAIRN page</text>
-    <text x="750" y="160" font-weight="700">CAIRN radio</text><text x="750" y="186" font-size="17">has a little screen</text>
-    <text x="750" y="260" font-weight="700">Repeater radio</text><text x="750" y="288" font-size="17">helps messages go farther</text></g>
+  <g font-size="22" text-anchor="middle"><text x="145" y="62" font-weight="700">Wall charger</text><text x="145" y="90" font-size="17">or Power bank 1 (USB-C PD)</text>
+    <text x="460" y="62" font-weight="700">USB hub</text><text x="460" y="90" font-size="17">power and data</text>
+    <text x="795" y="62" font-weight="700">Tablet</text><text x="795" y="90" font-size="17">charges through the hub</text>
+    <text x="795" y="182" font-weight="700">Repeater</text><text x="795" y="210" font-size="17">power + data cable</text>
+    <text x="120" y="302" font-weight="700">Solar panel</text><text x="120" y="330" font-size="17">sunny days</text>
+    <text x="390" y="302" font-weight="700">Power bank 2</text><text x="390" y="330" font-size="17">charges the radio</text>
+    <text x="795" y="302" font-weight="700">CAIRN radio</text><text x="795" y="330" font-size="17">own battery, no cable</text>
+    <text x="580" y="252" font-size="17" style="fill:var(--g-mut)">solid line = cable</text></g>
+  <text x="978" y="200" font-size="16" transform="rotate(-90 978 200)" text-anchor="middle" style="fill:var(--g-mut)">Bluetooth, no cable</text>
 </svg>
-<p class="g-mut">Your kit card shows the exact cables. Keep the two radios&rsquo; antennas <b>apart from each other and away from the hub and cables</b>: that gives the best range.</p>
+<p class="g-mut">Your kit card shows the exact cables. Keep the two radios&rsquo; antennas <b>apart from each other and away from the hub and cables</b>: that gives the best range and keeps the Bluetooth link steady.</p>
+
+<div class="g-box g-note"><b class="t">How the power flows</b>
+<ul>
+<li><b>At home or with mains power:</b> plug the hub into the wall charger. Use the charger&rsquo;s big 85&nbsp;W port <i>alone</i>; with other ports in use it shares its power.</li>
+<li><b>Power is out:</b> power bank 1 takes the charger&rsquo;s place. It must have a USB-C <b>power-delivery (PD) output</b>, about 30&nbsp;W or more. Check the bank&rsquo;s output rating, not just its size.</li>
+<li><b>The CAIRN radio</b> runs on its own battery. Charge it from the solar panel or power bank 2. It does not need the hub.</li>
+<li><b>Power bank 1 runs low?</b> Swap in the charged one, or recharge it. The tablet and the repeater are off for a little while, and that is <b>fine</b>: a repeater that is off for a short time is far better than no repeater at all. The CAIRN radio keeps working on its own battery, and it still sends its automatic check-ins and help calls to any radio in range.</li>
+<li><b>Sunny?</b> Put the solar panel in the sun to top up power bank 2 and the radio. The storm being over does not mean that power, cellular or internet are back, so recharge whenever the sun is out.</li>
+</ul></div>
 
 <h2 id="g-first">3. First-time setup (do this at home, with internet)</h2>
 <ol class="g-steps">
