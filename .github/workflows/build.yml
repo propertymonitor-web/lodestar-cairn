@@ -149,11 +149,20 @@ jobs:
 
       - name: Unit tests
         working-directory: android
-        run: gradle --no-daemon testDebugUnitTest
+        run: |
+          set -o pipefail
+          gradle --no-daemon testDebugUnitTest 2>&1 | tee ../gradle-test.log
 
       - name: Build the app
         working-directory: android
-        run: gradle --no-daemon assembleRelease
+        run: |
+          set -o pipefail
+          gradle --no-daemon assembleRelease 2>&1 | tee ../gradle-build.log
+
+      - name: Show the errors (only when something failed)
+        if: failure()
+        run: |
+          cat gradle-test.log gradle-build.log 2>/dev/null | grep -E "^e: |error:|FAILED|What went wrong|Could not|Execution failed|> |not found|Unresolved|Duplicate" | head -40 | while IFS= read -r l; do echo "::error::${l:0:900}"; done
 
       - name: Name the package
         run: |
