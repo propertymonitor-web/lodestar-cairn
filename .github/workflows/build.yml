@@ -110,7 +110,7 @@ jobs:
         run: git clone --depth 1 https://github.com/meshcore-dev/MeshCore.git
 
       - name: Apply CAIRN
-        run: python tools/apply_cairn.py --meshcore MeshCore
+        run: python tools/apply_cairn.py --meshcore MeshCore && python tools/persist_ble_pin.py --meshcore MeshCore
 
       - name: Draw every screen on a pretend 128x64 display
         run: |
@@ -228,7 +228,7 @@ jobs:
         run: git clone --depth 1 https://github.com/meshcore-dev/MeshCore.git
 
       - name: Apply CAIRN
-        run: python tools/apply_cairn.py --meshcore MeshCore
+        run: python tools/apply_cairn.py --meshcore MeshCore && python tools/persist_ble_pin.py --meshcore MeshCore
 
       - name: Build firmware
         working-directory: MeshCore
