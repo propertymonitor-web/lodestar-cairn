@@ -801,6 +801,8 @@ async function connect() {
   } catch (e) { /* unplugged */ }
   await disconnect(true);
 }
+/* Leaving the page closes the port, which drops DTR/RTS one after the other and can restart the radio. Release both in one step first (best effort). */
+window.addEventListener("pagehide", () => { try { if (S.port && S.port.setSignals) S.port.setSignals({ dataTerminalReady: false, requestToSend: false }); } catch (e) {} });
 async function disconnect(lost) {
   clearInterval(S.keep); S.keep = null;
   const port = S.port, rd = S.reader, wr = S.writer;
