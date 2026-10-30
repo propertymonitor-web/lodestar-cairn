@@ -778,14 +778,15 @@ async function connect() {
   notice("");
   try {
     stopDemo();
-    S.port = await navigator.serial.requestPort();
-    await S.port.open({ baudRate: 115200 });
+    const kp = S.kept; S.kept = null;           // a port left open by Disconnect is picked up again as it is: reopening it would restart the radio
+    S.port = (kp && kp.readable && kp.writable) ? kp : await navigator.serial.requestPort();
+    if (!(S.port.readable && S.port.writable)) await S.port.open({ baudRate: 115200 });
     // DTR and RTS both on is the one control-line state that does not restart these radios (any other combination reboots them)
     try { await S.port.setSignals({ dataTerminalReady: true, requestToSend: true }); } catch (e) { /* this browser cannot set them */ }
   } catch (e) { if (e.name !== "NotFoundError") notice("Could not open the radio's USB port: " + e.message + ". Close other apps that use it and try again."); return; }
   S.mode = "serial"; setStatus("wait", "Connected, waiting for data"); $("btnConnect").textContent = "Disconnect";
-  const enc = new TextEncoderStream(); enc.readable.pipeTo(S.port.writable).catch(() => {}); S.writer = enc.writable.getWriter();
-  const dec = new TextDecoderStream(); S.port.readable.pipeTo(dec.writable).catch(() => {}); S.reader = dec.readable.getReader();
+  const enc = new TextEncoderStream(); enc.readable.pipeTo(S.port.writable, { preventClose: true, preventAbort: true, preventCancel: true }).catch(() => {}); S.writer = enc.writable.getWriter();
+  const dec = new TextDecoderStream(); S.port.readable.pipeTo(dec.writable, { preventClose: true, preventAbort: true, preventCancel: true }).catch(() => {}); S.reader = dec.readable.getReader();
   const hello = () => send("nova hello");
   hello(); send("cairn id"); send("cairn chans"); S.dumping = true; send("cairn dump");
   S.keep = setInterval(hello, 3000);
@@ -802,10 +803,14 @@ async function connect() {
 }
 async function disconnect(lost) {
   clearInterval(S.keep); S.keep = null;
-  try { if (S.reader) await S.reader.cancel(); } catch (e) {}
-  try { if (S.writer) await S.writer.close(); } catch (e) {}
-  try { if (S.port) await S.port.close(); } catch (e) {}
+  const port = S.port, rd = S.reader, wr = S.writer;
   S.port = S.reader = S.writer = null; S.mode = "off"; S.frame = null;
+  try { if (rd) await rd.cancel(); } catch (e) {}
+  try { if (wr) await wr.close(); } catch (e) {}
+  await new Promise((r) => setTimeout(r, 50));            // let the stream pipes let go of the port
+  // Closing the port drops DTR/RTS, which restarts the radio. A manual Disconnect only lets go of the streams; Connect picks the open port up again.
+  if (port && !lost && port.readable && port.writable) S.kept = port;
+  else if (port) { S.kept = null; try { await port.close(); } catch (e) {} }
   $("btnConnect").textContent = "Connect radio";
   setStatus("off", lost ? "Radio unplugged or closed" : "Not connected");
 }
