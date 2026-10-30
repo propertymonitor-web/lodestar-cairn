@@ -993,6 +993,7 @@ body:not(.station) .st { display: none !important; }
     <span id="status" class="chip" data-s="off"><i></i><span id="statusText">Not connected</span></span>
     <button id="btnKb" aria-pressed="false" title="Show or hide the on-screen keyboard (the physical keyboard always works)">&#9000; Keyboard</button>
     <button id="btnTheme" title="Dark or light">&#9788; Theme</button>
+    <button id="btnUpdates" type="button">Updates</button>
     <button id="btnView" title="Easy view shows only the main screens. Full view shows everything.">Full view</button>
     <button id="btnDemo" title="Fill the page with made-up data to practise">Practice</button>
     <button id="btnConnect" class="pri">Connect radio</button>
@@ -3360,5 +3361,229 @@ $("conForm").addEventListener("submit", (e) => { e.preventDefault(); const v = $
 /*RADAR-JS-END*/
 </script>
 <script>/* LODESTAR-CREDIT */ try { console.info("Engineered by Aries Thorne & Todd Steinhauer for Wolf Reactive Systems (WRS), with MeshCore community guidance and assistance."); window.LODESTAR_CREDIT = "Engineered by Aries Thorne & Todd Steinhauer for Wolf Reactive Systems (WRS)"; } catch (e) {}</script>
+<!--UPDATES-TAB-BEGIN-->
+<style id="updates-css">
+.upd-overlay { position: fixed; inset: 0; z-index: 10000; background: rgba(0, 0, 0, .6); display: flex; align-items: flex-start; justify-content: center; padding: 6vh 16px 16px; overflow: auto; }
+.upd-overlay[hidden] { display: none; }
+.upd-box { width: 100%; max-width: 580px; background: var(--panel); color: var(--ink); border: 1px solid var(--line); border-radius: 10px; padding: 16px 18px 18px; box-shadow: 0 12px 40px rgba(0, 0, 0, .45); }
+.upd-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 8px; }
+.upd-head h2 { margin: 0; font: 600 20px var(--font-d, inherit); }
+.upd-choices { display: grid; gap: 10px; margin-top: 12px; }
+.upd-choice { display: block; width: 100%; text-align: left; padding: 14px 16px; border: 1px solid var(--line); border-radius: 8px; background: var(--bg, transparent); color: var(--ink); cursor: pointer; font: inherit; }
+.upd-choice b { display: block; font-size: 17px; margin-bottom: 3px; }
+.upd-choice span { color: var(--muted); font-size: 14px; }
+.upd-choice:hover, .upd-choice:focus-visible { border-color: var(--accent); outline: 2px solid var(--accent); outline-offset: 1px; }
+#updMsg { margin: 6px 0 4px; line-height: 1.45; }
+#updMsg .big { font: 600 18px var(--font-d, inherit); display: block; margin-bottom: 4px; }
+#updMsg .ok { color: #1b9e5a; }
+#updMsg .bad { color: #d64545; }
+#updMsg ul { margin: 6px 0 0 18px; padding: 0; }
+#updProg { width: 100%; height: 14px; margin: 10px 0 4px; }
+#updLog { max-height: 150px; overflow: auto; margin: 8px 0 0; padding: 8px; font: 12px/1.35 ui-monospace, Consolas, monospace; background: var(--bg, rgba(0,0,0,.2)); border: 1px solid var(--line); border-radius: 6px; white-space: pre-wrap; }
+.upd-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 14px; }
+.upd-actions a.btnlink, .upd-actions button { min-height: 40px; }
+</style>
+<div id="updOverlay" class="upd-overlay" hidden role="dialog" aria-modal="true" aria-labelledby="updTitle">
+  <div class="upd-box">
+    <div class="upd-head"><h2 id="updTitle">Updates</h2><button id="updClose" type="button">Close</button></div>
+    <div id="updHome">
+      <p class="hint">Choose what to check. Nothing changes unless you say yes.</p>
+      <div class="upd-choices">
+        <button id="updFw" type="button" class="upd-choice"><b>1. Firmware Updates</b><span>Check the firmware on your radio. Needs the radio connected.</span></button>
+        <button id="updDash" type="button" class="upd-choice"><b>2. Dashboard Updates</b><span>Check this dashboard page.</span></button>
+      </div>
+    </div>
+    <div id="updWork" hidden>
+      <div id="updMsg" role="status" aria-live="polite"></div>
+      <progress id="updProg" max="100" value="0" hidden></progress>
+      <pre id="updLog" hidden></pre>
+      <div class="upd-actions" id="updActions"></div>
+    </div>
+  </div>
+</div>
+<script id="updates-js">
+(function () {
+  "use strict";
+  const DASH_ID = "cairn", DASH_VERSION = "1.2.0";
+  const FW_REPO = "propertymonitor-web/firmware_updates", DASH_REPO = "propertymonitor-web/dashboard_updates";
+  const RAW = (repo, path) => "https://raw.githubusercontent.com/" + repo + "/main/" + path;
+  const ESPTOOL = "https://cdn.jsdelivr.net/npm/esptool-js@0.5.7/bundle.js";
+  const WEB_FLASHER = "https://flasher.meshcore.io";
+  const el = (id) => document.getElementById(id);
+  let busy = false, opener = null;
+
+  const esc = (s) => String(s == null ? "" : s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+  function ver(s) { const m = /(\d+)\.(\d+)\.(\d+)/.exec(String(s || "")); return m ? [+m[1], +m[2], +m[3]] : null; }
+  function cmp(a, b) { for (let i = 0; i < 3; i++) if (a[i] !== b[i]) return a[i] < b[i] ? -1 : 1; return 0; }
+  async function getJson(url) {
+    const r = await fetch(url + (url.indexOf("?") < 0 ? "?t=" : "&t=") + Date.now(), { cache: "no-store" });
+    if (!r.ok) throw new Error("the update server answered " + r.status);
+    return r.json();
+  }
+  async function getBytes(url) {
+    const r = await fetch(url + "?t=" + Date.now(), { cache: "no-store" });
+    if (!r.ok) throw new Error("the download failed (" + r.status + ")");
+    return new Uint8Array(await r.arrayBuffer());
+  }
+  async function sha256(bytes) {
+    if (!(window.crypto && crypto.subtle)) return null;
+    const d = new Uint8Array(await crypto.subtle.digest("SHA-256", bytes));
+    return Array.from(d, (b) => b.toString(16).padStart(2, "0")).join("");
+  }
+  async function checkFile(bytes, entry) {
+    if (entry.size && bytes.length !== entry.size) throw new Error("the downloaded file is the wrong size, so nothing was changed");
+    const h = await sha256(bytes);
+    if (entry.sha256 && h && h !== entry.sha256) throw new Error("the downloaded file failed its check, so nothing was changed");
+  }
+
+  function show(which) { el("updHome").hidden = which !== "home"; el("updWork").hidden = which !== "work"; }
+  function setMsg(html) { el("updMsg").innerHTML = html; }
+  function setActions(list) {
+    const box = el("updActions"); box.innerHTML = "";
+    list.forEach((a) => {
+      let n;
+      if (a.href) { n = document.createElement("a"); n.href = a.href; n.target = "_blank"; n.rel = "noopener"; n.className = "btnlink"; }
+      else { n = document.createElement("button"); n.type = "button"; if (a.primary) n.className = "primary"; n.addEventListener("click", a.run); }
+      n.textContent = a.label; box.appendChild(n);
+    });
+    const first = box.querySelector("button, a"); if (first && !busy) first.focus();
+  }
+  function progress(v) { const p = el("updProg"); if (v == null) p.hidden = true; else { p.hidden = false; p.value = v; } }
+  function log(line) { const l = el("updLog"); l.hidden = false; l.textContent += line + "\n"; l.scrollTop = l.scrollHeight; }
+  function reset() { setMsg(""); setActions([]); progress(null); el("updLog").hidden = true; el("updLog").textContent = ""; }
+
+  function open() {
+    if (busy) return;
+    opener = document.activeElement; reset(); show("home"); el("updOverlay").hidden = false; el("updFw").focus();
+  }
+  function close() {
+    if (busy) return;
+    el("updOverlay").hidden = true; if (opener && opener.focus) opener.focus();
+  }
+  const closeBtn = { label: "No, back to the dashboard", run: close };
+
+  function notes(entry) { return entry && entry.notes && entry.notes.length ? "<ul>" + entry.notes.map((n) => "<li>" + esc(n) + "</li>").join("") + "</ul>" : ""; }
+
+  /* ---------------------------------------------------------------- dashboard */
+  async function dashboardCheck() {
+    show("work"); reset(); setMsg("Checking for a newer dashboard...");
+    let m;
+    try { m = await getJson(RAW(DASH_REPO, "latest.json")); }
+    catch (e) { setMsg('<span class="big bad">Could not check</span>' + esc(e.message) + ". Check your internet connection and try again."); setActions([{ label: "Back", run: () => show("home") }, closeBtn]); return; }
+    const entry = m.dashboards && m.dashboards[DASH_ID];
+    const mine = ver(DASH_VERSION), latest = entry && ver(entry.version);
+    if (!entry || !latest || !mine) { setMsg('<span class="big">No update information</span>The update list has nothing for this dashboard (' + esc(DASH_ID) + ").") ; setActions([{ label: "Back", run: () => show("home") }, { label: "Close", run: close }]); return; }
+    if (cmp(mine, latest) >= 0) {
+      setMsg('<span class="big ok">Your dashboard is up to date</span>Version ' + esc(DASH_VERSION) + "."); setActions([{ label: "Back", run: () => show("home") }, { label: "Close", run: close, primary: true }]); return;
+    }
+    setMsg('<span class="big">A newer dashboard is available</span>You have ' + esc(DASH_VERSION) + ", the newest is " + esc(entry.version) + "." + notes(entry) +
+           "<p>Update now? You will pick where to save the new page. To replace the one you are using, choose it in the list and confirm. Reloading afterwards restarts the radio (its Bluetooth PIN stays the same).</p>");
+    setActions([{ label: "Yes, update now", primary: true, run: () => dashboardUpdate(entry) }, closeBtn]);
+  }
+  async function dashboardUpdate(entry) {
+    busy = true; setActions([]);
+    try {
+      let handle = null;
+      if (window.showSaveFilePicker) {                        // must be asked for straight away, while the click still counts
+        try { handle = await window.showSaveFilePicker({ suggestedName: entry.file || (DASH_ID + ".html"), types: [{ description: "Dashboard page", accept: { "text/html": [".html"] } }] }); }
+        catch (e) { if (e && e.name === "AbortError") { busy = false; setMsg("Nothing was changed."); setActions([closeBtn]); return; } handle = null; }
+      }
+      setMsg("Downloading the new dashboard..."); progress(30);
+      const bytes = await getBytes(RAW(DASH_REPO, entry.path)); await checkFile(bytes, entry);
+      progress(100);
+      if (handle) {
+        const w = await handle.createWritable(); await w.write(bytes); await w.close();
+        busy = false; progress(null);
+        setMsg('<span class="big ok">Saved</span>Version ' + esc(entry.version) + " is saved as " + esc(handle.name) + ". Reload to start using it (if you replaced the page you are using).");
+        setActions([{ label: "Reload now", primary: true, run: () => location.reload() }, { label: "Later", run: close }]);
+      } else {
+        const url = URL.createObjectURL(new Blob([bytes], { type: "text/html" })); const a = document.createElement("a");
+        a.href = url; a.download = entry.file || (DASH_ID + ".html"); document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(url), 10000);
+        busy = false; progress(null);
+        setMsg('<span class="big ok">Downloaded</span>The new dashboard (version ' + esc(entry.version) + ") is in your Downloads folder as " + esc(entry.file || (DASH_ID + ".html")) + ". Open that file to use it.");
+        setActions([{ label: "Close", primary: true, run: close }]);
+      }
+    } catch (e) {
+      busy = false; progress(null); setMsg('<span class="big bad">The dashboard was not updated</span>' + esc(e.message || e)); setActions([{ label: "Close", run: close }]);
+    }
+  }
+
+  /* ---------------------------------------------------------------- firmware */
+  async function firmwareCheck() {
+    show("work"); reset();
+    const f = (typeof S !== "undefined") ? S.frame : null;
+    if (typeof S !== "undefined" && S.mode === "demo") { setMsg('<span class="big">Sample data is showing</span>Click Close, then Connect radio to use your own radio, and try again.'); setActions([{ label: "Back", run: () => show("home") }, { label: "Close", run: close }]); return; }
+    if (!f || !f.v) { setMsg('<span class="big">Connect your radio first</span>The radio tells this page which firmware it has. Close this, click Connect radio, wait until data appears, then choose Firmware Updates again.'); setActions([{ label: "Back", run: () => show("home") }, { label: "Close", run: close }]); return; }
+    setMsg("Checking for newer firmware...");
+    let m;
+    try { m = await getJson(RAW(FW_REPO, "latest.json")); }
+    catch (e) { setMsg('<span class="big bad">Could not check</span>' + esc(e.message) + ". Check your internet connection and try again."); setActions([{ label: "Back", run: () => show("home") }, closeBtn]); return; }
+    const product = (DASH_ID === "otr" || DASH_ID === "cairn") ? DASH_ID : (f.ed === "orion" ? "orion" : "nova");
+    const entry = m.products && m.products[product];
+    const unit = f.unit === "mph" ? "mph" : "metric";
+    const mine = ver(f.v), latest = entry && ver(entry.version);
+    if (!entry || !latest) { setMsg('<span class="big">No update file yet</span>Your radio reports ' + esc(f.v) + ". There is no firmware listed for this product yet (" + esc(product) + ")."); setActions([{ label: "Back", run: () => show("home") }, { label: "Close", run: close }]); return; }
+    if (!mine) { setMsg('<span class="big">Version not recognised</span>Your radio reports "' + esc(f.v) + '", which this page cannot compare.'); setActions([{ label: "Back", run: () => show("home") }, { label: "Close", run: close }]); return; }
+    if (cmp(mine, latest) >= 0) {
+      setMsg('<span class="big ok">Your firmware is up to date</span>Your radio runs ' + esc(f.v) + "."); setActions([{ label: "Back", run: () => show("home") }, { label: "Close", run: close, primary: true }]); return;
+    }
+    const v = entry.variants && entry.variants[unit], file = v && v.update;
+    if (!file) { setMsg('<span class="big">No update file for your radio</span>A newer firmware (' + esc(entry.version) + ") exists, but not for the " + esc(unit) + " version."); setActions([{ label: "Back", run: () => show("home") }, { label: "Close", run: close }]); return; }
+    setMsg('<span class="big">A newer firmware is available</span>Your radio runs ' + esc(f.v) + ", the newest is " + esc(entry.version) + "." + notes(entry) +
+           "<p>Update now? It takes about a minute. Keep the USB cable plugged in and leave this page open. Your settings are kept.</p>");
+    setActions([{ label: "Yes, update now", primary: true, run: () => firmwareUpdate(entry, file) }, closeBtn]);
+  }
+  function toBinaryString(bytes) { let s = ""; for (let i = 0; i < bytes.length; i += 0x8000) s += String.fromCharCode.apply(null, bytes.subarray(i, i + 0x8000)); return s; }
+  async function firmwareUpdate(entry, file) {
+    busy = true; setActions([]); progress(0); el("updLog").textContent = "";
+    let port = null, transport = null;
+    const stop = (msg) => { busy = false; progress(null); setMsg(msg); setActions([{ label: "Open the web flasher", href: WEB_FLASHER }, { label: "Close", run: close }]); };
+    try {
+      setMsg("Downloading the new firmware..."); progress(2);
+      const bytes = await getBytes(RAW(FW_REPO, file.path)); await checkFile(bytes, file);
+      log("firmware downloaded and checked (" + bytes.length + " bytes)");
+      setMsg("Letting go of the radio...");
+      if (typeof S !== "undefined" && S.mode === "serial") { S.manual = true; await disconnect(false); }
+      port = (typeof S !== "undefined" && S.kept) || null;
+      if (typeof S !== "undefined") S.kept = null;
+      if (port) { try { await port.close(); } catch (e) { /* already closed */ } }
+      else { setMsg("Choose your radio in the list that appears."); port = await navigator.serial.requestPort({ filters: [{ usbVendorId: 0x303a }] }); }
+      setMsg("Loading the flashing tool...");
+      const mod = await import(ESPTOOL);
+      transport = new mod.Transport(port, false);
+      const loader = new mod.ESPLoader({ transport, baudrate: 460800, romBaudrate: 115200, terminal: { clean() {}, writeLine: log, write: log } });
+      setMsg("Connecting to the radio's bootloader..."); progress(5);
+      const chip = await loader.main(); log("chip: " + chip);
+      if (!/ESP32-S3/i.test(String(chip))) throw new Error("This is not an ESP32-S3 radio (" + chip + "), so nothing was written");
+      setMsg("Writing the new firmware. Do not unplug the radio...");
+      const parts = [{ data: toBinaryString(bytes), address: file.offset }];
+      // blank areas to clear after the app is written (the "which copy to start" record, so the radio starts the copy just written)
+      (file.extra || []).forEach((x) => parts.push({ data: String.fromCharCode(x.fill & 255).repeat(x.length), address: x.offset }));
+      await loader.writeFlash({ fileArray: parts, flashSize: "keep", flashMode: "keep", flashFreq: "keep", eraseAll: false, compress: true,
+        reportProgress: (i, written, total) => progress(5 + (total ? written / total : 0) * 93) });
+      progress(99); setMsg("Restarting the radio...");
+      await loader.after("hard_reset");
+      try { await transport.disconnect(); } catch (e) { /* already gone */ }
+      busy = false; progress(100);
+      setMsg('<span class="big ok">Firmware updated to ' + esc(entry.version) + "</span>The radio is restarting. Wait about 10 seconds, then click Connect radio. If it does not come back, unplug it and plug it in again.");
+      setActions([{ label: "Close", primary: true, run: close }]);
+    } catch (e) {
+      try { if (transport) await transport.disconnect(); } catch (e2) { /* ignore */ }
+      if (e && e.name === "NotFoundError") { stop('<span class="big">Nothing was changed</span>No radio was chosen.'); return; }
+      stop('<span class="big bad">The firmware was not updated</span>' + esc((e && e.message) || e) + "<p>Unplug the radio and plug it in again, then try once more. If it keeps failing, hold the PRG button while plugging it in, then use the web flasher.</p>");
+    }
+  }
+
+  /* ---------------------------------------------------------------- wiring */
+  el("btnUpdates").addEventListener("click", open);
+  el("updClose").addEventListener("click", close);
+  el("updFw").addEventListener("click", firmwareCheck);
+  el("updDash").addEventListener("click", dashboardCheck);
+  el("updOverlay").addEventListener("click", (ev) => { if (ev.target === el("updOverlay")) close(); });
+  document.addEventListener("keydown", (ev) => { if (ev.key === "Escape" && !el("updOverlay").hidden) close(); });
+  window.DASH_UPDATE = { id: DASH_ID, version: DASH_VERSION };
+})();
+</script>
+<!--UPDATES-TAB-END-->
 </body>
 </html>
