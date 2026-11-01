@@ -247,7 +247,9 @@ th { font-family: var(--mono); color: var(--accent); }
 /* radar card */
 .radargrid { display: grid; grid-template-columns: minmax(280px, 460px) 1fr; gap: 18px; align-items: start; }
 .radarbox { position: relative; width: 100%; aspect-ratio: 1 / 1; max-width: 460px; }
-.radarbox canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; border-radius: 50%; }
+.radarmap { position: absolute; inset: 0; border-radius: 50%; overflow: hidden; z-index: 0; background: #0b1a15; }
+.radarmap .leaflet-control-container { display: none; }
+.radarbox > canvas { z-index: 1; position: absolute; inset: 0; width: 100%; height: 100%; display: block; border-radius: 50%; }
 .radartip { position: absolute; pointer-events: none; background: rgba(0,10,8,.92); color: #e4fff1; border: 1px solid var(--accent); padding: 5px 9px; border-radius: 2px; font: 13px var(--mono); max-width: 260px; z-index: 5; }
 .radarlist { max-height: 340px; overflow-y: auto; border: 1px solid var(--line); background: var(--panel); }
 .rr { display: grid; grid-template-columns: 22px 1fr auto; gap: 2px 10px; padding: 6px 10px; border-bottom: 1px solid var(--line); align-items: center; }
@@ -1080,10 +1082,12 @@ body:not(.station) .st { display: none !important; }
 <!--RADAR-BEGIN-->      <div class="card span2" id="radarCard">
         <h2>Radar &middot; contacts heard now</h2>
         <div class="radargrid">
-          <div class="radarbox"><canvas id="radarCv" role="img" aria-label="Radar of the repeaters, companions and room servers this station has heard recently. The same contacts are listed beside it."></canvas><div class="radartip" id="radarTip" hidden></div></div>
+          <div class="radarbox"><div id="radarMapDiv" class="radarmap" hidden></div><canvas id="radarCv" role="img" aria-label="Radar of the repeaters, companions and room servers this station has heard recently. The same contacts are listed beside it."></canvas><div class="radartip" id="radarTip" hidden></div></div>
           <div>
             <div class="row"><label for="radarWin" class="small muted">Show contacts heard in the last</label>
-              <select id="radarWin" style="max-width:170px"><option value="300000">5 minutes</option><option value="900000" selected>15 minutes</option><option value="3600000">1 hour</option></select></div>
+              <select id="radarWin" style="max-width:170px"><option value="300000">5 minutes</option><option value="900000" selected>15 minutes</option><option value="3600000">1 hour</option></select>
+              <label class="small muted" style="display:flex;gap:6px;align-items:center"><input type="checkbox" id="radarMapOn" checked> Show map under radar</label></div>
+            <p class="small muted" id="radarMapNote" style="margin:6px 0 0" hidden></p>
             <div id="radarList" class="radarlist" style="margin-top:10px"></div>
             <div class="radarleg"><span><b style="color:var(--rep)">&#9679;</b> repeater</span><span><b style="color:var(--comp)">&#9650;</b> companion</span><span><b style="color:var(--room)">&#9670;</b> room server</span><span>solid = position known</span><span>hollow = placed by signal strength</span></div>
             <p class="small muted" id="radarNote" style="margin:8px 0 0"></p>
@@ -2388,7 +2392,7 @@ function initMap() {
     leaveOffline(); if (remember) store.set("cairn-tiles", key);
     if (layer) S.map.removeLayer(layer);
     okT = 0; badT = 0; $("mapNote").hidden = true; $("tileSel").value = key;
-    layer = L.tileLayer(PROV.carto.url, PROV.carto.opt).addTo(S.map); layer.bringToBack();
+    S.tileSpec = PROV.carto; layer = L.tileLayer(PROV.carto.url, PROV.carto.opt).addTo(S.map); layer.bringToBack();
     layer.on("tileload", () => { okT++; $("mapNote").hidden = true; });
     layer.on("tileerror", () => {
       badT++; if (badT < 4 || okT > 0) return;
@@ -3267,10 +3271,10 @@ $("conForm").addEventListener("submit", (e) => { e.preventDefault(); const v = $
   const RINGS = [250, 500, 1000, 2000, 5000, 10000, 20000, 50000, 100000, 200000, 500000];
   function colours() { const t = performance.now(); if (R.css && t - R.cssAt < 1500) return R.css; const cs = getComputedStyle(document.documentElement), v = (n) => cs.getPropertyValue(n).trim(); R.cssAt = t; R.css = { ink: v("--ink"), muted: v("--muted"), line: v("--line"), accent: v("--accent"), rep: v("--rep"), comp: v("--comp"), room: v("--room"), sens: v("--info"), good: v("--good"), panel: v("--panel"), bad: v("--bad"), light: document.documentElement.getAttribute("data-theme") === "light" }; return R.css; }
   function contacts() {
-    const t = now(), h = here(), out = [];
+    const t = now(), h = here() || (M.on ? M.pos : null), out = [];
     S.nodes.forEach((n) => { if (!n.ms || t - n.ms > R.win || !(n.type >= 1)) return; const p = n.apos; let ang, dist = -1, pos = false; if (h && p) { ang = bearing(h, p) * Math.PI / 180; dist = distM(h, p); pos = true; } else ang = hash(n.k) * TAU; out.push({ n, ang, dist, pos }); });
     let far = 0; out.forEach((c) => { if (c.pos && c.dist > far) far = c.dist; });
-    R.rangeT = RINGS.find((r) => r >= far * 1.08) || RINGS[RINGS.length - 1]; if (!far) R.rangeT = 1000;
+    if (mapWanted() && M.layer) { const tg = far ? far + MI10 : 5000; if (!M.rt || Math.abs(tg - M.rt) / M.rt > 0.06) M.rt = tg; R.rangeT = M.rt; } else { R.rangeT = RINGS.find((r) => r >= far * 1.08) || RINGS[RINGS.length - 1]; if (!far) R.rangeT = 1000; }
     out.forEach((c) => { c.frac = c.pos ? Math.min(0.97, c.dist / R.range) : 0.9 - 0.75 * Math.min(1, Math.max(0, ((+c.n.snr) + 20) / 35)); });
     return out;
   }
@@ -3280,29 +3284,62 @@ $("conForm").addEventListener("submit", (e) => { e.preventDefault(); const v = $
     if (type === 2) g.arc(x, y, r, 0, TAU); else if (type === 1) { g.moveTo(x, y - r * 1.15); g.lineTo(x + r * 1.05, y + r * 0.8); g.lineTo(x - r * 1.05, y + r * 0.8); g.closePath(); } else { g.moveTo(x, y - r * 1.2); g.lineTo(x + r * 1.1, y); g.lineTo(x, y + r * 1.2); g.lineTo(x - r * 1.1, y); g.closePath(); }
     if (solid) { g.fillStyle = col; g.fill(); } else { g.lineWidth = 2; g.strokeStyle = col; g.stroke(); }
   }
+  /* ---- map under the radar: same offline/online map as the main map, centred on this station, scale follows the farthest heard contact with a known position plus 10 miles ---- */
+  const MI10 = 16093.4, M = { map: null, layer: null, key: "", on: true, busy: false, z: NaN, ll: null, pos: null, rt: 0, sz: 0 };
+  try { if (store.get("cairn-radarmap") === "0") M.on = false; } catch (e) { /* default on */ }
+  function mapWanted() { const h = here(); if (h) M.pos = h; return M.on && !!window.L && !!M.pos; }
+  async function mapSync() {
+    const div = $("radarMapDiv"), h = M.pos; if (!div) return false;
+    if (!mapWanted() || (!S.offUse && !S.tileSpec)) { div.hidden = true; return false; }
+    div.hidden = false;
+    if (!M.map) { M.map = L.map(div, { zoomControl: false, attributionControl: false, zoomSnap: 0, zoomAnimation: false, fadeAnimation: false, markerZoomAnimation: false, dragging: false, scrollWheelZoom: false, doubleClickZoom: false, boxZoom: false, keyboard: false, touchZoom: false, inertia: false }); M.map.setView(h, 13, { animate: false }); }
+    const key = S.offUse ? "off:" + S.offUse : "on:" + (S.tileSpec && S.tileSpec.url);
+    if (key !== M.key && !M.busy) {
+      M.busy = true;
+      try {
+        if (M.layer) { M.map.removeLayer(M.layer); M.layer = null; }
+        if (S.offUse) { const rec = S.off.get(S.offUse), info = await readHeader(rec.url ? rec : rec.file); M.layer = protomapsL.leafletLayer({ url: info.p, flavor: "light", maxDataZoom: info.h.maxZoom, lang: "en", updateWhenZooming: false, keepBuffer: 4 }).addTo(M.map); }
+        else M.layer = L.tileLayer(S.tileSpec.url, Object.assign({}, S.tileSpec.opt, { updateWhenZooming: false, keepBuffer: 4 })).addTo(M.map);
+        M.key = key;
+      } catch (e) { M.key = key; M.layer = null; }
+      M.busy = false;
+    }
+    return !!M.layer;
+  }
+  function mapPlace(w, rd) {      // radar radius rd (css px) = R.range metres
+    if (!M.map || !M.pos) return; const h = M.pos;
+    if (M.sz !== w) { M.sz = w; M.map.invalidateSize(false); }
+    const z = Math.log2(156543.03392 * Math.cos(h[0] * Math.PI / 180) * rd / Math.max(50, R.range)), zc = Math.max(1, Math.min(19, z));
+    const moved = M.ll ? distM(M.ll, h) : 1e9;
+    if (!M.ll || moved > R.range * 0.01 || Math.abs(zc - M.z) > 0.03) { M.z = zc; M.ll = h; M.map.setView(h, zc, { animate: false }); }
+  }
   function frame() {
     R.raf = 0; const cv = R.cv; if (!cv || S.tab !== "station" || document.hidden) return;
     const w = size(), g = R.g, C = colours(), t = performance.now(), cx = w / 2, cy = w / 2, rad = w / 2 - 22;
     const sig = reduce ? 0 : (((t - R.t0) % PERIOD) / PERIOD) * TAU, prev = R.prev; R.prev = sig;
-    R.range += (R.rangeT - R.range) * 0.05;
+    if (mapWanted() && M.layer) R.range = R.rangeT; else R.range += (R.rangeT - R.range) * 0.05;
+    mapSync().then(() => {}); const mapOn = mapWanted() && !!M.layer;
     const list = contacts(); R.rows = list;
-    g.clearRect(0, 0, w, w);
+    g.clearRect(0, 0, w, w); if (mapOn) mapPlace(w, rad); $("radarMapDiv").style.visibility = mapOn ? "visible" : "hidden";
+    { const nt = $("radarMapNote"); if (nt) { const txt = !M.on ? "" : !M.pos ? "Map under radar needs a GPS fix." : !(S.offUse || S.tileSpec) ? "Map under radar: open the map first." : !M.layer ? "Loading map\u2026" : list.some((c) => c.pos) ? "Map scale follows the farthest heard contact with a known position, plus 10 miles. Hollow marks are placed by signal strength only, not by true location." : "No heard contact has a known position yet, so the map shows a 5 km view."; if (nt.textContent !== txt) { nt.textContent = txt; nt.hidden = !txt; } } }
     /* face */
     const bgc = g.createRadialGradient(cx, cy, 0, cx, cy, rad + 20); if (C.light) { bgc.addColorStop(0, "#eaf5ee"); bgc.addColorStop(1, "#cfe0d5"); } else { bgc.addColorStop(0, "#07251c"); bgc.addColorStop(1, "#020c09"); }
-    g.fillStyle = bgc; g.beginPath(); g.arc(cx, cy, rad + 18, 0, TAU); g.fill();
+    if (mapOn) g.fillStyle = C.light ? "rgba(255,255,255,.12)" : "rgba(2,12,9,.38)"; else g.fillStyle = bgc; g.beginPath(); g.arc(cx, cy, rad + 18, 0, TAU); g.fill();
     g.strokeStyle = C.accent; g.lineWidth = 2; g.beginPath(); g.arc(cx, cy, rad + 18, 0, TAU); g.stroke();
-    g.strokeStyle = C.light ? "rgba(10,90,60,.35)" : "rgba(61,255,168,.28)"; g.lineWidth = 1;
+    const ringsDraw = () => {
     for (let i = 1; i <= 4; i++) { g.beginPath(); g.arc(cx, cy, rad * i / 4, 0, TAU); g.stroke(); }
-    for (let a = 0; a < 360; a += 30) { const r = a * Math.PI / 180; g.beginPath(); g.moveTo(cx + Math.sin(r) * rad * 0.06, cy - Math.cos(r) * rad * 0.06); g.lineTo(cx + Math.sin(r) * rad, cy - Math.cos(r) * rad); g.stroke(); }
+    for (let a = 0; a < 360; a += 30) { const r = a * Math.PI / 180; g.beginPath(); g.moveTo(cx + Math.sin(r) * rad * 0.06, cy - Math.cos(r) * rad * 0.06); g.lineTo(cx + Math.sin(r) * rad, cy - Math.cos(r) * rad); g.stroke(); } };
+    if (mapOn) { g.strokeStyle = "rgba(0,0,0,.6)"; g.lineWidth = 4; ringsDraw(); g.strokeStyle = "#ffd23f"; g.lineWidth = 1.6; ringsDraw(); }
+    else { g.strokeStyle = C.light ? "rgba(10,90,60,.35)" : "rgba(61,255,168,.28)"; g.lineWidth = 1; ringsDraw(); }
     for (let a = 0; a < 360; a += 5) { const r = a * Math.PI / 180, l = a % 10 ? 4 : 8; g.beginPath(); g.moveTo(cx + Math.sin(r) * (rad + 18), cy - Math.cos(r) * (rad + 18)); g.lineTo(cx + Math.sin(r) * (rad + 18 - l), cy - Math.cos(r) * (rad + 18 - l)); g.stroke(); }
     g.font = "bold 13px ui-monospace, Consolas, monospace"; g.textAlign = "center"; g.textBaseline = "middle"; g.fillStyle = C.accent;
     [["N", 0], ["E", 90], ["S", 180], ["W", 270]].forEach((d) => { const r = d[1] * Math.PI / 180; g.fillText(d[0], cx + Math.sin(r) * (rad + 6), cy - Math.cos(r) * (rad + 6)); });
-    g.font = "11px ui-monospace, Consolas, monospace"; g.fillStyle = C.muted; g.textAlign = "left";
-    for (let i = 1; i <= 4; i++) { const m = R.range * i / 4; g.fillText(fmtDist(m), cx + 4, cy - rad * i / 4 - 7); }
+    g.font = "11px ui-monospace, Consolas, monospace"; g.fillStyle = mapOn ? "#ffd23f" : C.muted; g.textAlign = "left";
+    for (let i = 1; i <= 4; i++) { const m = R.range * i / 4, tx = fmtDist(m); if (mapOn) { g.lineWidth = 3; g.strokeStyle = "rgba(0,0,0,.75)"; g.strokeText(tx, cx + 4, cy - rad * i / 4 - 7); } g.fillText(tx, cx + 4, cy - rad * i / 4 - 7); }
     /* sweep */
     if (!reduce) {
-      for (let k = 0; k < 44; k++) { const a1 = sig - k * 0.028 - Math.PI / 2, a0 = a1 - 0.03, al = 0.34 * Math.pow(1 - k / 44, 2); g.fillStyle = C.light ? "rgba(10,140,80," + al * 0.8 + ")" : "rgba(61,255,168," + al + ")"; g.beginPath(); g.moveTo(cx, cy); g.arc(cx, cy, rad, a0, a1 + 0.002); g.closePath(); g.fill(); }
-      g.strokeStyle = C.good; g.lineWidth = 2; g.shadowColor = C.good; g.shadowBlur = C.light ? 0 : 8; g.beginPath(); g.moveTo(cx, cy); g.lineTo(cx + Math.sin(sig) * rad, cy - Math.cos(sig) * rad); g.stroke(); g.shadowBlur = 0;
+      for (let k = 0; k < 44; k++) { const a1 = sig - k * 0.028 - Math.PI / 2, a0 = a1 - 0.03, al = 0.34 * Math.pow(1 - k / 44, 2); g.fillStyle = mapOn ? "rgba(255,210,63," + al * 0.9 + ")" : C.light ? "rgba(10,140,80," + al * 0.8 + ")" : "rgba(61,255,168," + al + ")"; g.beginPath(); g.moveTo(cx, cy); g.arc(cx, cy, rad, a0, a1 + 0.002); g.closePath(); g.fill(); }
+      g.strokeStyle = mapOn ? "#ffd23f" : C.good; g.lineWidth = 2; g.shadowColor = mapOn ? "#ffd23f" : C.good; g.shadowBlur = C.light ? 0 : 8; g.beginPath(); g.moveTo(cx, cy); g.lineTo(cx + Math.sin(sig) * rad, cy - Math.cos(sig) * rad); g.stroke(); g.shadowBlur = 0;
     }
     /* contacts: lit when the beam crosses them, then fade until the next pass */
     const seen = new Set(), pts = [];
@@ -3315,8 +3352,8 @@ $("conForm").addEventListener("submit", (e) => { e.preventDefault(); const v = $
       const x = cx + Math.sin(c.ang) * c.frac * rad, y = cy - Math.cos(c.ang) * c.frac * rad, col = C[(TYPE[c.n.type] || ["sens"])[0]] || C.sens, since = reduce ? 9999 : t - R.lit.get(k);
       pts.push({ c, x, y });
       if (since < 700) { g.strokeStyle = col; g.globalAlpha = (1 - since / 700) * 0.8; g.lineWidth = 2; g.beginPath(); g.arc(x, y, 6 + since / 18, 0, TAU); g.stroke(); }
-      g.globalAlpha = al; g.shadowColor = col; g.shadowBlur = C.light ? 0 : 12 * al; shape(g, c.n.type, x, y, 6.5, c.pos, col); g.shadowBlur = 0;
-      if (al > 0.4 || R.hi === k) { g.globalAlpha = Math.max(al, R.hi === k ? 1 : 0); g.font = "12px ui-monospace, Consolas, monospace"; g.textAlign = x > cx ? "left" : "right"; g.textBaseline = "middle"; g.fillStyle = C.ink; g.fillText((c.n.name || c.n.k.slice(0, 6)).slice(0, 18), x + (x > cx ? 11 : -11), y); }
+      g.globalAlpha = al; if (mapOn) shape(g, c.n.type, x, y, 9.5, true, "rgba(0,0,0,.7)"); g.shadowColor = col; g.shadowBlur = C.light ? 0 : 12 * al; shape(g, c.n.type, x, y, 6.5, c.pos, col); g.shadowBlur = 0;
+      if (al > 0.4 || R.hi === k) { g.globalAlpha = Math.max(al, R.hi === k ? 1 : 0); g.font = "12px ui-monospace, Consolas, monospace"; g.textAlign = x > cx ? "left" : "right"; g.textBaseline = "middle"; const lb = (c.n.name || c.n.k.slice(0, 6)).slice(0, 18); if (mapOn) { g.lineWidth = 3.5; g.strokeStyle = C.light ? "rgba(255,255,255,.95)" : "rgba(0,0,0,.85)"; g.strokeText(lb, x + (x > cx ? 11 : -11), y); } g.fillStyle = C.ink; g.fillText(lb, x + (x > cx ? 11 : -11), y); }
       g.globalAlpha = 1;
     });
     R.pts = pts; for (const k of R.lit.keys()) if (!seen.has(k)) R.lit.delete(k);      // no longer heard: gone from the radar
@@ -3349,6 +3386,7 @@ $("conForm").addEventListener("submit", (e) => { e.preventDefault(); const v = $
   }
   function init() {
     R.cv = $("radarCv"); const sel = $("radarWin"); sel.value = String(R.win);
+    const mo = $("radarMapOn"); if (mo) { mo.checked = M.on; mo.addEventListener("change", () => { M.on = mo.checked; try { store.set("cairn-radarmap", M.on ? "1" : "0"); } catch (e) { /* ok */ } }); }
     sel.addEventListener("change", () => { R.win = +sel.value; try { store.set("cairn-radarwin", String(R.win)); } catch (e) { /* ok */ } R.lit.clear(); });
     R.cv.addEventListener("pointermove", (ev) => { const r = R.cv.getBoundingClientRect(), x = ev.clientX - r.left, y = ev.clientY - r.top, tip = $("radarTip"); let best = null, bd = 18; (R.pts || []).forEach((p) => { const d = Math.hypot(p.x - x, p.y - y); if (d < bd) { bd = d; best = p; } }); if (best) { const n = best.c.n; R.hi = n.k; tip.hidden = false; tip.textContent = (n.name || n.k.slice(0, 6)) + " – " + (TYPE[n.type] || ["", "node"])[1] + " – SNR " + (+n.snr).toFixed(1) + " dB – " + (n.hops === 0 ? "direct" : n.hops + " hops") + " – " + fmtAge(now() - n.ms) + " ago"; tip.style.left = Math.min(x + 14, r.width - 230) + "px"; tip.style.top = Math.max(0, y - 34) + "px"; } else { R.hi = ""; tip.hidden = true; } });
     R.cv.addEventListener("pointerleave", () => { R.hi = ""; $("radarTip").hidden = true; });
@@ -3404,7 +3442,7 @@ $("conForm").addEventListener("submit", (e) => { e.preventDefault(); const v = $
 <script id="updates-js">
 (function () {
   "use strict";
-  const DASH_ID = "cairn", DASH_VERSION = "1.2.0";
+  const DASH_ID = "cairn", DASH_VERSION = "1.3.2";
   const FW_REPO = "propertymonitor-web/firmware_updates", DASH_REPO = "propertymonitor-web/dashboard_updates";
   const RAW = (repo, path) => "https://raw.githubusercontent.com/" + repo + "/main/" + path;
   const ESPTOOL = "https://cdn.jsdelivr.net/npm/esptool-js@0.5.7/bundle.js";
