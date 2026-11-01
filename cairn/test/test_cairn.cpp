@@ -284,7 +284,7 @@ int main(int argc, char** argv) {
     Cairn d; d.loadUnits(buf); CHECK(d.nunits == 2 && strcmp(d.units[1].call, "WOLF/2") == 0 && strcmp(d.units[1].key, "aabbccddeeff") == 0);
     d.loadUnits("garbage\nzz zz\n"); CHECK(d.nunits == 0);
     char j[600]; size_t jn = c.unitsJson(j, sizeof(j)); CHECK(jn > 0 && strstr(j, "\"c\":\"EAGLE\"") && strstr(j, "\"units\":["));
-    emit(j);
+    { FILE* uj = fopen("/tmp/units.json", "w"); if (uj) { fprintf(uj, "%s\n", j); fclose(uj); } }
     c.unitCommand(" del wolf/2", r, sizeof(r)); CHECK(c.nunits == 1);
     c.unitCommand(" del nobody", r, sizeof(r)); CHECK(strncmp(r, "Err", 3) == 0);
     for (int i = 0; i < CAIRN_NUNIT + 2; i++) { char cmdb[80]; snprintf(cmdb, sizeof cmdb, " add %012x U%d", 0x100000 + i, i); c.unitCommand(cmdb, r, sizeof(r)); }
