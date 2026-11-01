@@ -48,6 +48,7 @@ static char cairn_line[CAIRN_LINE];
 #define CAIRN_LOG_OLD   "/cairn.1"
 #define CAIRN_ID_FILE   "/cairn.id"
 #define CAIRN_CFG_FILE  "/cairn.cfg"
+#define CAIRN_REG_FILE  "/cairn.reg"
 #ifndef CAIRN_LOG_MAX
 #define CAIRN_LOG_MAX   (192u * 1024u)      // the journal keeps about this much, plus the same again in /cairn.1
 #endif
@@ -84,6 +85,13 @@ void MyMesh::cairnInit() {
       int cn = cf.read((uint8_t*)cb, sizeof(cb) - 1);
       cf.close();
       if (cn > 0) { cb[cn] = 0; cairn::loadConfig(cb, cairn_core.cfg); }
+    }
+    File rf = fs->open(CAIRN_REG_FILE, "r");   // registered units (radio ID + call sign)
+    if (rf) {
+      static char rb[1400];
+      int rn = rf.read((uint8_t*)rb, sizeof(rb) - 1);
+      rf.close();
+      if (rn > 0) { rb[rn] = 0; cairn_core.loadUnits(rb); }
     }
   }
 #endif
@@ -170,6 +178,14 @@ void MyMesh::cairnLogAdvert(mesh::Packet* pkt, int rssi) {
 
 void MyMesh::cairnSaveCfg() {
 #ifdef ESP32
+  if (cairn_core.units_dirty) {
+    cairn_core.units_dirty = false;
+    static char rb[1400];
+    size_t rn = cairn_core.saveUnits(rb, sizeof(rb));
+    FILESYSTEM* rfs = _store->getPrimaryFS();
+    File rf = rfs->open(CAIRN_REG_FILE, "w", true);
+    if (rf) { if (rn) rf.write((const uint8_t*)rb, rn); rf.close(); }
+  }
   char cb[96];
   size_t cn = cairn::saveConfig(cairn_core.cfg, cb, sizeof(cb));
   if (cn == 0) return;
@@ -315,7 +331,7 @@ void MyMesh::cairnTick(uint32_t now) {
       cairn_core.ctx.setting = w;
     }
   }
-  if (cairn_core.cfg_dirty) { cairn_core.cfg_dirty = false; cairnSaveCfg(); }
+  if (cairn_core.cfg_dirty || cairn_core.units_dirty) { cairn_core.cfg_dirty = false; cairnSaveCfg(); }
   if (cairn_core.chan_op) cairnChannelOp();
 
   // One message per pass at most, so the radio is never asked to send two at once.
@@ -404,6 +420,14 @@ void MyMesh::cairnTick(uint32_t now) {
     if (ok) Serial.println(dm ? "# direct message sent" : "# message sent");
     else if (dm) Serial.println("# direct message NOT sent (that contact is not in this radio's contact list, or it could not send)");
     else Serial.println("# message NOT sent (no such channel, or the radio could not send)");
+#endif
+  }
+  if (cairn_core.want_units) {
+    cairn_core.want_units = false;
+#ifndef ENABLE_USB_INTERFACE
+    static char ub[1100];
+    size_t un = cairn_core.unitsJson(ub, sizeof(ub));
+    if (un) Serial.println(ub);
 #endif
   }
   if (cairn_core.want_chans) {

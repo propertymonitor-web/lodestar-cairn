@@ -268,6 +268,28 @@ int main(int argc, char** argv) {
     CHECK(r.peek(b, 8) == 8 && b[0] == 'f' && b[1] == '0' && b[6] == '5' && b[7] == 'x');
     r.drop(100); CHECK(r.count() == 0); r.push('q'); r.clear(); CHECK(r.count() == 0 && r.room() == 8);
   }
+
+  { // registered units: add, rename, remove, save and load
+    Cairn c; char r[200], buf[2048];
+    c.unitCommand(" add 0123456789abcdef0123 wolf-1", r, sizeof(r)); CHECK(strncmp(r, "OK", 2) == 0 && c.nunits == 1 && strcmp(c.units[0].call, "WOLF-1") == 0 && strcmp(c.units[0].key, "0123456789ab") == 0);
+    CHECK(c.units_dirty && c.want_units);
+    c.unitCommand(" add 0123456789ab HAWK", r, sizeof(r)); CHECK(c.nunits == 1 && strcmp(c.units[0].call, "HAWK") == 0);   // same ID renames
+    c.unitCommand(" add AABBCCDDEEFF1122 WOLF/2", r, sizeof(r)); CHECK(c.nunits == 2);
+    c.unitCommand(" add 111111111111 HAWK", r, sizeof(r)); CHECK(strncmp(r, "Err", 3) == 0 && c.nunits == 2);              // call sign already used
+    c.unitCommand(" add 1234 X", r, sizeof(r)); CHECK(strncmp(r, "Err", 3) == 0);                                          // ID too short
+    c.unitCommand(" add 222222222222 bad name", r, sizeof(r)); CHECK(strncmp(r, "Err", 3) == 0);                           // space in call sign
+    c.unitCommand(" add 222222222222 ABCDEF123456", r, sizeof(r)); CHECK(strncmp(r, "Err", 3) == 0);                       // looks like an ID
+    c.unitCommand(" name hawk eagle", r, sizeof(r)); CHECK(strncmp(r, "OK", 2) == 0 && strcmp(c.units[0].call, "EAGLE") == 0);
+    size_t n = c.saveUnits(buf, sizeof(buf)); buf[n] = 0; CHECK(n > 0);
+    Cairn d; d.loadUnits(buf); CHECK(d.nunits == 2 && strcmp(d.units[1].call, "WOLF/2") == 0 && strcmp(d.units[1].key, "aabbccddeeff") == 0);
+    d.loadUnits("garbage\nzz zz\n"); CHECK(d.nunits == 0);
+    char j[600]; size_t jn = c.unitsJson(j, sizeof(j)); CHECK(jn > 0 && strstr(j, "\"c\":\"EAGLE\"") && strstr(j, "\"units\":["));
+    emit(j);
+    c.unitCommand(" del wolf/2", r, sizeof(r)); CHECK(c.nunits == 1);
+    c.unitCommand(" del nobody", r, sizeof(r)); CHECK(strncmp(r, "Err", 3) == 0);
+    for (int i = 0; i < CAIRN_NUNIT + 2; i++) { char cmdb[80]; snprintf(cmdb, sizeof cmdb, " add %012x U%d", 0x100000 + i, i); c.unitCommand(cmdb, r, sizeof(r)); }
+    CHECK(c.nunits == CAIRN_NUNIT);
+  }
   if (jl) fclose(jl);
   if (fails) { printf("%d FAILED\n", fails); return 1; }
   printf("all tests passed\n");

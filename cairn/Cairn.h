@@ -21,7 +21,7 @@
 #include <string.h>
 #include <stdarg.h>
 
-#define CAIRN_VERSION  "1.3.0"
+#define CAIRN_VERSION  "1.4.0"
 #define CAIRN_LINE     640       // longest journal line, bytes (a 160-character message can need ~480)
 #define CAIRN_SAY_MAX  140       // longest message the dashboard can send (MeshCore text limits are about this)
 #define CAIRN_RING     24        // lines held in RAM between the radio and the flash / USB writers
@@ -286,6 +286,8 @@ static inline void sha256(const uint8_t* msg, size_t len, uint8_t out[32]) {
 // The built-in Public channel's 16-byte key (base64 izOH6cXN6mrJ5e26oRXNcg== in MeshCore).
 static const uint8_t PUBLIC_KEY16[16] = { 0x8b,0x33,0x87,0xe9,0xc5,0xcd,0xea,0x6a,0xc9,0xe5,0xed,0xba,0xa1,0x15,0xcd,0x72 };
 #define CAIRN_MAX_CHANNELS 40
+#define CAIRN_NUNIT        48      // registered companions / repeaters kept on the radio
+#define CAIRN_UNIT_CALL    12      // longest call sign
 #define CAIRN_CHAN_NAME    32      // bytes in MeshCore's name field, including the end mark
 
 // A channel name people can type and read aloud: 1..31 bytes, no control characters, no quote or backslash
@@ -417,6 +419,11 @@ public:
   bool want_dm = false;      uint8_t dm_key[6] = {0};
   char say_text[CAIRN_SAY_MAX + 1] = {0};
   bool want_chans = false;
+  // Registered units: companions and repeaters known by the start of their public key, each with a call sign.
+  struct Unit { char key[13]; char call[CAIRN_UNIT_CALL + 1]; };
+  Unit units[CAIRN_NUNIT]; int nunits = 0;
+  bool want_units = false;   // send the list to the dashboard
+  bool units_dirty = false;  // write /cairn.reg
   uint32_t want_time = 0;    // set the radio's clock to this (seconds since 1970), from the dashboard
   uint32_t last_ok_up = 0;   // seconds since boot when this station last sent a check-in (0 = none)
   // Help, status, marks
@@ -563,6 +570,10 @@ public:
       if (want_say || want_dm) { snprintf(reply, cap, "Err - still sending the last message, try again"); return; }
       memcpy(dm_key, k, 6); memcpy(say_text, p, n); say_text[n] = 0; want_dm = true;
       snprintf(reply, cap, "OK - sending direct message");
+    } else if (cmd(a, "units")) {
+      want_units = true; snprintf(reply, cap, "OK - unit list on its way");
+    } else if (cmd(a, "unit")) {
+      unitCommand(a + 4, reply, cap);
     } else if (cmd(a, "chans")) {
       want_chans = true;
       snprintf(reply, cap, "OK - channel list on its way");
@@ -652,6 +663,72 @@ public:
     } else {
       snprintf(reply, cap, "cairn [status|id|ok|say|dm|chans|chan add|new|remove|key|mode standard|disaster|power full|saver|antenna|help|help off|beacon|auto|eco|lowbat|main|ustatus|mark|config|dump|clear yes|time]");
     }
+  }
+
+  // ---- registered units (/cairn.reg: one "<12 hex> <CALL>" per line) ----
+  static bool unitCallOk(const char* c) { size_t n = c ? strlen(c) : 0; if (n < 1 || n > CAIRN_UNIT_CALL) return false; for (size_t i = 0; i < n; i++) { char ch = c[i]; if (!((ch >= 'A' && ch <= 'Z') || (ch >= '0' && ch <= '9') || ch == '-' || ch == '/')) return false; } { char k[13]; if (unitKey(c, k)) return false; } return true; }   // a call sign that looks like a radio ID would be ambiguous
+  // 12 to 64 hex characters (the radio ID = the start of the public key). Writes the first 12, lower case.
+  static bool unitKey(const char* h, char* out12) {
+    size_t n = 0; while (h[n] && h[n] != ' ') n++;
+    if (n < 12 || n > 64) return false;
+    for (size_t i = 0; i < n; i++) { char c = h[i]; if (!((c >= '0' && c <= '9') || (c >= 'a' && c <= 'f') || (c >= 'A' && c <= 'F'))) return false; }
+    for (int i = 0; i < 12; i++) { char c = h[i]; out12[i] = (c >= 'A' && c <= 'F') ? (char)(c + 32) : c; }
+    out12[12] = 0; return true;
+  }
+  int unitFind(const char* what) const {      // by radio ID or by call sign; -1 when not registered
+    char k[13]; char up[CAIRN_UNIT_CALL + 2]; size_t n = 0; while (what[n] && what[n] != ' ' && n < CAIRN_UNIT_CALL + 1) { up[n] = (what[n] >= 'a' && what[n] <= 'z') ? (char)(what[n] - 32) : what[n]; n++; } up[n] = 0;
+    bool isKey = unitKey(what, k);
+    for (int i = 0; i < nunits; i++) { if (isKey && strcmp(units[i].key, k) == 0) return i; if (!isKey && strcmp(units[i].call, up) == 0) return i; }
+    return -1;
+  }
+  size_t saveUnits(char* out, size_t cap) const {
+    size_t n = 0; for (int i = 0; i < nunits; i++) { int w = snprintf(out + n, cap - n, "%s %s\n", units[i].key, units[i].call); if (w < 0 || (size_t)w >= cap - n) break; n += (size_t)w; }
+    return n;
+  }
+  void loadUnits(const char* t) {
+    nunits = 0;
+    while (t && *t && nunits < CAIRN_NUNIT) {
+      char k[13]; char call[CAIRN_UNIT_CALL + 2]; const char* e = strchr(t, '\n'); size_t len = e ? (size_t)(e - t) : strlen(t);
+      if (len >= 14 && len <= 13 + CAIRN_UNIT_CALL && t[12] == ' ') { char line[40]; memcpy(line, t, len); line[len] = 0; memcpy(call, line + 13, len - 13); call[len - 13] = 0;
+        if (unitKey(line, k) && unitCallOk(call) && unitFind(k) < 0 && unitFind(call) < 0) { memcpy(units[nunits].key, k, 13); memcpy(units[nunits].call, call, strlen(call) + 1); nunits++; } }
+      t = e ? e + 1 : nullptr;
+    }
+  }
+  size_t unitsJson(char* out, size_t cap) const {
+    size_t n = 0; int w = snprintf(out, cap, "{\"cairn\":1,\"units\":["); if (w < 0 || (size_t)w >= cap) return 0; n = (size_t)w;
+    for (int i = 0; i < nunits; i++) { w = snprintf(out + n, cap - n, "%s{\"k\":\"%s\",\"c\":\"%s\"}", i ? "," : "", units[i].key, units[i].call); if (w < 0 || (size_t)w >= cap - n) return 0; n += (size_t)w; }
+    w = snprintf(out + n, cap - n, "],\"max\":%d}", CAIRN_NUNIT); if (w < 0 || (size_t)w >= cap - n) return 0; return n + (size_t)w;
+  }
+  void unitCommand(const char* a, char* reply, size_t cap) {   // a = what follows "cairn unit"
+    while (*a == ' ') a++;
+    if (cmd(a, "add") || cmd(a, "name") || cmd(a, "rename")) {
+      bool isAdd = cmd(a, "add"); const char* p = a; while (*p && *p != ' ') p++; while (*p == ' ') p++;
+      const char* q = p; while (*q && *q != ' ') q++; const char* r = q; while (*r == ' ') r++;
+      char call[CAIRN_UNIT_CALL + 2]; size_t cn = strlen(r); if (cn > CAIRN_UNIT_CALL + 1) cn = CAIRN_UNIT_CALL + 1;
+      for (size_t i = 0; i < cn; i++) { call[i] = (r[i] >= 'a' && r[i] <= 'z') ? (char)(r[i] - 32) : r[i]; }
+      call[cn] = 0;
+      if (*p == 0 || *r == 0) { snprintf(reply, cap, isAdd ? "cairn unit add <radio ID, 12+ hex> <CALL SIGN>" : "cairn unit name <radio ID or call sign> <NEW CALL SIGN>"); return; }
+      if (!unitCallOk(call)) { snprintf(reply, cap, "Err - a call sign is 1-%d letters, digits, - or /", CAIRN_UNIT_CALL); return; }
+      int other = unitFind(call); int at = unitFind(p);
+      if (isAdd) { char k[13]; if (!unitKey(p, k)) { snprintf(reply, cap, "Err - the radio ID is 12 or more hex characters (the start of its public key)"); return; }
+        if (at < 0 && nunits >= CAIRN_NUNIT) { snprintf(reply, cap, "Err - the list is full (%d units); remove one first", CAIRN_NUNIT); return; }
+        if (other >= 0 && other != at) { snprintf(reply, cap, "Err - %s is already used by another unit", call); return; }
+        if (at < 0) { at = nunits++; memcpy(units[at].key, k, 13); }
+        memcpy(units[at].call, call, strlen(call) + 1);
+      } else {
+        if (at < 0) { snprintf(reply, cap, "Err - that unit is not registered"); return; }
+        if (other >= 0 && other != at) { snprintf(reply, cap, "Err - %s is already used by another unit", call); return; }
+        memcpy(units[at].call, call, strlen(call) + 1);
+      }
+      units_dirty = true; want_units = true; snprintf(reply, cap, "OK - %s is %s", units[at].key, units[at].call);
+    } else if (cmd(a, "del") || cmd(a, "remove") || cmd(a, "rm")) {
+      const char* p = a; while (*p && *p != ' ') p++; while (*p == ' ') p++;
+      int at = *p ? unitFind(p) : -1; if (at < 0) { snprintf(reply, cap, "Err - that unit is not registered"); return; }
+      for (int i = at; i < nunits - 1; i++) { units[i] = units[i + 1]; }
+      nunits--;
+      units_dirty = true; want_units = true; snprintf(reply, cap, "OK - unit removed");
+    } else if (*a == 0 || cmd(a, "list")) { want_units = true; snprintf(reply, cap, "OK - unit list on its way"); }
+    else snprintf(reply, cap, "cairn unit add <radio ID> <CALL> | name <ID or CALL> <NEW CALL> | del <ID or CALL> | list");
   }
 
 private:
