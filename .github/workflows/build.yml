@@ -254,7 +254,7 @@ jobs:
           UNITS: ${{ inputs.units }}
         run: |
           BIN="MeshCore/.pio/build/$FW_ENV/firmware.elf"
-          if [ "$UNITS" = "mph" ]; then WANT="1.0.4-mph"; else WANT="1.0.4"; fi   # the NOVA base version it is built on
+          if [ "$UNITS" = "mph" ]; then WANT="1.4.1-mph"; else WANT="1.4.1"; fi   # the NOVA base version it is built on
           strings -n 5 "$BIN" | grep -q -x -F "$WANT" || { echo "::error::The version marker $WANT is missing from the build."; exit 1; }
           strings -n 5 "$BIN" | grep -q -x -F "1.4.1" || { echo "::error::The CAIRN version marker 1.4.1 is missing from the build."; exit 1; }
           strings -n 5 "$BIN" | grep -q -F "NEEDS HELP" || { echo "::error::The help text is missing from the build."; exit 1; }

@@ -15,6 +15,9 @@ ok = True
 if hs != ds: print("STATUS labels differ:", hs, ds); ok = False
 if hm != dm: print("MARK labels differ:", hm, dm); ok = False
 ver_h = re.search(r'CAIRN_VERSION\s+"([^"]+)"', h).group(1); ver_d = re.search(r'DASH_VER = "([^"]+)"', d).group(1)
+nova_h = open(root / "nova" / "Nova.h").read() if "root" in globals() else open("nova/Nova.h").read()
+ver_n = re.search(r"#ifdef NOVA_CAIRN.*?NOVA_BASE_VERSION\s+\"([^\"]+)\"", nova_h, re.S).group(1)
+if ver_n != ver_h: print("the version the radio reports to the dashboard (Nova.h) differs from CAIRN_VERSION:", ver_n, ver_h); ok = False
 if ver_h != ver_d: print("version differs:", ver_h, ver_d); ok = False
 if not ok: sys.exit(1)
 print("labels and version match:", len(hs) - 1, "statuses,", len(hm) - 1, "marks, version", ver_h)
