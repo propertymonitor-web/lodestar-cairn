@@ -85,7 +85,7 @@ jobs:
           print('journal lines are valid JSON:', n)
           d = json.load(open('/tmp/status.json')); assert d['cairn'] == 1 and d['tx'] == 28 and d['mw'] == 631
           print('status line is valid JSON:', len(d), 'fields')
-          u = json.load(open('/tmp/units.json')); assert u['cairn'] == 1 and len(u['units']) == 2 and u['units'][0]['c'] == 'EAGLE'
+          u = json.load(open('/tmp/units.json')); assert u['cairn'] == 1 and len(u['units']) == 3 and u['units'][0]['c'] == 'EAGLE' and u['units'][0]['n'] == 12
           print('units line is valid JSON:', len(u['units']), 'units')
           "
 
@@ -174,7 +174,7 @@ jobs:
           APK=android/app/build/outputs/apk/release/app-release.apk
           "$BT/aapt" dump badging "$APK" > badging.txt
           grep -q "package: name='com.wolfreactive.cairn.station'" badging.txt || { echo "::error::wrong package name"; exit 1; }
-          grep -q "versionName='1.4.0'" badging.txt || { echo "::error::wrong version"; exit 1; }
+          grep -q "versionName='1.4.1'" badging.txt || { echo "::error::wrong version"; exit 1; }
           grep -q "android.intent.category.HOME" <("$BT/aapt" dump xmltree "$APK" AndroidManifest.xml) || { echo "::error::the app is not offered as a Home app"; exit 1; }
           unzip -l "$APK" | grep -q "assets/station.html" || { echo "::error::the dashboard is not inside the app"; exit 1; }
           "$BT/apksigner" verify --print-certs "$APK" | head -3
@@ -256,7 +256,7 @@ jobs:
           BIN="MeshCore/.pio/build/$FW_ENV/firmware.elf"
           if [ "$UNITS" = "mph" ]; then WANT="1.0.4-mph"; else WANT="1.0.4"; fi   # the NOVA base version it is built on
           strings -n 5 "$BIN" | grep -q -x -F "$WANT" || { echo "::error::The version marker $WANT is missing from the build."; exit 1; }
-          strings -n 5 "$BIN" | grep -q -x -F "1.4.0" || { echo "::error::The CAIRN version marker 1.4.0 is missing from the build."; exit 1; }
+          strings -n 5 "$BIN" | grep -q -x -F "1.4.1" || { echo "::error::The CAIRN version marker 1.4.1 is missing from the build."; exit 1; }
           strings -n 5 "$BIN" | grep -q -F "NEEDS HELP" || { echo "::error::The help text is missing from the build."; exit 1; }
           strings -n 5 "$BIN" | grep -q -x -F "Reporting" || { echo "::error::The check-in text is missing from the build."; exit 1; }
           strings -n 5 "$BIN" | grep -q -F "no GPS fix" || { echo "::error::The no-GPS text is missing from the build."; exit 1; }

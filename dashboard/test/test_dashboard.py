@@ -19,7 +19,7 @@ with sync_playwright() as p:
         pg.click("#splash"); pg.wait_for_timeout(900)
         check(pg.locator("#splash").count() == 0, "splash goes away on tap")
         check(pg.evaluate("document.documentElement.scrollWidth <= window.innerWidth + 1"), "no sideways scroll on Home %s" % vp)
-        check(pg.locator("#tabs button:visible").count() == 6, "easy view shows 6 tabs")
+        check(pg.locator("#tabs button:visible").count() == 7, "easy view shows 7 tabs (Home, People, Units, Chat, Map, Power, Guide)")
         check(pg.locator("#hmOk").is_disabled(), "OK button disabled until the radio is connected")
         pg.click("#btnDemo"); pg.wait_for_timeout(1400)
         check(not pg.locator("#hmOk").is_disabled(), "OK button enabled in practice")

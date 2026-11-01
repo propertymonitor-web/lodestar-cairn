@@ -21,7 +21,7 @@
 #include <string.h>
 #include <stdarg.h>
 
-#define CAIRN_VERSION  "1.4.0"
+#define CAIRN_VERSION  "1.4.1"
 #define CAIRN_LINE     640       // longest journal line, bytes (a 160-character message can need ~480)
 #define CAIRN_SAY_MAX  140       // longest message the dashboard can send (MeshCore text limits are about this)
 #define CAIRN_RING     24        // lines held in RAM between the radio and the flash / USB writers
@@ -420,7 +420,7 @@ public:
   char say_text[CAIRN_SAY_MAX + 1] = {0};
   bool want_chans = false;
   // Registered units: companions and repeaters known by the start of their public key, each with a call sign.
-  struct Unit { char key[13]; char call[CAIRN_UNIT_CALL + 1]; };
+  struct Unit { char key[13]; char call[CAIRN_UNIT_CALL + 1]; uint8_t cru; };   // cru = the unit's CAIRN remote unit (CRU) number, 1-99
   Unit units[CAIRN_NUNIT]; int nunits = 0;
   bool want_units = false;   // send the list to the dashboard
   bool units_dirty = false;  // write /cairn.reg
@@ -666,7 +666,8 @@ public:
   }
 
   // ---- registered units (/cairn.reg: one "<12 hex> <CALL>" per line) ----
-  static bool unitCallOk(const char* c) { size_t n = c ? strlen(c) : 0; if (n < 1 || n > CAIRN_UNIT_CALL) return false; for (size_t i = 0; i < n; i++) { char ch = c[i]; if (!((ch >= 'A' && ch <= 'Z') || (ch >= '0' && ch <= '9') || ch == '-' || ch == '/')) return false; } { char k[13]; if (unitKey(c, k)) return false; } return true; }   // a call sign that looks like a radio ID would be ambiguous
+  static bool unitCallOk(const char* c) { size_t n = c ? strlen(c) : 0; if (n < 1 || n > CAIRN_UNIT_CALL) return false; if (strncmp(c, "CRU-", 4) == 0) return false;   // CRU-nn is the assigned ID, not a name
+     for (size_t i = 0; i < n; i++) { char ch = c[i]; if (!((ch >= 'A' && ch <= 'Z') || (ch >= '0' && ch <= '9') || ch == '-' || ch == '/')) return false; } { char k[13]; if (unitKey(c, k)) return false; } return true; }   // a call sign that looks like a radio ID would be ambiguous
   // 12 to 64 hex characters (the radio ID = the start of the public key). Writes the first 12, lower case.
   static bool unitKey(const char* h, char* out12) {
     size_t n = 0; while (h[n] && h[n] != ' ') n++;
@@ -678,25 +679,35 @@ public:
   int unitFind(const char* what) const {      // by radio ID or by call sign; -1 when not registered
     char k[13]; char up[CAIRN_UNIT_CALL + 2]; size_t n = 0; while (what[n] && what[n] != ' ' && n < CAIRN_UNIT_CALL + 1) { up[n] = (what[n] >= 'a' && what[n] <= 'z') ? (char)(what[n] - 32) : what[n]; n++; } up[n] = 0;
     bool isKey = unitKey(what, k);
-    for (int i = 0; i < nunits; i++) { if (isKey && strcmp(units[i].key, k) == 0) return i; if (!isKey && strcmp(units[i].call, up) == 0) return i; }
+    int cn = -1; if (strncmp(up, "CRU-", 4) == 0) { cn = atoi(up + 4); }
+    for (int i = 0; i < nunits; i++) { if (isKey && strcmp(units[i].key, k) == 0) return i; if (cn > 0 && units[i].cru == cn) return i; if (!isKey && cn < 0 && strcmp(units[i].call, up) == 0) return i; }
     return -1;
   }
+  int cruFree() const { for (int c = 1; c <= 99; c++) { bool used = false; for (int i = 0; i < nunits; i++) if (units[i].cru == c) used = true; if (!used) return c; } return 0; }
+  int cruAt(int n) const { for (int i = 0; i < nunits; i++) if (units[i].cru == n) return i; return -1; }
   size_t saveUnits(char* out, size_t cap) const {
-    size_t n = 0; for (int i = 0; i < nunits; i++) { int w = snprintf(out + n, cap - n, "%s %s\n", units[i].key, units[i].call); if (w < 0 || (size_t)w >= cap - n) break; n += (size_t)w; }
+    size_t n = 0; for (int i = 0; i < nunits; i++) { int w = snprintf(out + n, cap - n, "%s %u %s\n", units[i].key, (unsigned)units[i].cru, units[i].call); if (w < 0 || (size_t)w >= cap - n) break; n += (size_t)w; }
     return n;
   }
   void loadUnits(const char* t) {
     nunits = 0;
     while (t && *t && nunits < CAIRN_NUNIT) {
-      char k[13]; char call[CAIRN_UNIT_CALL + 2]; const char* e = strchr(t, '\n'); size_t len = e ? (size_t)(e - t) : strlen(t);
-      if (len >= 14 && len <= 13 + CAIRN_UNIT_CALL && t[12] == ' ') { char line[40]; memcpy(line, t, len); line[len] = 0; memcpy(call, line + 13, len - 13); call[len - 13] = 0;
-        if (unitKey(line, k) && unitCallOk(call) && unitFind(k) < 0 && unitFind(call) < 0) { memcpy(units[nunits].key, k, 13); memcpy(units[nunits].call, call, strlen(call) + 1); nunits++; } }
+      const char* e = strchr(t, '\n'); size_t len = e ? (size_t)(e - t) : strlen(t);
+      if (len >= 15 && len < 40 && t[12] == ' ') {
+        char line[40]; memcpy(line, t, len); line[len] = 0; char k[13];
+        char* rest = line + 13; int cru = 0; char* sp = strchr(rest, ' ');
+        if (sp) { *sp = 0; cru = atoi(rest); rest = sp + 1; }       // older files had no number: "<id> <call>"
+        if (!sp || cru < 1 || cru > 99) { cru = 0; rest = line + 13; }
+        if (unitKey(line, k) && unitCallOk(rest) && unitFind(k) < 0 && unitFind(rest) < 0 && (cru == 0 || cruAt(cru) < 0)) {
+          memcpy(units[nunits].key, k, 13); memcpy(units[nunits].call, rest, strlen(rest) + 1); units[nunits].cru = (uint8_t)(cru ? cru : cruFree()); if (units[nunits].cru) nunits++;
+        }
+      }
       t = e ? e + 1 : nullptr;
     }
   }
   size_t unitsJson(char* out, size_t cap) const {
     size_t n = 0; int w = snprintf(out, cap, "{\"cairn\":1,\"units\":["); if (w < 0 || (size_t)w >= cap) return 0; n = (size_t)w;
-    for (int i = 0; i < nunits; i++) { w = snprintf(out + n, cap - n, "%s{\"k\":\"%s\",\"c\":\"%s\"}", i ? "," : "", units[i].key, units[i].call); if (w < 0 || (size_t)w >= cap - n) return 0; n += (size_t)w; }
+    for (int i = 0; i < nunits; i++) { w = snprintf(out + n, cap - n, "%s{\"k\":\"%s\",\"n\":%u,\"c\":\"%s\"}", i ? "," : "", units[i].key, (unsigned)units[i].cru, units[i].call); if (w < 0 || (size_t)w >= cap - n) return 0; n += (size_t)w; }
     w = snprintf(out + n, cap - n, "],\"max\":%d}", CAIRN_NUNIT); if (w < 0 || (size_t)w >= cap - n) return 0; return n + (size_t)w;
   }
   void unitCommand(const char* a, char* reply, size_t cap) {   // a = what follows "cairn unit"
@@ -704,23 +715,36 @@ public:
     if (cmd(a, "add") || cmd(a, "name") || cmd(a, "rename")) {
       bool isAdd = cmd(a, "add"); const char* p = a; while (*p && *p != ' ') p++; while (*p == ' ') p++;
       const char* q = p; while (*q && *q != ' ') q++; const char* r = q; while (*r == ' ') r++;
-      char call[CAIRN_UNIT_CALL + 2]; size_t cn = strlen(r); if (cn > CAIRN_UNIT_CALL + 1) cn = CAIRN_UNIT_CALL + 1;
+      const char* e = r; while (*e && *e != ' ') e++; const char* nx = e; while (*nx == ' ') nx++;      // name, then an optional CRU number
+      char call[CAIRN_UNIT_CALL + 2]; size_t cn = (size_t)(e - r); if (cn > CAIRN_UNIT_CALL + 1) cn = CAIRN_UNIT_CALL + 1;
       for (size_t i = 0; i < cn; i++) { call[i] = (r[i] >= 'a' && r[i] <= 'z') ? (char)(r[i] - 32) : r[i]; }
       call[cn] = 0;
-      if (*p == 0 || *r == 0) { snprintf(reply, cap, isAdd ? "cairn unit add <radio ID, 12+ hex> <CALL SIGN>" : "cairn unit name <radio ID or call sign> <NEW CALL SIGN>"); return; }
-      if (!unitCallOk(call)) { snprintf(reply, cap, "Err - a call sign is 1-%d letters, digits, - or /", CAIRN_UNIT_CALL); return; }
+      int want = 0; if (*nx) { char* en; long v = strtol(nx, &en, 10); if (en == nx || *en != 0 || v < 1 || v > 99) { snprintf(reply, cap, "Err - the CRU number is 1 to 99"); return; } want = (int)v; }
+      if (*p == 0 || *r == 0) { snprintf(reply, cap, isAdd ? "cairn unit add <radio ID, 12+ hex> <NAME> [CRU number]" : "cairn unit name <radio ID, name or CRU-nn> <NEW NAME>"); return; }
+      if (!unitCallOk(call)) { snprintf(reply, cap, "Err - a name is 1-%d letters, digits, - or / (not starting CRU-)", CAIRN_UNIT_CALL); return; }
       int other = unitFind(call); int at = unitFind(p);
       if (isAdd) { char k[13]; if (!unitKey(p, k)) { snprintf(reply, cap, "Err - the radio ID is 12 or more hex characters (the start of its public key)"); return; }
         if (at < 0 && nunits >= CAIRN_NUNIT) { snprintf(reply, cap, "Err - the list is full (%d units); remove one first", CAIRN_NUNIT); return; }
         if (other >= 0 && other != at) { snprintf(reply, cap, "Err - %s is already used by another unit", call); return; }
-        if (at < 0) { at = nunits++; memcpy(units[at].key, k, 13); }
+        int taken = want ? cruAt(want) : -1; if (taken >= 0 && taken != at) { snprintf(reply, cap, "Err - CRU-%02d is already used by %s", want, units[taken].call); return; }
+        if (at < 0) { int c = want ? want : cruFree(); if (!c) { snprintf(reply, cap, "Err - no CRU number is free"); return; } at = nunits++; memcpy(units[at].key, k, 13); units[at].cru = (uint8_t)c; }
+        else if (want) units[at].cru = (uint8_t)want;
         memcpy(units[at].call, call, strlen(call) + 1);
       } else {
         if (at < 0) { snprintf(reply, cap, "Err - that unit is not registered"); return; }
         if (other >= 0 && other != at) { snprintf(reply, cap, "Err - %s is already used by another unit", call); return; }
         memcpy(units[at].call, call, strlen(call) + 1);
       }
-      units_dirty = true; want_units = true; snprintf(reply, cap, "OK - %s is %s", units[at].key, units[at].call);
+      units_dirty = true; want_units = true; snprintf(reply, cap, "OK - CRU-%02d %s is radio %s", (int)units[at].cru, units[at].call, units[at].key);
+    } else if (cmd(a, "cru")) {
+      const char* p = a; while (*p && *p != ' ') p++; while (*p == ' ') p++;
+      const char* q = p; while (*q && *q != ' ') q++; const char* r = q; while (*r == ' ') r++;
+      char who[40]; size_t wn = (size_t)(q - p); if (wn >= sizeof(who)) wn = sizeof(who) - 1; memcpy(who, p, wn); who[wn] = 0;
+      char* en; long v = *r ? strtol(r, &en, 10) : 0;
+      int at = *who ? unitFind(who) : -1;
+      if (at < 0 || !*r || *en != 0 || v < 1 || v > 99) { snprintf(reply, cap, "cairn unit cru <radio ID, name or CRU-nn> <number 1-99>"); return; }
+      int taken = cruAt((int)v); if (taken >= 0 && taken != at) { snprintf(reply, cap, "Err - CRU-%02d is already used by %s", (int)v, units[taken].call); return; }
+      units[at].cru = (uint8_t)v; units_dirty = true; want_units = true; snprintf(reply, cap, "OK - %s is now CRU-%02d", units[at].call, (int)v);
     } else if (cmd(a, "del") || cmd(a, "remove") || cmd(a, "rm")) {
       const char* p = a; while (*p && *p != ' ') p++; while (*p == ' ') p++;
       int at = *p ? unitFind(p) : -1; if (at < 0) { snprintf(reply, cap, "Err - that unit is not registered"); return; }
@@ -728,7 +752,7 @@ public:
       nunits--;
       units_dirty = true; want_units = true; snprintf(reply, cap, "OK - unit removed");
     } else if (*a == 0 || cmd(a, "list")) { want_units = true; snprintf(reply, cap, "OK - unit list on its way"); }
-    else snprintf(reply, cap, "cairn unit add <radio ID> <CALL> | name <ID or CALL> <NEW CALL> | del <ID or CALL> | list");
+    else snprintf(reply, cap, "cairn unit add <radio ID> <NAME> [CRU no.] | name <ID, name or CRU-nn> <NEW NAME> | cru <who> <no.> | del <who> | list");
   }
 
 private:

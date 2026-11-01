@@ -287,7 +287,7 @@ th { font-family: var(--mono); color: var(--accent); }
     <h1>CAIRN</h1>
     <div class="sub">Lodestar &middot; emergency &amp; field communications</div>
     <div class="bar"><i></i></div>
-    <div class="ver">WOLF REACTIVE SYSTEMS (WRS) &nbsp;&middot;&nbsp; VER. <span id="splVer">1.4.0</span></div>
+    <div class="ver">WOLF REACTIVE SYSTEMS (WRS) &nbsp;&middot;&nbsp; VER. <span id="splVer">1.4.1</span></div>
   </div>
   <div class="cred"><b>Engineered by: Aries Thorne &amp; Todd Steinhauer for Wolf Reactive Systems (WRS)</b><br>Special thanks to the NTXMESH community, Meshcore Community, and Pat Steinhauer-Scates for their guidance and support.</div>
 </div>
@@ -311,6 +311,7 @@ th { font-family: var(--mono); color: var(--accent); }
   <nav class="tabs" id="tabs" role="tablist">
     <button data-tab="home" aria-pressed="true">Home</button>
     <button data-tab="checkins">People<span id="lateBadge" class="badge" hidden>0</span></button>
+    <button data-tab="units">Units</button>
     <button data-tab="chat">Chat<span id="chatBadge" class="badge" hidden>0</span></button>
     <button data-tab="map">Map</button>
     <button data-tab="power">Power</button>
@@ -478,19 +479,7 @@ th { font-family: var(--mono); color: var(--accent); }
   <!-- ===================================================== CHECK-INS -->
   <section class="tab" id="tab-checkins">
     <div class="grid">
-      <div class="card span2" id="unitCard">
-        <h2>Registered units <span class="muted small" id="unitCount"></span></h2>
-        <p class="small muted" style="margin:0 0 8px">Register companions and repeaters by their radio ID and give each a call sign. The list is kept on this CAIRN radio. Their position comes from the adverts they send, so a unit needs GPS to show where it is.</p>
-        <div id="unitList"></div>
-        <div class="row" style="margin-top:10px;flex-wrap:wrap">
-          <select id="unitPick" aria-label="Heard radios not yet registered" style="max-width:260px"></select>
-          <input id="unitId" placeholder="or type a radio ID (12+ hex)" aria-label="Radio ID" style="max-width:220px" autocomplete="off">
-          <input id="unitCall" placeholder="CALL SIGN" aria-label="Call sign" maxlength="12" style="max-width:150px;text-transform:uppercase" autocomplete="off">
-          <button id="unitAdd">Register</button>
-        </div>
-        <div class="row" style="margin-top:8px"><label for="unitMiss" class="small muted">Flag a unit as missing when not heard for</label><input id="unitMiss" type="number" min="1" max="1440" style="width:80px"> <span class="small muted">minutes</span></div>
-        <p class="small" id="unitNote" style="margin:6px 0 0"></p>
-      </div>
+
       <div class="card span2">
         <h2>Needs and places</h2>
         <div id="needsBox"></div>
@@ -508,6 +497,26 @@ th { font-family: var(--mono); color: var(--accent); }
   </section>
 
   <!-- ===================================================== LOG -->
+  <section class="tab" id="tab-units">
+    <div class="grid">
+      <div class="card span2" id="unitCard">
+        <h2>Remote units (CRU) <span class="muted small" id="unitCount"></span></h2>
+        <p class="small" style="margin:0 0 6px">Bound to this CAIRN: <b class="mono" id="unitBound">LC-????????</b></p>
+        <p class="small muted" style="margin:0 0 8px">Bind a companion or repeater to this CAIRN by its radio ID. Each one gets a CAIRN remote unit (CRU) ID, like CRU-01, and a name. The list is kept on this CAIRN radio. A unit shows where it is only if its radio has GPS and sends adverts.</p>
+        <div id="unitList"></div>
+        <div class="row" style="margin-top:10px;flex-wrap:wrap">
+          <select id="unitPick" aria-label="Heard radios not yet registered" style="max-width:260px"></select>
+          <input id="unitId" placeholder="or type a radio ID (12+ hex)" aria-label="Radio ID" style="max-width:220px" autocomplete="off">
+          <input id="unitCall" placeholder="NAME" aria-label="Name" maxlength="12" style="max-width:150px;text-transform:uppercase" autocomplete="off">
+          <input id="unitCru" type="number" min="1" max="99" placeholder="CRU no. (auto)" aria-label="CRU number, leave empty to assign the next free one" style="max-width:130px">
+          <button id="unitAdd">Bind to this CAIRN</button>
+        </div>
+        <div class="row" style="margin-top:8px"><label for="unitMiss" class="small muted">Flag a unit as missing when not heard for</label><input id="unitMiss" type="number" min="1" max="1440" style="width:80px"> <span class="small muted">minutes</span></div>
+        <p class="small" id="unitNote" style="margin:6px 0 0"></p>
+      </div>
+    </div>
+  </section>
+
   <section class="tab" id="tab-log">
     <div class="card">
       <div class="filters">
@@ -646,7 +655,7 @@ const TYPE = { 1: ["comp", "companion"], 2: ["rep", "repeater"], 3: ["room", "ro
 const CHECKIN_RE = /\b(LC-(?:[A-HJ-NP-Z2-9]{8}|[A-HJ-NP-Z2-9]{5})) (Reporting|NEEDS HELP|STATUS [A-Z ]+?|MARK [A-Z ]+?|LOW BATTERY \d+%) at: (?:(-?\d{1,3}\.\d+),(-?\d{1,3}\.\d+)|no GPS fix)/;
 const STATUS_LABEL = ["", "NEED MEDICAL", "NEED WATER", "NEED FOOD", "NEED SHELTER", "NEED TRANSPORT", "EVACUATING", "STAYING PUT", "CAN HELP"];
 const MARK_LABEL = ["", "WATER", "SHELTER", "MEDICAL AID", "HAZARD", "MEETING POINT", "ROAD BLOCKED", "SUPPLIES"];
-const DASH_VER = "1.4.0";
+const DASH_VER = "1.4.1";
 const STN = !!window.CairnBridge;   // true only inside the CAIRN Station tablet app
 const nice = (l) => l.charAt(0) + l.slice(1).toLowerCase();
 const PLAUSIBLE = (sec) => sec > 1700000000 && sec < 4102444800;
@@ -750,6 +759,7 @@ function onFound(f) {
 }
 /* ---------------------------------------------------------------- registered units (kept on the radio), trails, trip line */
 function unitFor(k) { k = String(k || "").toLowerCase(); if (k.length < 12) return null; for (const u of S.units) if (k.indexOf(u.k) === 0) return u; return null; }
+const cruTxt = (u) => "CRU-" + String(u.n || 0).padStart(2, "0");
 function lbl(n, none) { const u = unitFor(n.k); return u ? u.c : (n.name || (none != null ? none : n.k.slice(0, 6))); }
 const ROUTE_KEY = "cairn-route", TRAIL_KEY = "cairn-trails";
 S.route = []; S.trails = new Map();
@@ -830,7 +840,7 @@ function onLine(line) {
       try {
         const o = JSON.parse(line);
         if (o.chans) { S.chans = o.chans; if (o.mc != null) S.mc = o.mc; if (o.max) S.chmax = o.max; }
-        if (o.units) { S.units = o.units.filter((u) => u && typeof u.k === "string"); if (o.max) S.unitMax = o.max; if (S.tab === "checkins") renderUnits(); }
+        if (o.units) { S.units = o.units.filter((u) => u && typeof u.k === "string"); if (o.max) S.unitMax = o.max; if (S.tab === "units") renderUnits(); }
         if (o.chanres) onChanRes(o.chanres);
         if (o.chankey) { S.keyShow = o.chankey; renderKeyBox(); }
         if (o.id) { S.cairn = o; S.cairnAt = now(); maybeSetClock(o); }
@@ -1006,6 +1016,7 @@ function unitNote(t, bad) { const e = $("unitNote"); if (e) { e.textContent = t 
 function renderUnits() {
   const box = $("unitList"); if (!box) return;
   const mm = $("unitMiss"); if (mm && document.activeElement !== mm) mm.value = String(Math.max(1, +store.get("cairn-missmin") || 30));
+  { const b = $("unitBound"); if (b) b.textContent = (S.cairn && S.cairn.id) || "LC-????????"; }
   $("unitCount").textContent = S.units.length ? "(" + S.units.length + " of " + S.unitMax + ")" : "";
   const pick = $("unitPick");
   if (pick && document.activeElement !== pick) {
@@ -1016,36 +1027,36 @@ function renderUnits() {
     if (pick.dataset.h !== html) { const v = pick.value; pick.innerHTML = html; pick.dataset.h = html; pick.value = v; }
   }
   if (box.contains(document.activeElement)) return;      // do not rebuild while a call sign is being typed
-  if (!S.units.length) { box.innerHTML = '<p class="muted">No units registered yet. Pick a heard radio below (or type its ID), give it a call sign and press Register.</p>'; return; }
+  if (!S.units.length) { box.innerHTML = '<p class="muted">No units bound yet. Pick a heard radio below (or type its radio ID), give it a name and press Bind to this CAIRN. It gets the next free CRU ID.</p>'; return; }
   const lim = Math.max(1, +store.get("cairn-missmin") || 30) * 60000, t = now(), h = here();
-  box.innerHTML = '<div style="overflow-x:auto"><table><tr><th>Call sign</th><th>Type</th><th>Last heard</th><th>Position</th><th></th></tr>' + S.units.map((u) => {
+  box.innerHTML = '<div style="overflow-x:auto"><table><tr><th>CRU ID</th><th>Name</th><th>Radio ID</th><th>Type</th><th>Last heard</th><th>Position</th><th></th></tr>' + S.units.map((u) => {
     const n = unitNode(u), tt = n ? (TYPE[n.type] || ["", "node"]) : ["", "-"];
     const miss = n && n.ms && t - n.ms > lim;
     const heard = !n || !n.ms ? '<span class="muted">not heard yet</span>' : (miss ? '<span class="unit-miss">MISSING ' + esc(fmtAge(t - n.ms)) + "</span>" : '<span class="unit-ok">' + esc(fmtAge(t - n.ms)) + " ago</span>");
     const p = n && (n.apos || n.hpos), pos = !n ? "" : n.apos ? esc(n.apos[0].toFixed(5) + ", " + n.apos[1].toFixed(5)) + (h ? "<br><span class=\"muted small\">" + esc(relPos(n.apos)) + "</span>" : "") : n.hpos ? '<span class="muted">no GPS; heard from ' + esc(n.hpos[0].toFixed(3) + ", " + n.hpos[1].toFixed(3)) + "</span>" : '<span class="muted">no position</span>';
-    return '<tr data-k="' + esc(u.k) + '"><td><input value="' + esc(u.c) + '" maxlength="12" aria-label="Call sign for ' + esc(u.k) + '"> <button data-act="save">Save</button><div class="mono small muted">' + esc(u.k) + "</div></td><td>" + esc(tt[1]) + "</td><td>" + heard + "</td><td>" + pos + '</td><td>' + (p ? '<button data-act="map" data-p="' + esc(p[0] + "," + p[1]) + '">Show on map</button> ' : "") + '<button data-act="del">Remove</button></td></tr>';
+    return '<tr data-k="' + esc(u.k) + '"><td><b class="mono">' + esc(cruTxt(u)) + '</b><br><input class="cru" type="number" min="1" max="99" value="' + esc(u.n || "") + '" style="width:64px" aria-label="CRU number for ' + esc(u.c) + '"></td><td><input class="nm" value="' + esc(u.c) + '" maxlength="12" aria-label="Name for ' + esc(cruTxt(u)) + '"> <button data-act="save">Save</button></td><td class="mono small">' + esc(u.k) + "</td><td>" + esc(tt[1]) + "</td><td>" + heard + "</td><td>" + pos + '</td><td>' + (p ? '<button data-act="map" data-p="' + esc(p[0] + "," + p[1]) + '">Show on map</button> ' : "") + '<button data-act="del">Remove</button></td></tr>';
   }).join("") + "</table></div>";
 }
 function wireUnits() {
   const box = $("unitList"); if (!box || box.dataset.w) return; box.dataset.w = "1";
   box.addEventListener("click", (ev) => {
     const b = ev.target.closest("button[data-act]"); if (!b) return; const row = b.closest("tr"), k = row && row.dataset.k, a = b.dataset.act;
-    if (a === "save") { const c = row.querySelector("input").value.trim().toUpperCase(); if (!c) { unitNote("Type a call sign first.", true); return; } send("cairn unit name " + k + " " + c); unitNote("Saving..."); setTimeout(() => send("cairn units"), 700); }
-    else if (a === "del") { const u = S.units.find((x) => x.k === k); if (u && confirm("Remove " + u.c + " from the registered units? The radio keeps working; it just stops being called " + u.c + ".")) { send("cairn unit del " + k); setTimeout(() => send("cairn units"), 700); } }
+    if (a === "save") { const c = row.querySelector("input.nm").value.trim().toUpperCase(), cr = parseInt(row.querySelector("input.cru").value, 10), u = S.units.find((x) => x.k === k); if (!c) { unitNote("Type a name first.", true); return; } if (!u) return; if (c !== u.c) send("cairn unit name " + k + " " + c); if (cr >= 1 && cr <= 99 && cr !== u.n) send("cairn unit cru " + k + " " + cr); unitNote("Saving..."); setTimeout(() => send("cairn units"), 700); }
+    else if (a === "del") { const u = S.units.find((x) => x.k === k); if (u && confirm("Unbind " + u.c + " (" + cruTxt(u) + ") from this CAIRN? Its radio keeps working; it just stops being tracked as a unit.")) { send("cairn unit del " + k); setTimeout(() => send("cairn units"), 700); } }
     else if (a === "map") { S.focus = b.dataset.p.split(",").map(Number); showTab("map"); }
   });
   $("unitAdd").addEventListener("click", () => {
     const id = ($("unitId").value.trim() || $("unitPick").value || "").toLowerCase(), call = $("unitCall").value.trim().toUpperCase();
-    if (!/^[0-9a-f]{12,64}$/.test(id)) { unitNote("Pick a heard radio, or type its radio ID (12 or more letters 0-9 a-f).", true); return; }
-    if (!/^[A-Z0-9\/-]{1,12}$/.test(call)) { unitNote("A call sign is 1 to 12 letters, digits, - or /.", true); return; }
-    send("cairn unit add " + id + " " + call); unitNote("Registering " + call + "..."); $("unitId").value = ""; $("unitCall").value = ""; $("unitPick").value = ""; setTimeout(() => send("cairn units"), 700);
+    if (!/^[0-9a-f]{12,64}$/.test(id)) { unitNote("Pick a heard radio, or type its radio ID (12 or more characters 0-9 a-f).", true); return; }
+    if (!/^[A-Z0-9\/-]{1,12}$/.test(call) || call.indexOf("CRU-") === 0) { unitNote("A name is 1 to 12 letters, digits, - or / (it cannot start with CRU-).", true); return; }
+    const cr = parseInt($("unitCru").value, 10);
+    send("cairn unit add " + id + " " + call + (cr >= 1 && cr <= 99 ? " " + cr : "")); unitNote("Binding " + call + "..."); $("unitId").value = ""; $("unitCall").value = ""; $("unitCru").value = ""; $("unitPick").value = ""; setTimeout(() => send("cairn units"), 700);
   });
   $("unitPick").addEventListener("change", () => { if ($("unitPick").value) $("unitId").value = ""; });
   $("unitMiss").addEventListener("change", () => { const v = Math.max(1, Math.min(1440, parseInt($("unitMiss").value, 10) || 30)); store.set("cairn-missmin", String(v)); $("unitMiss").value = String(v); render(); });
   const sr = $("snapRoads"); if (sr) { sr.checked = SNAP.on; sr.addEventListener("change", () => { SNAP.on = sr.checked; store.set("cairn-snap", SNAP.on ? "1" : "0"); SNAP.failAt = 0; if (SNAP.on) { SNAP.done = []; SNAP.upto = 0; } SNAP.dirty = true; if (S.tab === "map") renderMap(); }); }
 }
 function renderRoster() {
-  renderUnits();
   const late = (+$("lateMin").value || 30) * 60000, t = now(), own = S.cairn && S.cairn.id;
   const a = Array.from(S.checkins.values()).sort((x, y) => (effHelp(y) - effHelp(x)) || (y.ms - x.ms));
   let overdue = 0;
@@ -1139,7 +1150,8 @@ function render() {
   else if (S.tab === "station") renderStation();
   else if (S.tab === "chat") renderChat();
   else if (S.tab === "nearby") renderNearby();
-  else if (S.tab === "checkins") { wireUnits(); renderRoster(); }
+  else if (S.tab === "units") { wireUnits(); renderUnits(); }
+  else if (S.tab === "checkins") renderRoster();
   else if (S.tab === "log") renderLog();
   else if (S.tab === "files" && STN) stRenderFiles();
   else if (S.tab === "online" && STN) stRenderOnline();
@@ -1434,7 +1446,7 @@ function renderMap() {
     const p = n.apos || (n.hpos); if (!p) return;
     const tt = TYPE[n.type] || ["rep", "node"];
     const mkr = L.marker(p, { icon: mk(tt[0]), title: lbl(n) }); if (unitFor(n.k)) mkr.bindTooltip(esc(lbl(n)), { permanent: true, direction: "top", offset: [0, -14] });
-    mkr.bindPopup("<b>" + esc(lbl(n)) + "</b>" + (unitFor(n.k) && n.name ? " (" + esc(n.name) + ")" : "") + "<br>" + esc(tt[1]) + "<br>SNR " + (+n.snr).toFixed(1) + ", " + (n.hops === 0 ? "direct" : N(n.hops) + " hops") + "<br>" + (n.ms ? fmtAge(now() - n.ms) + " ago" : "") + (n.apos ? "" : "<br><i>(position where I heard it)</i>")).addTo(S.gNodes);
+    mkr.bindPopup("<b>" + esc(lbl(n)) + "</b>" + (unitFor(n.k) ? " <span class=\"muted\">" + esc(cruTxt(unitFor(n.k))) + (n.name ? ", " + esc(n.name) : "") + "</span>" : "") + "<br>" + esc(tt[1]) + "<br>SNR " + (+n.snr).toFixed(1) + ", " + (n.hops === 0 ? "direct" : N(n.hops) + " hops") + "<br>" + (n.ms ? fmtAge(now() - n.ms) + " ago" : "") + (n.apos ? "" : "<br><i>(position where I heard it)</i>")).addTo(S.gNodes);
     pts.push(p);
   });
   S.checkins.forEach((c) => {
@@ -1475,9 +1487,12 @@ function demoCommand(line) {
   else if (w === "chans") demoChans();
   else if (w === "units") demoReply({ cairn: 1, units: d.units, max: 48 });
   else if (w === "unit") {
-    const q = rest.split(/\s+/), sub = q[0], what = (q[1] || "").toLowerCase(), call = (q[2] || "").toUpperCase(), at = d.units.findIndex((u) => u.k === what.slice(0, 12) || u.c === what.toUpperCase());
-    if (sub === "add" && what.length >= 12 && /^[A-Z0-9\/-]{1,12}$/.test(call)) { if (at >= 0) d.units[at].c = call; else d.units.push({ k: what.slice(0, 12), c: call }); say("OK - " + what.slice(0, 12) + " is " + call); }
-    else if (sub === "name" && at >= 0 && call) { d.units[at].c = call; say("OK - renamed to " + call); }
+    const q = rest.split(/\s+/), sub = q[0], what = (q[1] || "").toLowerCase(), arg = (q[2] || "").toUpperCase(), cru = parseInt(q[3], 10);
+    const at = d.units.findIndex((u) => u.k === what.slice(0, 12) || u.c === what.toUpperCase() || ("CRU-" + String(u.n).padStart(2, "0")) === what.toUpperCase());
+    const free = () => { for (let c = 1; c <= 99; c++) if (!d.units.some((u) => u.n === c)) return c; return 0; };
+    if (sub === "add" && what.length >= 12 && /^[A-Z0-9\/-]{1,12}$/.test(arg) && arg.indexOf("CRU-") !== 0) { if (at >= 0) { d.units[at].c = arg; if (cru) d.units[at].n = cru; } else d.units.push({ k: what.slice(0, 12), n: cru || free(), c: arg }); say("OK - " + arg + " bound"); }
+    else if (sub === "name" && at >= 0 && arg) { d.units[at].c = arg; say("OK - renamed to " + arg); }
+    else if (sub === "cru" && at >= 0 && parseInt(q[2], 10) >= 1) { d.units[at].n = parseInt(q[2], 10); say("OK - CRU number changed"); }
     else if (sub === "del" && at >= 0) { d.units.splice(at, 1); say("OK - unit removed"); }
     else say("Err - could not do that");
     demoReply({ cairn: 1, units: d.units, max: 48 });
@@ -1545,7 +1560,7 @@ function startDemo() {
   S.nodes = new Map(); S.journal = []; S.jset = new Set(); S.checkins = new Map();
   const d = demoState = { id: "LC-K7M2P4XQ", gps: [29.7604, -95.3698], up: 600, skew: 90, okAt: 0, tick: 0, hnext: 0, bat: 76, cfg: { mode: "standard", pw: "full", ant: 2, auto: 0, beacon: 5, ecoon: 1, lowbat: 1, mc: 0, help: 0 }, chans: [{ i: 0, n: "Public", t: "pub", k: "8b3387e9c5cdea6ac9e5edbaa115cd72" }, { i: 1, n: "Neighborhood", t: "key", k: "00112233445566778899aabbccddeeff" }] };
   S.marks = []; S.mkset = new Set(); demoChans();
-  S._realTrails = S.trails; S.trails = new Map(); S._realRoute = S.route; S.route = []; d.units = [{ k: "beefcafe0001", c: "HIKER-1" }, { k: "7f3e9a11b2c3", c: "RPT-DOWNTOWN" }, { k: "aaaaaaaaaaaa", c: "TRUCK-2" }]; S.units = d.units.slice();
+  S._realTrails = S.trails; S.trails = new Map(); S._realRoute = S.route; S.route = []; d.units = [{ k: "beefcafe0001", n: 1, c: "HIKER-1" }, { k: "7f3e9a11b2c3", n: 2, c: "RPT-DOWNTOWN" }, { k: "aaaaaaaaaaaa", n: 3, c: "TRUCK-2" }]; S.units = d.units.slice();
   const rt = Math.round(now() / 1000);
   const reps = [["Hilltop-1", 1, -4.5, -96, 2, 29.8211, -95.4202], ["Downtown RPT", 2, -9.0, -108, 1, 29.7498, -95.3601], ["School Roof", 0, 6.2, -78, 0, 29.7701, -95.3512]];
   reps.forEach((r, i) => { const k = ["A1B2C3D4E5F0","7F3E9A11B2C3","D40C55E8A901"][i]; addRecord(JSON.stringify({ r: "a", t: rt - 60 * (i + 1), u: 100 + i, ty: 2, n: r[0], k, h: r[1], s: r[2], rs: r[3], la: r[5], lo: r[6] }), now(), false); });
@@ -1676,7 +1691,7 @@ function renderAlerts() {
   const c = cfgNow(), own = c.id, t = now(), box = $("alerts"), items = [];
   if (c.help) items.push('<div class="al"><div class="t">YOUR HELP CALL IS ON</div><div>Next call in ' + esc(fmtAge((c.hnext || 0) * 1000)) + '. Others who hear it see your position.</div><div class="row"><button data-al="cancel" class="danger">Cancel my help call</button></div></div>');
   if (ready() && c.bat != null && c.bat >= 0 && c.bat <= 15 && !c.ext) items.push('<div class="al warn"><div class="t">Radio battery is low (' + N(c.bat) + '%)</div><div>Plug the radio into a power bank or the solar input.</div></div>');
-  unitMissing().forEach((m) => items.push('<div class="al warn"><div class="t">' + esc(m.u.c) + ' NOT HEARD for ' + esc(fmtAge(m.ago)) + '</div><div>Last heard ' + esc(fmtAge(m.ago)) + ' ago. Check on them.</div><div class="row"><button data-al="people">See units</button></div></div>'));
+  unitMissing().forEach((m) => items.push('<div class="al warn"><div class="t">' + esc(m.u.c) + ' (' + esc(cruTxt(m.u)) + ') NOT HEARD for ' + esc(fmtAge(m.ago)) + '</div><div>Last heard ' + esc(fmtAge(m.ago)) + ' ago. Check on them.</div><div class="row"><button data-al="people">See units</button></div></div>'));
   const helps = Array.from(S.checkins.values()).filter((x) => x.id !== own && effHelp(x) && t - x.helpMs < 6 * 3600000).sort((a, b) => b.helpMs - a.helpMs);
   let fresh = false;
   helps.slice(0, 3).forEach((x) => {
@@ -1694,7 +1709,7 @@ function renderAlerts() {
       if (k === "cancel") send("cairn help off");
       else if (k === "ack") { const x = S.checkins.get(b.dataset.id); if (x) { S.ack[x.id] = x.helpMs; jset("cairn-ack", S.ack); render(); } }
       else if (k === "map") { S.focus = b.dataset.p.split(",").map(Number); showTab("map"); }
-      else if (k === "people") showTab("checkins");
+      else if (k === "people") showTab("units");
     }));
   }
 }
@@ -1868,7 +1883,7 @@ $("conForm").addEventListener("submit", (e) => { e.preventDefault(); const v = $
     S.journal.sort((a, b) => (a._ms || 0) - (b._ms || 0));
   } catch (e) { /* no stored copy: the radio's journal arrives on connect */ }
   applyView();
-  showTab(["home", "station", "chat", "nearby", "checkins", "log", "map", "power", "guide"].concat(STN ? ["files", "online"] : []).includes(S.tab) ? S.tab : "home");
+  showTab(["home", "station", "chat", "nearby", "checkins", "units", "log", "map", "power", "guide"].concat(STN ? ["files", "online"] : []).includes(S.tab) ? S.tab : "home");
   if (!STN && !("serial" in navigator)) notice("This browser cannot connect to a radio over USB. Use Chrome (version 148 or newer on Android). You can still read the log kept on this tablet, and use Practice to try the page.");
   if ("serviceWorker" in navigator && location.protocol.indexOf("http") === 0) navigator.serviceWorker.register("sw.js").catch(() => {});
 })();
@@ -2054,7 +2069,7 @@ $("conForm").addEventListener("submit", (e) => { e.preventDefault(); const v = $
 <script id="updates-js">
 (function () {
   "use strict";
-  const DASH_ID = "cairn", DASH_VERSION = "1.4.0";
+  const DASH_ID = "cairn", DASH_VERSION = "1.4.1";
   const FW_REPO = "propertymonitor-web/firmware_updates", DASH_REPO = "propertymonitor-web/dashboard_updates";
   const RAW = (repo, path) => "https://raw.githubusercontent.com/" + repo + "/main/" + path;
   const ESPTOOL = "https://cdn.jsdelivr.net/npm/esptool-js@0.5.7/bundle.js";
