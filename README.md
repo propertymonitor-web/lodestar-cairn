@@ -109,6 +109,15 @@ Use the **BLE** build: the USB port carries the dashboard. (The USB build uses t
 ## Dashboard hosting
 Enable GitHub Pages (Settings → Pages → `main` / `/docs`) then open the page once on the tablet and "Add to Home screen".
 
+## More documentation
+
+- `ARCHITECTURE.md` - how the pieces fit together.
+- `SECURITY.md` - what we protect against, **known weaknesses**, and how to report a problem.
+
+## How this was made
+
+Most of the code and documentation here was written with an AI assistant (Claude, by Anthropic), directed and reviewed by the authors. The commit history records this. Passing tests is not the same as being correct; independent review is welcome.
+
 ## License
 
 Open source under the **Apache License 2.0** (see `LICENSE` and `NOTICE`). Copyright 2026 Aries Thorne and Todd Steinhauer. Code from others that this project builds on or includes keeps its own license: see `THIRD-PARTY-NOTICES.md`. The names and emblem are not covered by the license. The software is provided as is, without warranty, and has not been tested on real hardware (see Status above).
