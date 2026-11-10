@@ -28,7 +28,7 @@ CAIRN is a crisis-use field kit for MeshCore radios. It is firmware for a Heltec
 | `cairn/CairnOut.h` | The Bluetooth text link: a framed byte stream (frame type `0xC8`) and a bounded byte ring. |
 | `cairn/ui/` | The 128x64 OLED screens (station, help, splash). |
 | `tools/apply_cairn.py` | Patches a MeshCore checkout: hooks CAIRN into received packets, the command line, the screen and the loop. Fails loudly if upstream changed the code it expects. |
-| `tools/persist_ble_pin.py` | Makes the Bluetooth pairing PIN the same at every restart (see `SECURITY.md`; this trade-off has a cost). |
+| `tools/persist_ble_pin.py` | Test-build convenience: makes the Bluetooth pairing PIN the same at every restart. Intentionally weaker than a random PIN; to be removed from non-test releases (see `SECURITY.md`). |
 | `nova/`, `lodestar/` | Shared code CAIRN is built on (NOVA companion extensions, LODESTAR scoring header). |
 
 ### Data it keeps
