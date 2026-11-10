@@ -108,6 +108,25 @@ static inline size_t lowBatMessage(const char* id, int pct, bool fix, int32_t la
 }
 
 // ---- journal lines (JSON, one object per line, no newline inside) ---------------------------------
+// Length (2-4) of the well-formed UTF-8 character at p, or 0 if it is not one (stray, overlong, surrogate, too large, cut short).
+static inline int utf8Len(const unsigned char* p) {
+  unsigned char c = p[0];
+  if (c >= 0xC2 && c <= 0xDF) return (p[1] & 0xC0) == 0x80 ? 2 : 0;
+  if (c >= 0xE0 && c <= 0xEF) {
+    if ((p[1] & 0xC0) != 0x80 || (p[2] & 0xC0) != 0x80) return 0;
+    if (c == 0xE0 && p[1] < 0xA0) return 0;
+    if (c == 0xED && p[1] > 0x9F) return 0;
+    return 3;
+  }
+  if (c >= 0xF0 && c <= 0xF4) {
+    if ((p[1] & 0xC0) != 0x80 || (p[2] & 0xC0) != 0x80 || (p[3] & 0xC0) != 0x80) return 0;
+    if (c == 0xF0 && p[1] < 0x90) return 0;
+    if (c == 0xF4 && p[1] > 0x8F) return 0;
+    return 4;
+  }
+  return 0;
+}
+
 struct W {   // bounded writer; once anything does not fit the whole record is refused
   char* b; size_t cap, n; bool ok;
   W(char* buf, size_t c) : b(buf), cap(c), n(0), ok(c > 1) { if (ok) b[0] = 0; }
@@ -127,8 +146,12 @@ struct W {   // bounded writer; once anything does not fit the whole record is r
     b[n++] = '"';
     for (; t && *t; t++) {
       unsigned char c = (unsigned char)*t;
-      const char* e = nullptr; char one[2] = {0, 0};
-      if (c == '"') e = "\\\"";
+      const char* e = nullptr; char one[2] = {0, 0}; char mb[5] = {0, 0, 0, 0, 0};
+      if (c >= 0x80) {                                  // keep only well-formed UTF-8; anything else becomes '?'
+        int len = utf8Len((const unsigned char*)t);
+        if (len == 0) { one[0] = '?'; e = one; }
+        else { memcpy(mb, t, (size_t)len); e = mb; t += len - 1; }
+      } else if (c == '"') e = "\\\"";
       else if (c == '\\') e = "\\\\";
       else if (c == '\n') e = "\\n";
       else if (c == '\t') e = "\\t";
@@ -143,6 +166,9 @@ struct W {   // bounded writer; once anything does not fit the whole record is r
   size_t done() { if (!ok || n + 2 >= cap) return 0; b[n] = 0; return n; }
 };
 
+// JSON has no nan or inf. A damaged reading becomes 0 instead of breaking the line for whoever reads the journal.
+static inline float cleanSnr(float v) { return (v > -1000.0f && v < 1000.0f) ? v : 0.0f; }
+
 // kind: 'c' channel message, 'd' direct message, 'r' room-server post, 'x' reply to a command we sent.
 // `epoch` is the radio's clock (it may be wrong if nobody has set it); `up` is seconds since boot.
 // `hops` is -1 when unknown (a direct, non-flooded packet).
@@ -152,7 +178,7 @@ static inline size_t recMsg(char* out, size_t cap, uint32_t epoch, uint32_t up, 
   w.f("{\"r\":\"m\",\"t\":%lu,\"u\":%lu,\"k\":\"%c\",\"f\":", (unsigned long)epoch, (unsigned long)up, kind);
   w.str(from ? from : "");
   w.f(",\"c\":"); w.str(chan ? chan : "");
-  w.f(",\"s\":%.1f,\"h\":%d,\"x\":", (double)snr, hops);
+  w.f(",\"s\":%.1f,\"h\":%d,\"x\":", (double)cleanSnr(snr), hops);
   w.str(text ? text : "");
   w.f("}");
   return w.done();
@@ -167,7 +193,7 @@ static inline size_t recAdv(char* out, size_t cap, uint32_t epoch, uint32_t up, 
   char kh[13]; for (int i = 0; i < 6; i++) snprintf(kh + i * 2, 3, "%02X", key6[i]);
   w.f("{\"r\":\"a\",\"t\":%lu,\"u\":%lu,\"ty\":%d,\"n\":", (unsigned long)epoch, (unsigned long)up, type);
   w.str(name ? name : "");
-  w.f(",\"k\":\"%s\",\"h\":%d,\"s\":%.1f,\"rs\":%d", kh, hops, (double)snr, rssi);
+  w.f(",\"k\":\"%s\",\"h\":%d,\"s\":%.1f,\"rs\":%d", kh, hops, (double)cleanSnr(snr), rssi);
   char a[24], b[24];
   if (has_adv) { fmtDeg(a, sizeof(a), alat); fmtDeg(b, sizeof(b), alon); w.f(",\"la\":%s,\"lo\":%s", a, b); }
   if (has_here) { fmtDeg(a, sizeof(a), hlat); fmtDeg(b, sizeof(b), hlon); w.f(",\"hla\":%s,\"hlo\":%s", a, b); }
@@ -598,7 +624,7 @@ public:
       const char* p = a + 7; while (*p == ' ') p++;
       char* end; double g = strtod(p, &end);
       if (*p == 0) { snprintf(reply, cap, "antenna gain %d.%d dBi (cairn antenna <dBi>, printed on the antenna's packaging)", cfg.ant10 / 10, cfg.ant10 % 10); return; }
-      if (end == p || *end != 0 || g < 0.0 || g > 20.0) { snprintf(reply, cap, "Err - cairn antenna <gain in dBi, 0 to 20>"); return; }
+      if (end == p || *end != 0 || !(g >= 0.0 && g <= 20.0)) { snprintf(reply, cap, "Err - cairn antenna <gain in dBi, 0 to 20>"); return; }
       cfg.ant10 = (uint8_t)(g * 10.0 + 0.5); want_power = true; cfg_dirty = true;
       powerReply(reply, cap);
     } else if (cmd(a, "help")) {
@@ -661,7 +687,7 @@ public:
                cfg.mode ? "disaster" : "standard", cfg.power_pref ? "saver" : "full", cfg.ant10 / 10, cfg.ant10 % 10, cfg.auto_min, cfg.beacon_min,
                cfg.help_on ? "ON" : "off", cfg.eco ? "on" : "off", cfg.lowbat ? "on" : "off", cfg.main_chan);
     } else {
-      snprintf(reply, cap, "cairn [status|id|ok|say|dm|chans|chan add|new|remove|key|mode standard|disaster|power full|saver|antenna|help|help off|beacon|auto|eco|lowbat|main|ustatus|mark|config|dump|clear yes|time]");
+      snprintf(reply, cap, "cairn [status|id|ok|say|dm|chans|chan add|new|remove|key|mode standard|disaster|power full|saver|antenna|help|help off|beacon|auto|eco|lowbat|main|units|unit|ustatus|mark|config|dump|clear yes|time]");
     }
   }
 

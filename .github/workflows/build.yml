@@ -73,6 +73,19 @@ jobs:
           g++ -std=c++17 -Wall -Wextra -DNOVA_CAIRN=1 -DNOVA_MPH=1 -Ilodestar -Inova nova/test/test_nova.cpp -o nova_test_cairn_mph
           ./nova_test_cairn_mph
 
+      - name: Edge-case and bad-input tests (with memory and undefined-behaviour checkers on)
+        run: |
+          g++ -std=c++17 -g -fsanitize=address,undefined,float-cast-overflow -fno-sanitize-recover=all -Icairn cairn/test/test_cairn_edge.cpp -o cairn_edge
+          ./cairn_edge edge-lines.jsonl
+          python3 -I -c "
+          import json
+          def bad(c): raise ValueError(c)
+          n = 0
+          for l in open('edge-lines.jsonl', encoding='utf-8', errors='strict'):
+              json.loads(l, parse_constant=bad); n += 1
+          print('edge-case journal lines are strict JSON:', n)
+          "
+
       - name: Unit-test CAIRN, and check every journal line is real JSON
         run: |
           g++ -std=c++17 -Wall -Wextra -Icairn cairn/test/test_cairn.cpp -o cairn_test
