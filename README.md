@@ -109,6 +109,11 @@ Use the **BLE** build: the USB port carries the dashboard. (The USB build uses t
 ## Dashboard hosting
 Enable GitHub Pages (Settings → Pages → `main` / `/docs`) then open the page once on the tablet and "Add to Home screen".
 
+## License
+
+Open source under the **Apache License 2.0** (see `LICENSE` and `NOTICE`). Copyright 2026 Aries Thorne and Todd Steinhauer. Code from others that this project builds on or includes keeps its own license: see `THIRD-PARTY-NOTICES.md`. The names and emblem are not covered by the license. The software is provided as is, without warranty, and has not been tested on real hardware (see Status above).
+
+
 Changelog:
 - 1.4.1: Remote units: companions and repeaters bound to this CAIRN by radio ID, each with a CRU ID (CRU-01...) and a name, kept on the radio (cairn unit add / name / cru / del, cairn units). Dashboard roster, call signs on the map, radar and lists, movement trails, missing-unit banner, trip line that rounds corners and can snap to roads (online, off by default), map under the radar. Not yet run on real hardware.
 - 1.3.0 (cairn-beta1): Beta. Code review, long-uptime timer fix, dashboard direct messages tracked.
